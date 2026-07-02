@@ -11,13 +11,26 @@ import {
   BarElement,
   PointElement,
   LineElement,
+  LineController,
+  BarController,
   Title,
   Tooltip,
   Legend,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  LineController,
+  BarController,
+  Title,
+  Tooltip,
+  Legend
+);
 
 type Shift = {
   id: number;
@@ -28,7 +41,7 @@ type Shift = {
   wolt: number;
   bolt: number;
   glovo: number;
-  user_id: string; // Додали user_id
+  user_id: string;
 };
 
 export default function WorkDashboard() {
@@ -49,12 +62,11 @@ export default function WorkDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
 
-  // Перевірка сесії при завантаженні сторінки
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        router.push("/login"); // Якщо не залогінений - викидаємо на логін
+        router.push("/login");
       } else {
         setUserId(session.user.id);
         fetchShifts(session.user.id);
@@ -63,13 +75,12 @@ export default function WorkDashboard() {
     checkUser();
   }, [router]);
 
-  // Завантажуємо тільки свої зміни!
   const fetchShifts = async (uid: string) => {
     setIsLoading(true);
     const { data, error } = await supabase
       .from("work_shifts")
       .select("*")
-      .eq("user_id", uid) // ФІЛЬТР ПО КОРИСТУВАЧУ
+      .eq("user_id", uid)
       .order("date", { ascending: false });
 
     if (!error && data) {
@@ -100,7 +111,7 @@ export default function WorkDashboard() {
       wolt: activePlatforms.includes("wolt") ? parseFloat(earnings.wolt) || 0 : 0,
       bolt: activePlatforms.includes("bolt") ? parseFloat(earnings.bolt) || 0 : 0,
       glovo: activePlatforms.includes("glovo") ? parseFloat(earnings.glovo) || 0 : 0,
-      user_id: userId, // ЗАПИСУЄМО ВЛАСНИКА ЗМІНИ
+      user_id: userId,
     };
 
     if (editingId) {
@@ -258,7 +269,6 @@ export default function WorkDashboard() {
     <div className="min-h-screen bg-[#121212] text-white p-6 md:p-10">
       <div className="max-w-5xl mx-auto">
         
-        {/* НОВА ШАПКА З КНОПКОЮ ВИХОДУ */}
         <div className="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
           <h1 className="text-3xl font-bold">
             {editingId ? "✏️ Редагування зміни" : "📊 Робоча зміна"}
@@ -274,7 +284,6 @@ export default function WorkDashboard() {
           </div>
         </div>
 
-        {/* Кнопка "Додати зміну" переїхала сюди для краси */}
         {!isFormOpen && (
           <button 
             onClick={() => setIsFormOpen(true)}

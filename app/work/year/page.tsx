@@ -9,15 +9,28 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
+  PointElement,
+  LineElement,
+  LineController,
+  BarController,
   Title,
   Tooltip,
   Legend,
-  PointElement,
-  LineElement,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, PointElement, LineElement);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  LineController,
+  BarController,
+  Title,
+  Tooltip,
+  Legend
+);
 
 type Shift = {
   id: number;
