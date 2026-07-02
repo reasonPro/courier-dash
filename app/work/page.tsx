@@ -266,115 +266,121 @@ export default function WorkDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white p-6 md:p-10">
+    <div className="min-h-screen bg-[#121212] text-white p-4 md:p-10">
       <div className="max-w-5xl mx-auto">
         
-        <div className="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
-          <h1 className="text-3xl font-bold">
+        {/* Шапка */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-gray-800 pb-4">
+          <h1 className="text-2xl md:text-3xl font-bold">
             {editingId ? "✏️ Редагування зміни" : "📊 Робоча зміна"}
           </h1>
           
-          <div className="flex items-center gap-4">
-            <Link href="/garage" className="bg-gray-800 hover:bg-gray-700 text-white font-medium px-4 py-2 rounded-lg transition">
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+            <Link href="/garage" className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition flex-1 sm:flex-none text-center">
               🏍️ Гараж
             </Link>
-            <button onClick={handleLogout} className="text-gray-400 hover:text-red-500 text-sm font-medium transition">
+            <button onClick={handleLogout} className="bg-red-900/20 text-red-400 hover:bg-red-900/40 text-sm font-medium px-4 py-2 rounded-lg transition flex-1 sm:flex-none text-center">
               Вийти 🚪
             </button>
           </div>
         </div>
 
+        {/* Кнопка додавання */}
         {!isFormOpen && (
           <button 
             onClick={() => setIsFormOpen(true)}
-            className="w-full mb-8 bg-green-600 hover:bg-green-500 text-white font-bold px-6 py-4 rounded-xl transition shadow-lg"
+            className="w-full mb-6 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-bold px-6 py-4 rounded-xl transition shadow-lg text-lg"
           >
             + Додати робочу зміну
           </button>
         )}
 
-        <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isFormOpen ? "max-h-[1000px] opacity-100 mb-10" : "max-h-0 opacity-0"}`}>
-          <form onSubmit={handleSubmit} className={`p-6 rounded-xl border shadow-lg transition-all ${editingId ? 'bg-[#25251a] border-yellow-700/50' : 'bg-[#1e1e24] border-gray-800'}`}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Форма */}
+        <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isFormOpen ? "max-h-[1200px] opacity-100 mb-8" : "max-h-0 opacity-0"}`}>
+          <form onSubmit={handleSubmit} className={`p-5 md:p-6 rounded-xl border shadow-lg transition-all ${editingId ? 'bg-[#25251a] border-yellow-700/50' : 'bg-[#1e1e24] border-gray-800'}`}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Дата</label>
-                <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} disabled={editingId !== null} className="w-full bg-[#2a2a35] border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-green-500 disabled:opacity-50" />
+                <label className="block text-sm text-gray-400 mb-1.5">Дата</label>
+                <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} disabled={editingId !== null} className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3.5 text-white focus:outline-none focus:border-green-500 disabled:opacity-50 text-base" />
               </div>
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Пробіг (км)</label>
-                <input type="number" step="0.1" required value={km} onChange={(e) => setKm(e.target.value)} placeholder="Напр. 120.5" className="w-full bg-[#2a2a35] border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-green-500" />
+                <label className="block text-sm text-gray-400 mb-1.5">Пробіг (км)</label>
+                <input type="number" step="0.1" required value={km} onChange={(e) => setKm(e.target.value)} placeholder="Напр. 120.5" className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3.5 text-white focus:outline-none focus:border-green-500 text-base font-medium" />
               </div>
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Години</label>
-                <input type="number" step="0.1" required value={hours} onChange={(e) => setHours(e.target.value)} placeholder="Напр. 8.5" className="w-full bg-[#2a2a35] border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-green-500" />
+                <label className="block text-sm text-gray-400 mb-1.5">Години</label>
+                <input type="number" step="0.1" required value={hours} onChange={(e) => setHours(e.target.value)} placeholder="Напр. 8.5" className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3.5 text-white focus:outline-none focus:border-green-500 text-base font-medium" />
               </div>
             </div>
 
-            <div className="border-t border-gray-800 pt-6 mb-8">
-              <h2 className="text-lg font-medium mb-4 flex items-center justify-between">
-                Дохід по платформах (зл)
+            <div className="border-t border-gray-800 pt-5 mb-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                <h2 className="text-lg font-medium">Дохід по платформах (зл)</h2>
                 {availableToAdd.length > 0 && (
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {availableToAdd.map(platform => (
-                      <button key={platform} type="button" onClick={() => setActivePlatforms([...activePlatforms, platform])} className="text-xs bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-full transition capitalize">+ {platform}</button>
+                      <button key={platform} type="button" onClick={() => setActivePlatforms([...activePlatforms, platform])} className="text-xs bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-2 rounded-lg transition capitalize font-medium">+ {platform}</button>
                     ))}
                   </div>
                 )}
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 {activePlatforms.map((platform) => (
                   <div key={platform} className="relative">
-                    <label className="block text-sm text-gray-400 mb-2 capitalize">{platform}</label>
-                    <input type="number" step="0.01" value={earnings[platform as keyof typeof earnings]} onChange={(e) => handleEarningChange(platform, e.target.value)} placeholder="0.00" className="w-full bg-[#2a2a35] border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-green-500 transition" />
+                    <label className="block text-xs text-gray-400 mb-1.5 capitalize pl-1">{platform}</label>
+                    <input type="number" step="0.01" value={earnings[platform as keyof typeof earnings]} onChange={(e) => handleEarningChange(platform, e.target.value)} placeholder="0.00" className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3 text-white text-lg font-bold focus:outline-none focus:border-green-500 transition" />
                     {activePlatforms.length > 1 && (
-                      <button type="button" onClick={() => { setActivePlatforms(activePlatforms.filter(p => p !== platform)); handleEarningChange(platform, ""); }} className="absolute top-0 right-0 text-gray-500 hover:text-red-500 text-xs p-1">✕</button>
+                      <button type="button" onClick={() => { setActivePlatforms(activePlatforms.filter(p => p !== platform)); handleEarningChange(platform, ""); }} className="absolute top-0 right-0 text-gray-500 hover:text-red-500 text-sm p-2">✕</button>
                     )}
                   </div>
                 ))}
               </div>
             </div>
             
-            <div className="flex gap-4">
-              <button type="submit" disabled={isSubmitting} className={`flex-1 py-4 rounded-lg font-bold text-lg transition ${editingId ? "bg-yellow-600 hover:bg-yellow-500 text-white" : "bg-green-600 hover:bg-green-500 text-white"} ${isSubmitting && "opacity-70 cursor-not-allowed"}`}>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button type="submit" disabled={isSubmitting} className={`flex-1 py-4 rounded-xl font-bold text-lg transition ${editingId ? "bg-yellow-600 hover:bg-yellow-500 text-white" : "bg-green-600 hover:bg-green-500 text-white"} ${isSubmitting && "opacity-70 cursor-not-allowed"}`}>
                 {isSubmitting ? "Зберігаємо..." : (editingId ? "Оновити зміну" : "Зберегти зміну")}
               </button>
-              <button type="button" onClick={resetForm} className="px-6 py-4 rounded-lg font-bold text-lg bg-gray-700 hover:bg-gray-600 transition">
+              <button type="button" onClick={resetForm} className="sm:w-1/3 py-4 rounded-xl font-bold text-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 transition">
                 Скасувати
               </button>
             </div>
           </form>
         </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-gray-800 pb-4">
-          <h2 className="text-2xl font-bold">Місячна статистика</h2>
-          <div className="flex items-center gap-4 w-full md:w-auto">
-            <Link href="/work/year" className="flex-1 md:flex-none text-center bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-lg font-medium transition">
-              📊 Річний звіт
+        {/* Навігація по місяцях */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 border-b border-gray-800 pb-4">
+          <h2 className="text-xl md:text-2xl font-bold">Статистика</h2>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Link href="/work/year" className="flex-1 sm:flex-none text-center bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-lg font-medium transition text-sm">
+              📊 Звіт за рік
             </Link>
             <input 
               type="month" 
               value={selectedMonth} 
               onChange={(e) => setSelectedMonth(e.target.value)} 
-              className="flex-1 md:flex-none bg-[#2a2a35] border border-gray-700 rounded-lg p-2 text-white focus:outline-none focus:border-green-500 font-medium"
+              className="flex-1 sm:flex-none bg-[#2a2a35] border border-gray-700 rounded-lg p-2 text-white focus:outline-none focus:border-green-500 font-medium text-center"
             />
           </div>
         </div>
 
+        {/* Загальні показники місяця */}
+        {/* Найкращий день місяця */}
         {bestShiftDate && (
           <div className="mb-6">
             <button 
               onClick={() => setShowBestMonthDay(!showBestMonthDay)}
-              className="w-full bg-[#24242d] hover:bg-[#2c2c38] border border-gray-800 p-4 rounded-xl font-medium text-yellow-500 transition flex justify-between items-center"
+              className="w-full bg-[#24242d] hover:bg-[#2c2c38] border border-gray-800 p-4 rounded-xl font-medium text-yellow-500 transition flex justify-between items-center text-sm md:text-base"
             >
               <span>{showBestMonthDay ? "👇 Сховати рекорд місяця" : "🏆 Показати найкращий день місяця"}</span>
-              <span className="text-xs bg-gray-800 px-3 py-1 rounded text-gray-400">Натисни щоб подивитись</span>
+              <span className="text-xs bg-gray-800 px-2 md:px-3 py-1 rounded text-gray-400 hidden sm:inline-block">Натисни щоб подивитись</span>
             </button>
             
-            <div className={`transition-all duration-500 ease-in-out overflow-hidden ${showBestMonthDay ? "max-h-40 opacity-100 mt-2 border-l-4 border-yellow-500 p-5 bg-gradient-to-r from-yellow-600/20 to-transparent rounded-r-xl" : "max-h-0 opacity-0"}`}>
+            <div className={`transition-all duration-500 ease-in-out overflow-hidden ${showBestMonthDay ? "max-h-40 opacity-100 mt-2 border-l-4 border-yellow-500 p-4 md:p-5 bg-gradient-to-r from-yellow-600/20 to-transparent rounded-r-xl" : "max-h-0 opacity-0"}`}>
               <div className="flex justify-between items-center w-full">
                 <div>
-                  <h4 className="font-bold text-yellow-500">🔥 Найкращий день місяця</h4>
-                  <p className="text-gray-400 text-sm mt-1">Дата: {new Date(bestShiftDate).toLocaleDateString("uk-UA")}</p>
+                  <h4 className="font-bold text-yellow-500 text-sm md:text-base">🔥 Найкращий день місяця</h4>
+                  <p className="text-gray-400 text-xs md:text-sm mt-1">Дата: {new Date(bestShiftDate).toLocaleDateString("uk-UA")}</p>
                 </div>
                 <div className="text-2xl md:text-3xl font-black text-yellow-500">
                   {maxEarned.toFixed(2)} зл
@@ -384,108 +390,156 @@ export default function WorkDashboard() {
           </div>
         )}
 
+        {/* Загальні показники місяця */}
         <div className="mb-4">
-          <span className="text-xs font-semibold text-gray-500 tracking-wider uppercase">Загальні значення за місяць</span>
-          <div className="grid grid-cols-3 gap-4 mt-2">
-            <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center">
-              <h3 className="text-gray-400 text-xs md:text-sm mb-1">Загальний дохід</h3>
-              <p className="text-xl md:text-2xl font-bold text-green-400">{totalEarned.toFixed(2)} зл</p>
+          <span className="text-xs font-semibold text-gray-500 tracking-wider uppercase mb-2 block">Загальні значення за місяць</span>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="bg-gradient-to-br from-[#1e1e24] to-[#252530] p-4 md:p-5 rounded-xl border border-gray-800 text-center shadow-md">
+              <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">Загальний дохід</h3>
+              <p className="text-2xl md:text-3xl font-black text-green-400">{totalEarned.toFixed(2)} <span className="text-sm md:text-base font-normal">зл</span></p>
             </div>
-            <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center">
-              <h3 className="text-gray-400 text-xs md:text-sm mb-1">Всього годин</h3>
-              <p className="text-xl md:text-2xl font-bold text-white">{totalHours.toFixed(1)} год</p>
+            <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
+              <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">Всього годин</h3>
+              <p className="text-xl md:text-2xl font-bold text-white">{totalHours.toFixed(1)} <span className="text-xs md:text-sm font-normal text-gray-500">год</span></p>
             </div>
-            <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center">
-              <h3 className="text-gray-400 text-xs md:text-sm mb-1">Загальний пробіг</h3>
-              <p className="text-xl md:text-2xl font-bold text-purple-400">{totalKm.toFixed(1)} км</p>
+            <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
+              <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">Загальний пробіг</h3>
+              <p className="text-xl md:text-2xl font-bold text-purple-400">{totalKm.toFixed(1)} <span className="text-xs md:text-sm font-normal text-gray-500">км</span></p>
             </div>
           </div>
         </div>
 
+        {/* Середні показники */}
         <div className="mb-8">
-          <span className="text-xs font-semibold text-gray-500 tracking-wider uppercase">Середні показники ефективності</span>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-2">
-            <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center border-b-2 border-green-500/50">
-              <h3 className="text-gray-400 text-xs mb-1">Дохід/День (сер.)</h3>
-              <p className="text-lg md:text-xl font-bold text-green-400">{avgEarnedPerDay} зл</p>
+          <span className="text-xs font-semibold text-gray-500 tracking-wider uppercase mb-2 block">Середні показники ефективності</span>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {/* ГОЛОВНА КАРТКА: На телефоні на всю ширину (col-span-2), на ПК - як усі (md:col-span-1) */}
+            <div className="col-span-2 md:col-span-1 bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center border-b-2 border-green-500/50 shadow-sm">
+              <h3 className="text-gray-400 text-xs uppercase tracking-wider mb-1">Дохід/День (сер.)</h3>
+              <p className="text-2xl md:text-lg font-bold text-green-400">{avgEarnedPerDay} <span className="text-sm md:text-xs font-normal">зл</span></p>
             </div>
-            <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center">
-              <h3 className="text-gray-400 text-xs mb-1">Ставка зл/год</h3>
-              <p className="text-lg md:text-xl font-bold text-blue-400">{avgPerHour} зл</p>
+            
+            {/* Інші 4 картки */}
+            <div className="bg-[#1e1e24] p-3 md:p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
+              <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">Ставка зл/год</h3>
+              <p className="text-base md:text-lg font-bold text-blue-400">{avgPerHour} <span className="text-xs font-normal">зл</span></p>
             </div>
-            <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center">
-              <h3 className="text-gray-400 text-xs mb-1">Ефективність зл/км</h3>
-              <p className="text-lg md:text-xl font-bold text-purple-400">{avgPerKm} зл</p>
+            <div className="bg-[#1e1e24] p-3 md:p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
+              <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">Ефективність зл/км</h3>
+              <p className="text-base md:text-lg font-bold text-purple-400">{avgPerKm} <span className="text-xs font-normal">зл</span></p>
             </div>
-            <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center">
-              <h3 className="text-gray-400 text-xs mb-1">Км на день (сер.)</h3>
-              <p className="text-lg md:text-xl font-bold text-gray-300">{avgKmPerDay} км</p>
+            <div className="bg-[#1e1e24] p-3 md:p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
+              <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">Км на день (сер.)</h3>
+              <p className="text-base md:text-lg font-bold text-gray-300">{avgKmPerDay} <span className="text-xs font-normal">км</span></p>
             </div>
-            <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center">
-              <h3 className="text-gray-400 text-xs mb-1">Годин на день (сер.)</h3>
-              <p className="text-lg md:text-xl font-bold text-gray-300">{avgHoursPerDay} год</p>
+            <div className="bg-[#1e1e24] p-3 md:p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
+              <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">Годин на день (сер.)</h3>
+              <p className="text-base md:text-lg font-bold text-gray-300">{avgHoursPerDay} <span className="text-xs font-normal">год</span></p>
             </div>
           </div>
         </div>
 
+        {/* Графік */}
         {filteredShifts.length > 0 && (
-          <div className="bg-[#1e1e24] p-4 md:p-6 rounded-xl border border-gray-800 mb-8 flex flex-col items-center justify-center">
-            <h3 className="text-sm font-medium text-gray-400 mb-4 self-start">Графік активності за місяць</h3>
-            <div className="w-full max-w-4xl h-64 relative mx-auto flex justify-center">
+          <div className="bg-[#1e1e24] p-3 md:p-6 rounded-xl border border-gray-800 mb-8 hidden sm:block">
+            <h3 className="text-sm font-medium text-gray-400 mb-4">Графік активності</h3>
+            <div className="w-full h-64 relative">
               <Bar data={monthlyChartData as any} options={monthlyChartOptions as any} />
             </div>
           </div>
         )}
 
-        <div className="bg-[#1e1e24] rounded-xl border border-gray-800 overflow-hidden">
-          <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-            <h2 className="text-lg font-medium">Зміни за місяць</h2>
-            <span className="text-sm text-gray-400">Робочих днів: {filteredShifts.length}</span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-[#2a2a35] text-gray-400 text-sm">
-                  <th className="p-4 font-medium">Дата</th>
-                  <th className="p-4 font-medium">Дохід</th>
-                  <th className="p-4 font-medium">Години</th>
-                  <th className="p-4 font-medium">Зл/Год</th>
-                  <th className="p-4 font-medium">Пробіг</th>
-                  <th className="p-4 font-medium">Зл/Км</th>
-                  <th className="p-4 font-medium text-right">Дії</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-800">
-                {isLoading ? (
-                  <tr><td colSpan={7} className="p-4 text-center text-gray-500">Завантаження...</td></tr>
-                ) : filteredShifts.length === 0 ? (
-                  <tr><td colSpan={7} className="p-4 text-center text-gray-500">У цьому місяці записів немає</td></tr>
-                ) : (
-                  filteredShifts.map((shift) => {
-                    const dailyTotal = shift.uber + shift.wolt + shift.bolt + shift.glovo;
-                    const dailyAvgHour = shift.hours > 0 ? (dailyTotal / shift.hours).toFixed(2) : "0.00";
-                    const dailyAvgKm = shift.km > 0 ? (dailyTotal / shift.km).toFixed(2) : "0.00";
-                    
-                    return (
-                      <tr key={shift.id} className="hover:bg-[#2a2a35] transition">
-                        <td className="p-4">{new Date(shift.date).toLocaleDateString("uk-UA")}</td>
-                        <td className="p-4 font-bold text-green-400">{dailyTotal.toFixed(2)} зл</td>
-                        <td className="p-4">{shift.hours}</td>
-                        <td className="p-4 text-blue-400">{dailyAvgHour}</td>
-                        <td className="p-4 text-gray-400">{shift.km} км</td>
-                        <td className="p-4 text-purple-400">{dailyAvgKm}</td>
-                        <td className="p-4 text-right">
-                          <button onClick={() => handleEdit(shift)} className="text-gray-400 hover:text-yellow-500 p-2 transition" title="Редагувати">✏️</button>
-                          <button onClick={() => handleDelete(shift.id)} className="text-gray-400 hover:text-red-500 p-2 transition" title="Видалити">🗑️</button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+        {/* Список змін */}
+        <div className="mb-2 flex justify-between items-end">
+          <h2 className="text-lg font-medium text-white">Історія змін</h2>
+          <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">Робочих днів: {filteredShifts.length}</span>
         </div>
+
+        {/* ДЕСКТОПНА ТАБЛИЦЯ (ховається на телефонах) */}
+        <div className="hidden md:block bg-[#1e1e24] rounded-xl border border-gray-800 overflow-hidden">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-[#2a2a35] text-gray-400 text-sm">
+                <th className="p-4 font-medium">Дата</th>
+                <th className="p-4 font-medium">Дохід</th>
+                <th className="p-4 font-medium">Години</th>
+                <th className="p-4 font-medium">Зл/Год</th>
+                <th className="p-4 font-medium">Пробіг</th>
+                <th className="p-4 font-medium">Зл/Км</th>
+                <th className="p-4 font-medium text-right">Дії</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-800">
+              {isLoading ? (
+                <tr><td colSpan={7} className="p-8 text-center text-gray-500">Завантаження...</td></tr>
+              ) : filteredShifts.length === 0 ? (
+                <tr><td colSpan={7} className="p-8 text-center text-gray-500">Записів немає</td></tr>
+              ) : (
+                filteredShifts.map((shift) => {
+                  const dailyTotal = shift.uber + shift.wolt + shift.bolt + shift.glovo;
+                  const dailyAvgHour = shift.hours > 0 ? (dailyTotal / shift.hours).toFixed(2) : "0.00";
+                  const dailyAvgKm = shift.km > 0 ? (dailyTotal / shift.km).toFixed(2) : "0.00";
+                  
+                  return (
+                    <tr key={shift.id} className="hover:bg-[#2a2a35] transition">
+                      <td className="p-4 font-medium">{new Date(shift.date).toLocaleDateString("uk-UA")}</td>
+                      <td className="p-4 font-bold text-green-400">{dailyTotal.toFixed(2)} зл</td>
+                      <td className="p-4">{shift.hours}</td>
+                      <td className="p-4 text-blue-400">{dailyAvgHour}</td>
+                      <td className="p-4 text-gray-400">{shift.km} км</td>
+                      <td className="p-4 text-purple-400">{dailyAvgKm}</td>
+                      <td className="p-4 text-right">
+                        <button onClick={() => handleEdit(shift)} className="text-gray-400 hover:text-yellow-500 p-2 transition">✏️</button>
+                        <button onClick={() => handleDelete(shift.id)} className="text-gray-400 hover:text-red-500 p-2 transition">🗑️</button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* МОБІЛЬНІ КАРТКИ (показуються тільки на телефонах) */}
+        <div className="md:hidden flex flex-col gap-3 pb-10">
+          {isLoading ? (
+            <div className="text-center text-gray-500 py-8 bg-[#1e1e24] rounded-xl border border-gray-800">Завантаження...</div>
+          ) : filteredShifts.length === 0 ? (
+            <div className="text-center text-gray-500 py-8 bg-[#1e1e24] rounded-xl border border-gray-800">Записів немає</div>
+          ) : (
+            filteredShifts.map((shift) => {
+              const dailyTotal = shift.uber + shift.wolt + shift.bolt + shift.glovo;
+              const dailyAvgHour = shift.hours > 0 ? (dailyTotal / shift.hours).toFixed(2) : "0.00";
+              const dailyAvgKm = shift.km > 0 ? (dailyTotal / shift.km).toFixed(2) : "0.00";
+              
+              return (
+                <div key={shift.id} className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 shadow-sm relative">
+                  <div className="flex justify-between items-center mb-3 border-b border-gray-700/50 pb-3">
+                    <span className="font-bold text-white text-lg">{new Date(shift.date).toLocaleDateString("uk-UA", { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+                    <span className="font-black text-green-400 text-xl">{dailyTotal.toFixed(2)} <span className="text-sm font-normal">зл</span></span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm mb-4">
+                    <div className="bg-[#2a2a35] p-2 rounded-lg"><span className="text-gray-400 block text-[10px] uppercase">Години</span> <span className="font-bold">{shift.hours}</span></div>
+                    <div className="bg-[#2a2a35] p-2 rounded-lg"><span className="text-gray-400 block text-[10px] uppercase">Пробіг</span> <span className="font-bold">{shift.km} <span className="text-xs font-normal">км</span></span></div>
+                    <div className="bg-[#2a2a35] p-2 rounded-lg"><span className="text-gray-400 block text-[10px] uppercase">Зл/Год</span> <span className="font-bold text-blue-400">{dailyAvgHour}</span></div>
+                    <div className="bg-[#2a2a35] p-2 rounded-lg"><span className="text-gray-400 block text-[10px] uppercase">Зл/Км</span> <span className="font-bold text-purple-400">{dailyAvgKm}</span></div>
+                  </div>
+                  
+                  <div className="flex justify-between gap-2 pt-1">
+                    <button onClick={() => handleEdit(shift)} className="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 py-2.5 rounded-lg text-yellow-500 text-sm font-bold transition flex items-center justify-center gap-1">
+                      ✏️ Редагувати
+                    </button>
+                    <button onClick={() => handleDelete(shift.id)} className="w-12 bg-red-900/20 hover:bg-red-900/40 border border-red-900/30 rounded-lg text-red-500 transition flex items-center justify-center">
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
       </div>
     </div>
   );
