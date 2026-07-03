@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../context/LanguageContext";
@@ -8,6 +8,9 @@ import { useLanguage } from "../context/LanguageContext";
 export default function LandingPage() {
   const router = useRouter();
   const { lang, setLanguage, t } = useLanguage();
+
+  // Стан перевірки сесії для авто-входу
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
 
   // Стани модального вікна
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,6 +22,19 @@ export default function LandingPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // АВТО-ВХІД: Якщо користувач вже авторизований, одразу пускаємо в кабінет
+  useEffect(() => {
+    const checkActiveSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        router.push("/work");
+      } else {
+        setIsCheckingSession(false);
+      }
+    };
+    checkActiveSession();
+  }, [router]);
 
   const openModal = (mode: "login" | "register") => {
     setModalMode(mode);
@@ -59,8 +75,25 @@ export default function LandingPage() {
     setIsLoading(false);
   };
 
+  // Поки йде фонова перевірка сесії, показуємо нейтральний екран завантаження
+  if (isCheckingSession) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0e] text-white flex items-center justify-center font-medium">
+        {t.common.loading}
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#0a0a0e] text-white relative overflow-hidden flex flex-col">
+      {/* Стилі для плавних анімацій появи вікна */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
+        .animate-scale-in { animation: scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+      `}} />
+
       {/* Динамічний задній фон */}
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-purple-600/20 rounded-full blur-[100px] pointer-events-none"></div>
@@ -72,7 +105,6 @@ export default function LandingPage() {
         </div>
         
         <div className="flex items-center gap-4">
-          {/* Перемикач мов */}
           <div className="flex bg-[#1e1e24] p-1 rounded-full border border-gray-700 text-xs font-bold">
             {(["pl", "uk", "en", "ru"] as const).map((l) => (
               <button
@@ -125,7 +157,7 @@ export default function LandingPage() {
         </div>
       </main>
 
-      {/* Блок переваг (Features) */}
+      {/* Блок переваг */}
       <section className="relative z-10 max-w-6xl mx-auto p-6 my-16 md:my-24 grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-[#1e1e24]/80 backdrop-blur-sm border border-gray-800 p-8 rounded-2xl hover:border-blue-500/50 hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] transition-all duration-300 group">
           <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">📈</div>
@@ -146,12 +178,11 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* АНІМОВАНЕ МОДАЛЬНЕ ВІКНО АВТОРИЗАЦІЇ */}
+      {/* МОДАЛЬНЕ ВІКНО З ПЛАВНОЮ АНІМАЦІЄЮ */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md transition-opacity duration-300">
-          <div className="bg-[#1e1e24] border border-gray-800 rounded-2xl w-full max-w-md overflow-hidden p-6 md:p-8 relative shadow-2xl animate-[scaleIn_0.2s_ease-out]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in">
+          <div className="bg-[#1e1e24] border border-gray-800 rounded-2xl w-full max-w-md overflow-hidden p-6 md:p-8 relative shadow-2xl animate-scale-in">
             
-            {/* Кнопка закриття */}
             <button 
               onClick={closeModal} 
               className="absolute top-4 right-4 text-gray-400 hover:text-white transition text-lg"
@@ -159,7 +190,6 @@ export default function LandingPage() {
               ✕
             </button>
 
-            {/* Таби вибору режиму */}
             <div className="flex border-b border-gray-800 mb-6 font-bold">
               <button 
                 onClick={() => { setModalMode("login"); setErrorMsg(null); }}
@@ -175,11 +205,9 @@ export default function LandingPage() {
               </button>
             </div>
 
-            {/* Сповіщення */}
             {errorMsg && <div className="bg-red-900/30 border border-red-700/50 text-red-400 p-3 rounded-lg text-sm mb-4">{errorMsg}</div>}
             {successMsg && <div className="bg-green-900/30 border border-green-700/50 text-green-400 p-3 rounded-lg text-sm mb-4">{successMsg}</div>}
 
-            {/* Форма */}
             <form onSubmit={handleAuthSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5">{t.auth.emailLabel}</label>
@@ -221,7 +249,6 @@ export default function LandingPage() {
         </div>
       )}
 
-      {/* Футер */}
       <footer className="relative z-10 border-t border-gray-800/50 mt-auto py-8 text-center text-gray-500 text-sm">
         <p>© {new Date().getFullYear()} CourierDash. {t.landing.footer}</p>
       </footer>

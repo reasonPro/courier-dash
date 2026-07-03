@@ -68,7 +68,7 @@ export default function WorkDashboard() {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        router.push("/login");
+        router.push("/");
       } else {
         setUserId(session.user.id);
         fetchShifts(session.user.id);
@@ -92,8 +92,11 @@ export default function WorkDashboard() {
   };
 
   const handleLogout = async () => {
+    setIsLoading(true);
     await supabase.auth.signOut();
-    router.push("/login");
+    // Повністю очищуємо локальну сесію сайту перед редиректом
+    localStorage.removeItem("supabase.auth.token"); 
+    router.push("/");
   };
 
   const handleEarningChange = (platform: string, value: string) => {
@@ -278,15 +281,12 @@ export default function WorkDashboard() {
     <div className="min-h-screen bg-[#121212] text-white p-4 md:p-10">
       <div className="max-w-5xl mx-auto">
         
-        {/* Шапка з мовами */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-gray-800 pb-4">
           <h1 className="text-2xl md:text-3xl font-bold">
             {editingId ? t.work.editTitle : t.work.title}
           </h1>
           
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-            
-            {/* Перемикач мов */}
             <div className="flex bg-[#1e1e24] p-1 rounded-lg border border-gray-700 text-xs font-bold">
               {(["pl", "uk", "en", "ru"] as const).map((l) => (
                 <button
