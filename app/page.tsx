@@ -9,21 +9,20 @@ export default function LandingPage() {
   const router = useRouter();
   const { lang, setLanguage, t } = useLanguage();
 
-  // Стан перевірки сесії для авто-входу
   const [isCheckingSession, setIsCheckingSession] = useState(true);
-
-  // Стани модального вікна
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"login" | "register">("login");
 
   // Стани полів форми
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [nickname, setNickname] = useState("");
+  
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // АВТО-ВХІД: Якщо користувач вже авторизований, одразу пускаємо в кабінет
   useEffect(() => {
     const checkActiveSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -47,6 +46,8 @@ export default function LandingPage() {
     setIsModalOpen(false);
     setEmail("");
     setPassword("");
+    setConfirmPassword("");
+    setNickname("");
   };
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
@@ -64,29 +65,61 @@ export default function LandingPage() {
         router.push("/work");
       }
     } else {
-      const { error } = await supabase.auth.signUp({ email, password });
+      // ПЕРЕВІРКА 1: Паролі збігаються?
+      if (password !== confirmPassword) {
+        setErrorMsg(t.auth.passwordsNotMatch);
+        setIsLoading(false);
+        return;
+      }
+
+      const cleanNickname = nickname.trim();
+
+      // ПЕРЕВІРКА 2: Нікнейм вільний?
+      const { data: existing } = await supabase
+        .from("profiles")
+        .select("nickname")
+        .eq("nickname", cleanNickname);
+
+      if (existing && existing.length > 0) {
+        setErrorMsg(t.auth.nicknameTaken);
+        setIsLoading(false);
+        return;
+      }
+
+      // СТВОРЕННЯ: Реєструємо і зберігаємо нікнейм у метадані юзера
+      const { data, error } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options: {
+          data: { nickname: cleanNickname }
+        }
+      });
+
       if (error) {
         setErrorMsg(error.message);
       } else {
-        setSuccessMsg(t.auth.successRegister);
-        setModalMode("login");
+        // Якщо реєстрація автоматично не залогінила (потрібно підтвердити email)
+        if (!data.session) {
+          setSuccessMsg(t.auth.successRegister);
+          setModalMode("login");
+          setPassword("");
+          setConfirmPassword("");
+        } else {
+          // Якщо авторизувало одразу - примусово зберігаємо нік в базу
+          await supabase.from("profiles").upsert({ id: data.user!.id, nickname: cleanNickname });
+          router.push("/work");
+        }
       }
     }
     setIsLoading(false);
   };
 
-  // Поки йде фонова перевірка сесії, показуємо нейтральний екран завантаження
   if (isCheckingSession) {
-    return (
-      <div className="min-h-screen bg-[#0a0a0e] text-white flex items-center justify-center font-medium">
-        {t.common.loading}
-      </div>
-    );
+    return <div className="min-h-screen bg-[#0a0a0e] text-white flex items-center justify-center font-medium">{t.common.loading}</div>;
   }
 
   return (
     <div className="min-h-screen bg-[#0a0a0e] text-white relative overflow-hidden flex flex-col">
-      {/* Стилі для плавних анімацій появи вікна */}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -94,11 +127,9 @@ export default function LandingPage() {
         .animate-scale-in { animation: scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
       `}} />
 
-      {/* Динамічний задній фон */}
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-purple-600/20 rounded-full blur-[100px] pointer-events-none"></div>
 
-      {/* Навігація */}
       <nav className="relative z-10 flex justify-between items-center p-6 md:px-12 border-b border-gray-800/50 bg-[#0a0a0e]/80 backdrop-blur-md">
         <div className="text-xl font-black tracking-tight">
           {t.landing.navLogo}<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Dash</span>
@@ -111,9 +142,7 @@ export default function LandingPage() {
                 key={l}
                 onClick={() => setLanguage(l)}
                 className={`px-2.5 py-1 rounded-full uppercase transition-all ${
-                  lang === l 
-                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md" 
-                    : "text-gray-400 hover:text-white"
+                  lang === l ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md" : "text-gray-400 hover:text-white"
                 }`}
               >
                 {l}
@@ -121,16 +150,12 @@ export default function LandingPage() {
             ))}
           </div>
 
-          <button 
-            onClick={() => openModal("login")}
-            className="text-sm font-bold bg-[#1e1e24] hover:bg-[#2a2a35] border border-gray-700 px-5 py-2.5 rounded-full transition-all"
-          >
+          <button onClick={() => openModal("login")} className="text-sm font-bold bg-[#1e1e24] hover:bg-[#2a2a35] border border-gray-700 px-5 py-2.5 rounded-full transition-all">
             {t.landing.navBtn}
           </button>
         </div>
       </nav>
 
-      {/* Головний блок (Hero Section) */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center text-center p-6 mt-12 md:mt-20">
         <div className="inline-block mb-4 px-4 py-1.5 rounded-full bg-blue-900/30 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-wider">
           {t.landing.badge}
@@ -148,29 +173,23 @@ export default function LandingPage() {
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-          <button 
-            onClick={() => openModal("register")}
-            className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] hover:-translate-y-1 flex items-center justify-center gap-2"
-          >
+          <button onClick={() => openModal("register")} className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] hover:-translate-y-1 flex items-center justify-center gap-2">
             {t.landing.startBtn}
           </button>
         </div>
       </main>
 
-      {/* Блок переваг */}
       <section className="relative z-10 max-w-6xl mx-auto p-6 my-16 md:my-24 grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-[#1e1e24]/80 backdrop-blur-sm border border-gray-800 p-8 rounded-2xl hover:border-blue-500/50 hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] transition-all duration-300 group">
           <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">📈</div>
           <h3 className="text-xl font-bold mb-3 text-white">{t.landing.feat1Title}</h3>
           <p className="text-gray-400 text-sm leading-relaxed">{t.landing.feat1Desc}</p>
         </div>
-
         <div className="bg-[#1e1e24]/80 backdrop-blur-sm border border-gray-800 p-8 rounded-2xl hover:border-purple-500/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] transition-all duration-300 group">
           <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">🏍️</div>
           <h3 className="text-xl font-bold mb-3 text-white">{t.landing.feat2Title}</h3>
           <p className="text-gray-400 text-sm leading-relaxed">{t.landing.feat2Desc}</p>
         </div>
-
         <div className="bg-[#1e1e24]/80 backdrop-blur-sm border border-gray-800 p-8 rounded-2xl hover:border-green-500/50 hover:shadow-[0_0_30px_rgba(34,197,94,0.15)] transition-all duration-300 group">
           <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">📱</div>
           <h3 className="text-xl font-bold mb-3 text-white">{t.landing.feat3Title}</h3>
@@ -178,29 +197,17 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* МОДАЛЬНЕ ВІКНО З ПЛАВНОЮ АНІМАЦІЄЮ */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in">
-          <div className="bg-[#1e1e24] border border-gray-800 rounded-2xl w-full max-w-md overflow-hidden p-6 md:p-8 relative shadow-2xl animate-scale-in">
+          <div className="bg-[#1e1e24] border border-gray-800 rounded-2xl w-full max-w-md overflow-hidden p-6 md:p-8 relative shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
             
-            <button 
-              onClick={closeModal} 
-              className="absolute top-4 right-4 text-gray-400 hover:text-white transition text-lg"
-            >
-              ✕
-            </button>
+            <button onClick={closeModal} className="absolute top-4 right-4 text-gray-400 hover:text-white transition text-lg">✕</button>
 
             <div className="flex border-b border-gray-800 mb-6 font-bold">
-              <button 
-                onClick={() => { setModalMode("login"); setErrorMsg(null); }}
-                className={`flex-1 pb-3 text-center transition ${modalMode === "login" ? "text-blue-400 border-b-2 border-blue-500" : "text-gray-400 hover:text-gray-200"}`}
-              >
+              <button onClick={() => { setModalMode("login"); setErrorMsg(null); }} className={`flex-1 pb-3 text-center transition ${modalMode === "login" ? "text-blue-400 border-b-2 border-blue-500" : "text-gray-400 hover:text-gray-200"}`}>
                 {t.auth.loginTab}
               </button>
-              <button 
-                onClick={() => { setModalMode("register"); setErrorMsg(null); }}
-                className={`flex-1 pb-3 text-center transition ${modalMode === "register" ? "text-purple-400 border-b-2 border-purple-500" : "text-gray-400 hover:text-gray-200"}`}
-              >
+              <button onClick={() => { setModalMode("register"); setErrorMsg(null); }} className={`flex-1 pb-3 text-center transition ${modalMode === "register" ? "text-purple-400 border-b-2 border-purple-500" : "text-gray-400 hover:text-gray-200"}`}>
                 {t.auth.registerTab}
               </button>
             </div>
@@ -209,6 +216,25 @@ export default function LandingPage() {
             {successMsg && <div className="bg-green-900/30 border border-green-700/50 text-green-400 p-3 rounded-lg text-sm mb-4">{successMsg}</div>}
 
             <form onSubmit={handleAuthSubmit} className="space-y-4">
+              
+              {/* ПОЛЕ: Нікнейм (Тільки для реєстрації) */}
+              {modalMode === "register" && (
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5">{t.auth.nicknameLabel}</label>
+                  <input 
+                    type="text" 
+                    required 
+                    pattern="^[a-zA-Z0-9_]{3,15}$"
+                    title="3-15 символів. Англійські літери, цифри та _"
+                    value={nickname}
+                    onChange={(e) => setNickname(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))}
+                    placeholder="FastRider_99"
+                    className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              )}
+
+              {/* ПОЛЕ: Email */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5">{t.auth.emailLabel}</label>
                 <input 
@@ -220,6 +246,8 @@ export default function LandingPage() {
                   className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
+
+              {/* ПОЛЕ: Пароль */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5">{t.auth.passwordLabel}</label>
                 <input 
@@ -232,10 +260,25 @@ export default function LandingPage() {
                 />
               </div>
 
+              {/* ПОЛЕ: Підтвердження пароля (Тільки для реєстрації) */}
+              {modalMode === "register" && (
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5">{t.auth.confirmPasswordLabel}</label>
+                  <input 
+                    type="password" 
+                    required 
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              )}
+
               <button 
                 type="submit" 
                 disabled={isLoading}
-                className={`w-full py-3.5 mt-2 rounded-xl font-bold transition text-white ${
+                className={`w-full py-3.5 mt-4 rounded-xl font-bold transition text-white ${
                   modalMode === "login" 
                     ? "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]" 
                     : "bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)]"

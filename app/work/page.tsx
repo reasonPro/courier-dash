@@ -79,23 +79,32 @@ export default function WorkDashboard() {
       } else {
         setUserId(session.user.id);
         fetchShifts(session.user.id);
-        checkNickname(session.user.id); // Перевіряємо нікнейм при вході
+        checkNickname(session.user); // Перевіряємо нікнейм при вході
       }
     };
     checkUser();
   }, [router]);
 
   // Функція перевірки нікнейму в базі
-  const checkNickname = async (uid: string) => {
+  const checkNickname = async (sessionUser: any) => {
     const { data, error } = await supabase
       .from("profiles")
       .select("nickname")
-      .eq("id", uid)
+      .eq("id", sessionUser.id)
       .single();
 
     if (error || !data || !data.nickname) {
-      // Якщо профілю немає або нік порожній — блокуємо екран модалкою
-      setShowNicknameModal(true);
+      // Якщо в таблиці профілів ще нічого немає, перевіряємо, чи ми не зберегли нікнейм під час нової реєстрації
+      const metaNickname = sessionUser.user_metadata?.nickname;
+      
+      if (metaNickname) {
+        // О! Людина зареєструвалася через нову форму. Непомітно зберігаємо нікнейм у базу і не мучимо її модалкою!
+        await supabase.from("profiles").upsert({ id: sessionUser.id, nickname: metaNickname });
+        setUserNickname(metaNickname);
+      } else {
+        // Це старий користувач, у якого в метаданих пусто. Показуємо примусове модальне вікно.
+        setShowNicknameModal(true);
+      }
     } else {
       setUserNickname(data.nickname);
     }
