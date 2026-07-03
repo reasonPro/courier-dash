@@ -64,6 +64,13 @@ export default function WorkDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
 
+  // СТАН СТВОРЕННЯ НІКНЕЙМУ (Примусовий)
+  const [userNickname, setUserNickname] = useState<string | null>(null);
+  const [showNicknameModal, setShowNicknameModal] = useState(false);
+  const [newNickname, setNewNickname] = useState("");
+  const [nicknameError, setNicknameError] = useState<string | null>(null);
+  const [isSavingNickname, setIsSavingNickname] = useState(false);
+
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -72,10 +79,62 @@ export default function WorkDashboard() {
       } else {
         setUserId(session.user.id);
         fetchShifts(session.user.id);
+        checkNickname(session.user.id); // Перевіряємо нікнейм при вході
       }
     };
     checkUser();
   }, [router]);
+
+  // Функція перевірки нікнейму в базі
+  const checkNickname = async (uid: string) => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("nickname")
+      .eq("id", uid)
+      .single();
+
+    if (error || !data || !data.nickname) {
+      // Якщо профілю немає або нік порожній — блокуємо екран модалкою
+      setShowNicknameModal(true);
+    } else {
+      setUserNickname(data.nickname);
+    }
+  };
+
+  // Збереження нікнейму
+  const handleNicknameSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userId || !newNickname.trim()) return;
+    setNicknameError(null);
+    setIsSavingNickname(true);
+
+    const cleanNickname = newNickname.trim();
+
+    // 1. Спочатку перевіряємо чи такий нік вже не зайнятий
+    const { data: existing } = await supabase
+      .from("profiles")
+      .select("nickname")
+      .eq("nickname", cleanNickname);
+
+    if (existing && existing.length > 0) {
+      setNicknameError(lang === "pl" ? "Ta nazwa jest już zajęta!" : lang === "en" ? "This nickname is already taken!" : lang === "ru" ? "Этот ник уже занят!" : "Цей нікнейм уже зайнятий!");
+      setIsSavingNickname(false);
+      return;
+    }
+
+    // 2. Пробуємо зберегти (використовуємо upsert, щоб створити або оновити запис)
+    const { error } = await supabase
+      .from("profiles")
+      .upsert({ id: userId, nickname: cleanNickname });
+
+    if (error) {
+      setNicknameError(error.message);
+    } else {
+      setUserNickname(cleanNickname);
+      setShowNicknameModal(false);
+    }
+    setIsSavingNickname(false);
+  };
 
   const fetchShifts = async (uid: string) => {
     setIsLoading(true);
@@ -94,7 +153,6 @@ export default function WorkDashboard() {
   const handleLogout = async () => {
     setIsLoading(true);
     await supabase.auth.signOut();
-    // Повністю очищуємо локальну сесію сайту перед редиректом
     localStorage.removeItem("supabase.auth.token"); 
     router.push("/");
   };
@@ -281,10 +339,14 @@ export default function WorkDashboard() {
     <div className="min-h-screen bg-[#121212] text-white p-4 md:p-10">
       <div className="max-w-5xl mx-auto">
         
+        {/* Шапка з мовами */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-gray-800 pb-4">
-          <h1 className="text-2xl md:text-3xl font-bold">
-            {editingId ? t.work.editTitle : t.work.title}
-          </h1>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold">
+              {editingId ? t.work.editTitle : t.work.title}
+            </h1>
+            {userNickname && <p className="text-xs text-gray-500 mt-1">@ {userNickname}</p>}
+          </div>
           
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
             <div className="flex bg-[#1e1e24] p-1 rounded-lg border border-gray-700 text-xs font-bold">
@@ -293,9 +355,7 @@ export default function WorkDashboard() {
                   key={l}
                   onClick={() => setLanguage(l)}
                   className={`px-2 py-1.5 rounded-md uppercase transition-all ${
-                    lang === l 
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm" 
-                      : "text-gray-400 hover:text-white"
+                    lang === l ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm" : "text-gray-400 hover:text-white"
                   }`}
                 >
                   {l}
@@ -312,11 +372,9 @@ export default function WorkDashboard() {
           </div>
         </div>
 
+        {/* ... Решта інтерфейсу дашборду без змін ... */}
         {!isFormOpen && (
-          <button 
-            onClick={() => setIsFormOpen(true)}
-            className="w-full mb-6 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-bold px-6 py-4 rounded-xl transition shadow-lg text-lg"
-          >
+          <button onClick={() => setIsFormOpen(true)} className="w-full mb-6 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-bold px-6 py-4 rounded-xl transition shadow-lg text-lg">
             {t.work.addShiftBtn}
           </button>
         )}
@@ -379,34 +437,23 @@ export default function WorkDashboard() {
             <Link href="/work/year" className="flex-1 sm:flex-none text-center bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-lg font-medium transition text-sm">
               {t.work.yearReportBtn}
             </Link>
-            <input 
-              type="month" 
-              value={selectedMonth} 
-              onChange={(e) => setSelectedMonth(e.target.value)} 
-              className="flex-1 sm:flex-none bg-[#2a2a35] border border-gray-700 rounded-lg p-2 text-white focus:outline-none focus:border-green-500 font-medium text-center"
-            />
+            <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="flex-1 sm:flex-none bg-[#2a2a35] border border-gray-700 rounded-lg p-2 text-white focus:outline-none focus:border-green-500 font-medium text-center" />
           </div>
         </div>
 
         {bestShiftDate && (
           <div className="mb-6">
-            <button 
-              onClick={() => setShowBestMonthDay(!showBestMonthDay)}
-              className="w-full bg-[#24242d] hover:bg-[#2c2c38] border border-gray-800 p-4 rounded-xl font-medium text-yellow-500 transition flex justify-between items-center text-sm md:text-base"
-            >
+            <button onClick={() => setShowBestMonthDay(!showBestMonthDay)} className="w-full bg-[#24242d] hover:bg-[#2c2c38] border border-gray-800 p-4 rounded-xl font-medium text-yellow-500 transition flex justify-between items-center text-sm md:text-base">
               <span>{showBestMonthDay ? t.work.hideBestDay : t.work.showBestDay}</span>
               <span className="text-xs bg-gray-800 px-2 md:px-3 py-1 rounded text-gray-400 hidden sm:inline-block">{t.work.clickToView}</span>
             </button>
-            
             <div className={`transition-all duration-500 ease-in-out overflow-hidden ${showBestMonthDay ? "max-h-40 opacity-100 mt-2 border-l-4 border-yellow-500 p-4 md:p-5 bg-gradient-to-r from-yellow-600/20 to-transparent rounded-r-xl" : "max-h-0 opacity-0"}`}>
               <div className="flex justify-between items-center w-full">
                 <div>
                   <h4 className="font-bold text-yellow-500 text-sm md:text-base">{t.work.bestDayTitle}</h4>
                   <p className="text-gray-400 text-xs md:text-sm mt-1">{t.work.date}: {new Date(bestShiftDate).toLocaleDateString("uk-UA")}</p>
                 </div>
-                <div className="text-2xl md:text-3xl font-black text-yellow-500">
-                  {maxEarned.toFixed(2)} {t.common.currency}
-                </div>
+                <div className="text-2xl md:text-3xl font-black text-yellow-500">{maxEarned.toFixed(2)} {t.common.currency}</div>
               </div>
             </div>
           </div>
@@ -459,9 +506,7 @@ export default function WorkDashboard() {
         {filteredShifts.length > 0 && (
           <div className="bg-[#1e1e24] p-3 md:p-6 rounded-xl border border-gray-800 mb-8 hidden sm:block">
             <h3 className="text-sm font-medium text-gray-400 mb-4">{t.work.chartTitle}</h3>
-            <div className="w-full h-64 relative">
-              <Bar data={monthlyChartData as any} options={monthlyChartOptions as any} />
-            </div>
+            <div className="w-full h-64 relative"><Bar data={monthlyChartData as any} options={monthlyChartOptions as any} /></div>
           </div>
         )}
 
@@ -493,7 +538,6 @@ export default function WorkDashboard() {
                   const dailyTotal = shift.uber + shift.wolt + shift.bolt + shift.glovo;
                   const dailyAvgHour = shift.hours > 0 ? (dailyTotal / shift.hours).toFixed(2) : "0.00";
                   const dailyAvgKm = shift.km > 0 ? (dailyTotal / shift.km).toFixed(2) : "0.00";
-                  
                   return (
                     <tr key={shift.id} className="hover:bg-[#2a2a35] transition">
                       <td className="p-4 font-medium">{new Date(shift.date).toLocaleDateString("uk-UA")}</td>
@@ -524,28 +568,21 @@ export default function WorkDashboard() {
               const dailyTotal = shift.uber + shift.wolt + shift.bolt + shift.glovo;
               const dailyAvgHour = shift.hours > 0 ? (dailyTotal / shift.hours).toFixed(2) : "0.00";
               const dailyAvgKm = shift.km > 0 ? (dailyTotal / shift.km).toFixed(2) : "0.00";
-              
               return (
                 <div key={shift.id} className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 shadow-sm relative">
                   <div className="flex justify-between items-center mb-3 border-b border-gray-700/50 pb-3">
                     <span className="font-bold text-white text-lg">{new Date(shift.date).toLocaleDateString("uk-UA", { weekday: 'short', day: 'numeric', month: 'short' })}</span>
                     <span className="font-black text-green-400 text-xl">{dailyTotal.toFixed(2)} <span className="text-sm font-normal">{t.common.currency}</span></span>
                   </div>
-                  
                   <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm mb-4">
                     <div className="bg-[#2a2a35] p-2 rounded-lg"><span className="text-gray-400 block text-[10px] uppercase">{t.work.tableHours}</span> <span className="font-bold">{shift.hours}</span></div>
                     <div className="bg-[#2a2a35] p-2 rounded-lg"><span className="text-gray-400 block text-[10px] uppercase">{t.work.tableKm}</span> <span className="font-bold">{shift.km} <span className="text-xs font-normal">{t.common.km}</span></span></div>
                     <div className="bg-[#2a2a35] p-2 rounded-lg"><span className="text-gray-400 block text-[10px] uppercase">{t.work.rateUnit}</span> <span className="font-bold text-blue-400">{dailyAvgHour}</span></div>
                     <div className="bg-[#2a2a35] p-2 rounded-lg"><span className="text-gray-400 block text-[10px] uppercase">{t.work.effUnit}</span> <span className="font-bold text-purple-400">{dailyAvgKm}</span></div>
                   </div>
-                  
                   <div className="flex justify-between gap-2 pt-1">
-                    <button onClick={() => handleEdit(shift)} className="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 py-2.5 rounded-lg text-yellow-500 text-sm font-bold transition flex items-center justify-center gap-1">
-                      ✏️ {t.common.edit}
-                    </button>
-                    <button onClick={() => handleDelete(shift.id)} className="w-12 bg-red-900/20 hover:bg-red-900/40 border border-red-900/30 rounded-lg text-red-500 transition flex items-center justify-center">
-                      🗑️
-                    </button>
+                    <button onClick={() => handleEdit(shift)} className="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 py-2.5 rounded-lg text-yellow-500 text-sm font-bold transition flex items-center justify-center gap-1">✏️ {t.common.edit}</button>
+                    <button onClick={() => handleDelete(shift.id)} className="w-12 bg-red-900/20 hover:bg-red-900/40 border border-red-900/30 rounded-lg text-red-500 transition flex items-center justify-center">🗑️</button>
                   </div>
                 </div>
               );
@@ -554,6 +591,60 @@ export default function WorkDashboard() {
         </div>
 
       </div>
+
+      {/* ПРИМУСОВЕ МОДАЛЬНЕ ВІКНО ДЛЯ СТВОРЕННЯ НІКНЕЙМУ */}
+      {showNicknameModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+          <div className="bg-[#1e1e24] border border-gray-800 rounded-2xl w-full max-w-md p-6 md:p-8 relative shadow-2xl text-center">
+            
+            <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 mb-2">
+              {lang === "pl" ? "Wybierz swój pseudonim" : lang === "en" ? "Choose your nickname" : lang === "ru" ? "Выбери свой никнейм" : "Придумай свій нікнейм"}
+            </h2>
+            
+            <p className="text-gray-400 text-sm mb-6">
+              {lang === "pl" ? "Wprowadzamy globalny ranking kurierów! Wybierz unikalną nazwę, aby brać udział i widzieć wyniki innych." : 
+               lang === "en" ? "We are introducing a global courier leaderboard! Choose a unique name to participate and see others' stats." : 
+               lang === "ru" ? "Мы внедряем глобальный рейтинг курьеров! Выбери уникальное имя, чтобы участвовать и видеть результаты других." : 
+               "Ми впроваджуємо загальний рейтинг кур'єрів! Обери унікальне ім'я, щоб брати участь та бачити результати друзів."}
+            </p>
+
+            {nicknameError && (
+              <div className="bg-red-900/30 border border-red-700/50 text-red-400 p-3 rounded-xl text-xs mb-4 text-left">
+                {nicknameError}
+              </div>
+            )}
+
+            <form onSubmit={handleNicknameSubmit} className="space-y-4">
+              <div className="text-left">
+                <input 
+                  type="text" 
+                  required
+                  pattern="^[a-zA-TR-Z0-9_]{3,15}$"
+                  title="Від 3 до 15 символів (англійські літери, цифри, підкреслення)"
+                  value={newNickname}
+                  onChange={(e) => setNewNickname(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))} // тільки англ літери і цифри
+                  placeholder="Courier_Hero_2026"
+                  className="w-full text-center font-bold tracking-wide text-lg bg-[#2a2a35] border border-gray-700 rounded-xl p-3.5 text-white focus:outline-none focus:border-blue-500"
+                />
+                <span className="text-[10px] text-gray-500 mt-1.5 block text-center">
+                  * Тільки англійські літери, цифри та символ "_" (3-15 символів).
+                </span>
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={isSavingNickname || !newNickname.trim()}
+                className={`w-full py-4 rounded-xl font-bold text-lg text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 transition shadow-lg ${
+                  (isSavingNickname || !newNickname.trim()) && "opacity-50 cursor-not-allowed"
+                }`}
+              >
+                {isSavingNickname ? t.work.saving : (lang === "pl" ? "Zatwierdź" : lang === "en" ? "Confirm" : lang === "ru" ? "Подтвердить" : "Підтвердити 🚀")}
+              </button>
+            </form>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }
