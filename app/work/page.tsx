@@ -121,8 +121,16 @@ export default function WorkDashboard() {
     } else {
       const { error } = await supabase.from("work_shifts").insert([shiftData]);
       if (error) {
-        alert("Помилка: " + error.message);
-      } else { resetForm(); fetchShifts(userId); }
+        // Ловимо нашу помилку дублікату дати
+        if (error.message.includes("duplicate key") || error.code === '23505') {
+          alert("⚠️ У тебе вже є збережена зміна за цю дату! Знайди її в історії нижче і натисни 'Редагувати' (✏️).");
+        } else {
+          alert("Помилка: " + error.message);
+        }
+      } else { 
+        resetForm(); 
+        fetchShifts(userId); 
+      }
     }
     setIsSubmitting(false);
   };
