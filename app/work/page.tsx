@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "../../context/LanguageContext";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -46,6 +47,7 @@ type Shift = {
 
 export default function WorkDashboard() {
   const router = useRouter();
+  const { lang, setLanguage, t } = useLanguage();
   const [userId, setUserId] = useState<string | null>(null);
   
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
@@ -116,16 +118,15 @@ export default function WorkDashboard() {
 
     if (editingId) {
       const { error } = await supabase.from("work_shifts").update(shiftData).eq("id", editingId);
-      if (error) alert("Помилка оновлення: " + error.message);
+      if (error) alert(t.work.updateError + error.message);
       else { resetForm(); fetchShifts(userId); }
     } else {
       const { error } = await supabase.from("work_shifts").insert([shiftData]);
       if (error) {
-        // Ловимо нашу помилку дублікату дати
         if (error.message.includes("duplicate key") || error.code === '23505') {
-          alert("⚠️ У тебе вже є збережена зміна за цю дату! Знайди її в історії нижче і натисни 'Редагувати' (✏️).");
+          alert(t.work.duplicateError);
         } else {
-          alert("Помилка: " + error.message);
+          alert(t.work.errorPrefix + error.message);
         }
       } else { 
         resetForm(); 
@@ -160,11 +161,11 @@ export default function WorkDashboard() {
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm("Ти впевнений, що хочеш видалити цю зміну? Дія незворотна.")) {
+    if (confirm(t.work.confirmDelete)) {
       const { error } = await supabase.from("work_shifts").delete().eq("id", id);
       
       if (error) {
-        alert("Помилка видалення: " + error.message);
+        alert(t.work.errorPrefix + error.message);
       } else if (userId) {
         fetchShifts(userId);
       }
@@ -182,7 +183,7 @@ export default function WorkDashboard() {
   };
 
   if (!userId) {
-    return <div className="min-h-screen bg-[#121212] text-white flex items-center justify-center">Завантаження профілю...</div>;
+    return <div className="min-h-screen bg-[#121212] text-white flex items-center justify-center">{t.common.loading}</div>;
   }
 
   const availableToAdd = ["uber", "wolt", "bolt", "glovo"].filter(p => !activePlatforms.includes(p));
@@ -218,7 +219,7 @@ export default function WorkDashboard() {
     datasets: [
       {
         type: 'bar' as const,
-        label: "Дохід (зл)",
+        label: t.work.tableIncome,
         data: chronologicalShifts.map(s => s.uber + s.wolt + s.bolt + s.glovo),
         backgroundColor: "rgba(76, 175, 80, 0.1)",
         borderColor: "rgba(76, 175, 80, 0.3)",
@@ -227,7 +228,7 @@ export default function WorkDashboard() {
       },
       {
         type: 'line' as const,
-        label: "Зл/Год",
+        label: t.work.tableRate,
         data: chronologicalShifts.map(s => {
           const total = s.uber + s.wolt + s.bolt + s.glovo;
           return s.hours > 0 ? Number((total / s.hours).toFixed(2)) : 0;
@@ -241,7 +242,7 @@ export default function WorkDashboard() {
       },
       {
         type: 'line' as const,
-        label: "Пробіг (км)",
+        label: t.work.tableKm,
         data: chronologicalShifts.map(s => s.km),
         borderColor: "rgba(168, 85, 247, 0.5)",
         backgroundColor: "rgba(168, 85, 247, 0.5)",
@@ -251,7 +252,7 @@ export default function WorkDashboard() {
       },
       {
         type: 'line' as const,
-        label: "Години",
+        label: t.work.tableHours,
         data: chronologicalShifts.map(s => s.hours),
         borderColor: "rgba(244, 63, 94, 0.5)",
         backgroundColor: "rgba(244, 63, 94, 0.5)",
@@ -277,53 +278,69 @@ export default function WorkDashboard() {
     <div className="min-h-screen bg-[#121212] text-white p-4 md:p-10">
       <div className="max-w-5xl mx-auto">
         
-        {/* Шапка */}
+        {/* Шапка з мовами */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-gray-800 pb-4">
           <h1 className="text-2xl md:text-3xl font-bold">
-            {editingId ? "✏️ Редагування зміни" : "📊 Робоча зміна"}
+            {editingId ? t.work.editTitle : t.work.title}
           </h1>
           
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-            <Link href="/garage" className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition flex-1 sm:flex-none text-center">
-              🏍️ Гараж
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+            
+            {/* Перемикач мов */}
+            <div className="flex bg-[#1e1e24] p-1 rounded-lg border border-gray-700 text-xs font-bold">
+              {(["pl", "uk", "en", "ru"] as const).map((l) => (
+                <button
+                  key={l}
+                  onClick={() => setLanguage(l)}
+                  className={`px-2 py-1.5 rounded-md uppercase transition-all ${
+                    lang === l 
+                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm" 
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
+
+            <Link href="/garage" className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition text-center">
+              {t.work.garageBtn}
             </Link>
-            <button onClick={handleLogout} className="bg-red-900/20 text-red-400 hover:bg-red-900/40 text-sm font-medium px-4 py-2 rounded-lg transition flex-1 sm:flex-none text-center">
-              Вийти 🚪
+            <button onClick={handleLogout} className="bg-red-900/20 text-red-400 hover:bg-red-900/40 text-sm font-medium px-4 py-2 rounded-lg transition text-center">
+              {t.common.logout}
             </button>
           </div>
         </div>
 
-        {/* Кнопка додавання */}
         {!isFormOpen && (
           <button 
             onClick={() => setIsFormOpen(true)}
             className="w-full mb-6 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-bold px-6 py-4 rounded-xl transition shadow-lg text-lg"
           >
-            + Додати робочу зміну
+            {t.work.addShiftBtn}
           </button>
         )}
 
-        {/* Форма */}
         <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isFormOpen ? "max-h-[1200px] opacity-100 mb-8" : "max-h-0 opacity-0"}`}>
           <form onSubmit={handleSubmit} className={`p-5 md:p-6 rounded-xl border shadow-lg transition-all ${editingId ? 'bg-[#25251a] border-yellow-700/50' : 'bg-[#1e1e24] border-gray-800'}`}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
               <div>
-                <label className="block text-sm text-gray-400 mb-1.5">Дата</label>
+                <label className="block text-sm text-gray-400 mb-1.5">{t.work.date}</label>
                 <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} disabled={editingId !== null} className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3.5 text-white focus:outline-none focus:border-green-500 disabled:opacity-50 text-base" />
               </div>
               <div>
-                <label className="block text-sm text-gray-400 mb-1.5">Пробіг (км)</label>
-                <input type="number" step="0.1" required value={km} onChange={(e) => setKm(e.target.value)} placeholder="Напр. 120.5" className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3.5 text-white focus:outline-none focus:border-green-500 text-base font-medium" />
+                <label className="block text-sm text-gray-400 mb-1.5">{t.work.mileage}</label>
+                <input type="number" step="0.1" required value={km} onChange={(e) => setKm(e.target.value)} className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3.5 text-white focus:outline-none focus:border-green-500 text-base font-medium" />
               </div>
               <div>
-                <label className="block text-sm text-gray-400 mb-1.5">Години</label>
-                <input type="number" step="0.1" required value={hours} onChange={(e) => setHours(e.target.value)} placeholder="Напр. 8.5" className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3.5 text-white focus:outline-none focus:border-green-500 text-base font-medium" />
+                <label className="block text-sm text-gray-400 mb-1.5">{t.work.hours}</label>
+                <input type="number" step="0.1" required value={hours} onChange={(e) => setHours(e.target.value)} className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3.5 text-white focus:outline-none focus:border-green-500 text-base font-medium" />
               </div>
             </div>
 
             <div className="border-t border-gray-800 pt-5 mb-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                <h2 className="text-lg font-medium">Дохід по платформах (зл)</h2>
+                <h2 className="text-lg font-medium">{t.work.incomePlatforms}</h2>
                 {availableToAdd.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {availableToAdd.map(platform => (
@@ -347,21 +364,20 @@ export default function WorkDashboard() {
             
             <div className="flex flex-col sm:flex-row gap-3">
               <button type="submit" disabled={isSubmitting} className={`flex-1 py-4 rounded-xl font-bold text-lg transition ${editingId ? "bg-yellow-600 hover:bg-yellow-500 text-white" : "bg-green-600 hover:bg-green-500 text-white"} ${isSubmitting && "opacity-70 cursor-not-allowed"}`}>
-                {isSubmitting ? "Зберігаємо..." : (editingId ? "Оновити зміну" : "Зберегти зміну")}
+                {isSubmitting ? t.work.saving : (editingId ? t.work.updateShift : t.work.saveShift)}
               </button>
               <button type="button" onClick={resetForm} className="sm:w-1/3 py-4 rounded-xl font-bold text-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 transition">
-                Скасувати
+                {t.common.cancel}
               </button>
             </div>
           </form>
         </div>
 
-        {/* Навігація по місяцях */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 border-b border-gray-800 pb-4">
-          <h2 className="text-xl md:text-2xl font-bold">Статистика</h2>
+          <h2 className="text-xl md:text-2xl font-bold">{t.work.statsTitle}</h2>
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Link href="/work/year" className="flex-1 sm:flex-none text-center bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-lg font-medium transition text-sm">
-              📊 Звіт за рік
+              {t.work.yearReportBtn}
             </Link>
             <input 
               type="month" 
@@ -372,116 +388,106 @@ export default function WorkDashboard() {
           </div>
         </div>
 
-        {/* Загальні показники місяця */}
-        {/* Найкращий день місяця */}
         {bestShiftDate && (
           <div className="mb-6">
             <button 
               onClick={() => setShowBestMonthDay(!showBestMonthDay)}
               className="w-full bg-[#24242d] hover:bg-[#2c2c38] border border-gray-800 p-4 rounded-xl font-medium text-yellow-500 transition flex justify-between items-center text-sm md:text-base"
             >
-              <span>{showBestMonthDay ? "👇 Сховати рекорд місяця" : "🏆 Показати найкращий день місяця"}</span>
-              <span className="text-xs bg-gray-800 px-2 md:px-3 py-1 rounded text-gray-400 hidden sm:inline-block">Натисни щоб подивитись</span>
+              <span>{showBestMonthDay ? t.work.hideBestDay : t.work.showBestDay}</span>
+              <span className="text-xs bg-gray-800 px-2 md:px-3 py-1 rounded text-gray-400 hidden sm:inline-block">{t.work.clickToView}</span>
             </button>
             
             <div className={`transition-all duration-500 ease-in-out overflow-hidden ${showBestMonthDay ? "max-h-40 opacity-100 mt-2 border-l-4 border-yellow-500 p-4 md:p-5 bg-gradient-to-r from-yellow-600/20 to-transparent rounded-r-xl" : "max-h-0 opacity-0"}`}>
               <div className="flex justify-between items-center w-full">
                 <div>
-                  <h4 className="font-bold text-yellow-500 text-sm md:text-base">🔥 Найкращий день місяця</h4>
-                  <p className="text-gray-400 text-xs md:text-sm mt-1">Дата: {new Date(bestShiftDate).toLocaleDateString("uk-UA")}</p>
+                  <h4 className="font-bold text-yellow-500 text-sm md:text-base">{t.work.bestDayTitle}</h4>
+                  <p className="text-gray-400 text-xs md:text-sm mt-1">{t.work.date}: {new Date(bestShiftDate).toLocaleDateString("uk-UA")}</p>
                 </div>
                 <div className="text-2xl md:text-3xl font-black text-yellow-500">
-                  {maxEarned.toFixed(2)} зл
+                  {maxEarned.toFixed(2)} {t.common.currency}
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Загальні показники місяця */}
         <div className="mb-4">
-          <span className="text-xs font-semibold text-gray-500 tracking-wider uppercase mb-2 block">Загальні значення за місяць</span>
+          <span className="text-xs font-semibold text-gray-500 tracking-wider uppercase mb-2 block">{t.work.totalMonthTitle}</span>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="bg-gradient-to-br from-[#1e1e24] to-[#252530] p-4 md:p-5 rounded-xl border border-gray-800 text-center shadow-md">
-              <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">Загальний дохід</h3>
-              <p className="text-2xl md:text-3xl font-black text-green-400">{totalEarned.toFixed(2)} <span className="text-sm md:text-base font-normal">зл</span></p>
+              <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.work.totalIncome}</h3>
+              <p className="text-2xl md:text-3xl font-black text-green-400">{totalEarned.toFixed(2)} <span className="text-sm md:text-base font-normal">{t.common.currency}</span></p>
             </div>
             <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
-              <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">Всього годин</h3>
-              <p className="text-xl md:text-2xl font-bold text-white">{totalHours.toFixed(1)} <span className="text-xs md:text-sm font-normal text-gray-500">год</span></p>
+              <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.work.totalHours}</h3>
+              <p className="text-xl md:text-2xl font-bold text-white">{totalHours.toFixed(1)} <span className="text-xs md:text-sm font-normal text-gray-500">{t.common.hrs}</span></p>
             </div>
             <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
-              <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">Загальний пробіг</h3>
-              <p className="text-xl md:text-2xl font-bold text-purple-400">{totalKm.toFixed(1)} <span className="text-xs md:text-sm font-normal text-gray-500">км</span></p>
+              <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.work.totalKm}</h3>
+              <p className="text-xl md:text-2xl font-bold text-purple-400">{totalKm.toFixed(1)} <span className="text-xs md:text-sm font-normal text-gray-500">{t.common.km}</span></p>
             </div>
           </div>
         </div>
 
-        {/* Середні показники */}
         <div className="mb-8">
-          <span className="text-xs font-semibold text-gray-500 tracking-wider uppercase mb-2 block">Середні показники ефективності</span>
+          <span className="text-xs font-semibold text-gray-500 tracking-wider uppercase mb-2 block">{t.work.avgStatsTitle}</span>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {/* ГОЛОВНА КАРТКА: На телефоні на всю ширину (col-span-2), на ПК - як усі (md:col-span-1) */}
             <div className="col-span-2 md:col-span-1 bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center border-b-2 border-green-500/50 shadow-sm">
-              <h3 className="text-gray-400 text-xs uppercase tracking-wider mb-1">Дохід/День (сер.)</h3>
-              <p className="text-2xl md:text-lg font-bold text-green-400">{avgEarnedPerDay} <span className="text-sm md:text-xs font-normal">зл</span></p>
-            </div>
-            
-            {/* Інші 4 картки */}
-            <div className="bg-[#1e1e24] p-3 md:p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
-              <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">Ставка зл/год</h3>
-              <p className="text-base md:text-lg font-bold text-blue-400">{avgPerHour} <span className="text-xs font-normal">зл</span></p>
+              <h3 className="text-gray-400 text-xs uppercase tracking-wider mb-1">{t.work.incomePerDay}</h3>
+              <p className="text-2xl md:text-lg font-bold text-green-400">{avgEarnedPerDay} <span className="text-sm md:text-xs font-normal">{t.common.currency}</span></p>
             </div>
             <div className="bg-[#1e1e24] p-3 md:p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
-              <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">Ефективність зл/км</h3>
-              <p className="text-base md:text-lg font-bold text-purple-400">{avgPerKm} <span className="text-xs font-normal">зл</span></p>
+              <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{t.work.ratePerHour}</h3>
+              <p className="text-base md:text-lg font-bold text-blue-400">{avgPerHour} <span className="text-xs font-normal">{t.common.currency}</span></p>
             </div>
             <div className="bg-[#1e1e24] p-3 md:p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
-              <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">Км на день (сер.)</h3>
-              <p className="text-base md:text-lg font-bold text-gray-300">{avgKmPerDay} <span className="text-xs font-normal">км</span></p>
+              <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{t.work.effPerKm}</h3>
+              <p className="text-base md:text-lg font-bold text-purple-400">{avgPerKm} <span className="text-xs font-normal">{t.common.currency}</span></p>
             </div>
             <div className="bg-[#1e1e24] p-3 md:p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
-              <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">Годин на день (сер.)</h3>
-              <p className="text-base md:text-lg font-bold text-gray-300">{avgHoursPerDay} <span className="text-xs font-normal">год</span></p>
+              <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{t.work.kmPerDay}</h3>
+              <p className="text-base md:text-lg font-bold text-gray-300">{avgKmPerDay} <span className="text-xs font-normal">{t.common.km}</span></p>
+            </div>
+            <div className="bg-[#1e1e24] p-3 md:p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
+              <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{t.work.hrsPerDay}</h3>
+              <p className="text-base md:text-lg font-bold text-gray-300">{avgHoursPerDay} <span className="text-xs font-normal">{t.common.hrs}</span></p>
             </div>
           </div>
         </div>
 
-        {/* Графік */}
         {filteredShifts.length > 0 && (
           <div className="bg-[#1e1e24] p-3 md:p-6 rounded-xl border border-gray-800 mb-8 hidden sm:block">
-            <h3 className="text-sm font-medium text-gray-400 mb-4">Графік активності</h3>
+            <h3 className="text-sm font-medium text-gray-400 mb-4">{t.work.chartTitle}</h3>
             <div className="w-full h-64 relative">
               <Bar data={monthlyChartData as any} options={monthlyChartOptions as any} />
             </div>
           </div>
         )}
 
-        {/* Список змін */}
         <div className="mb-2 flex justify-between items-end">
-          <h2 className="text-lg font-medium text-white">Історія змін</h2>
-          <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">Робочих днів: {filteredShifts.length}</span>
+          <h2 className="text-lg font-medium text-white">{t.work.historyTitle}</h2>
+          <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">{t.work.workDays} {filteredShifts.length}</span>
         </div>
 
-        {/* ДЕСКТОПНА ТАБЛИЦЯ (ховається на телефонах) */}
         <div className="hidden md:block bg-[#1e1e24] rounded-xl border border-gray-800 overflow-hidden">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#2a2a35] text-gray-400 text-sm">
-                <th className="p-4 font-medium">Дата</th>
-                <th className="p-4 font-medium">Дохід</th>
-                <th className="p-4 font-medium">Години</th>
-                <th className="p-4 font-medium">Зл/Год</th>
-                <th className="p-4 font-medium">Пробіг</th>
-                <th className="p-4 font-medium">Зл/Км</th>
-                <th className="p-4 font-medium text-right">Дії</th>
+                <th className="p-4 font-medium">{t.work.tableDate}</th>
+                <th className="p-4 font-medium">{t.work.tableIncome}</th>
+                <th className="p-4 font-medium">{t.work.tableHours}</th>
+                <th className="p-4 font-medium">{t.work.tableRate}</th>
+                <th className="p-4 font-medium">{t.work.tableKm}</th>
+                <th className="p-4 font-medium">{t.work.tableEff}</th>
+                <th className="p-4 font-medium text-right">{t.work.tableActions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
               {isLoading ? (
-                <tr><td colSpan={7} className="p-8 text-center text-gray-500">Завантаження...</td></tr>
+                <tr><td colSpan={7} className="p-8 text-center text-gray-500">{t.common.loading}</td></tr>
               ) : filteredShifts.length === 0 ? (
-                <tr><td colSpan={7} className="p-8 text-center text-gray-500">Записів немає</td></tr>
+                <tr><td colSpan={7} className="p-8 text-center text-gray-500">{t.work.noRecords}</td></tr>
               ) : (
                 filteredShifts.map((shift) => {
                   const dailyTotal = shift.uber + shift.wolt + shift.bolt + shift.glovo;
@@ -491,10 +497,10 @@ export default function WorkDashboard() {
                   return (
                     <tr key={shift.id} className="hover:bg-[#2a2a35] transition">
                       <td className="p-4 font-medium">{new Date(shift.date).toLocaleDateString("uk-UA")}</td>
-                      <td className="p-4 font-bold text-green-400">{dailyTotal.toFixed(2)} зл</td>
+                      <td className="p-4 font-bold text-green-400">{dailyTotal.toFixed(2)} {t.common.currency}</td>
                       <td className="p-4">{shift.hours}</td>
                       <td className="p-4 text-blue-400">{dailyAvgHour}</td>
-                      <td className="p-4 text-gray-400">{shift.km} км</td>
+                      <td className="p-4 text-gray-400">{shift.km} {t.common.km}</td>
                       <td className="p-4 text-purple-400">{dailyAvgKm}</td>
                       <td className="p-4 text-right">
                         <button onClick={() => handleEdit(shift)} className="text-gray-400 hover:text-yellow-500 p-2 transition">✏️</button>
@@ -508,12 +514,11 @@ export default function WorkDashboard() {
           </table>
         </div>
 
-        {/* МОБІЛЬНІ КАРТКИ (показуються тільки на телефонах) */}
         <div className="md:hidden flex flex-col gap-3 pb-10">
           {isLoading ? (
-            <div className="text-center text-gray-500 py-8 bg-[#1e1e24] rounded-xl border border-gray-800">Завантаження...</div>
+            <div className="text-center text-gray-500 py-8 bg-[#1e1e24] rounded-xl border border-gray-800">{t.common.loading}</div>
           ) : filteredShifts.length === 0 ? (
-            <div className="text-center text-gray-500 py-8 bg-[#1e1e24] rounded-xl border border-gray-800">Записів немає</div>
+            <div className="text-center text-gray-500 py-8 bg-[#1e1e24] rounded-xl border border-gray-800">{t.work.noRecords}</div>
           ) : (
             filteredShifts.map((shift) => {
               const dailyTotal = shift.uber + shift.wolt + shift.bolt + shift.glovo;
@@ -524,19 +529,19 @@ export default function WorkDashboard() {
                 <div key={shift.id} className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 shadow-sm relative">
                   <div className="flex justify-between items-center mb-3 border-b border-gray-700/50 pb-3">
                     <span className="font-bold text-white text-lg">{new Date(shift.date).toLocaleDateString("uk-UA", { weekday: 'short', day: 'numeric', month: 'short' })}</span>
-                    <span className="font-black text-green-400 text-xl">{dailyTotal.toFixed(2)} <span className="text-sm font-normal">зл</span></span>
+                    <span className="font-black text-green-400 text-xl">{dailyTotal.toFixed(2)} <span className="text-sm font-normal">{t.common.currency}</span></span>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm mb-4">
-                    <div className="bg-[#2a2a35] p-2 rounded-lg"><span className="text-gray-400 block text-[10px] uppercase">Години</span> <span className="font-bold">{shift.hours}</span></div>
-                    <div className="bg-[#2a2a35] p-2 rounded-lg"><span className="text-gray-400 block text-[10px] uppercase">Пробіг</span> <span className="font-bold">{shift.km} <span className="text-xs font-normal">км</span></span></div>
-                    <div className="bg-[#2a2a35] p-2 rounded-lg"><span className="text-gray-400 block text-[10px] uppercase">Зл/Год</span> <span className="font-bold text-blue-400">{dailyAvgHour}</span></div>
-                    <div className="bg-[#2a2a35] p-2 rounded-lg"><span className="text-gray-400 block text-[10px] uppercase">Зл/Км</span> <span className="font-bold text-purple-400">{dailyAvgKm}</span></div>
+                    <div className="bg-[#2a2a35] p-2 rounded-lg"><span className="text-gray-400 block text-[10px] uppercase">{t.work.tableHours}</span> <span className="font-bold">{shift.hours}</span></div>
+                    <div className="bg-[#2a2a35] p-2 rounded-lg"><span className="text-gray-400 block text-[10px] uppercase">{t.work.tableKm}</span> <span className="font-bold">{shift.km} <span className="text-xs font-normal">{t.common.km}</span></span></div>
+                    <div className="bg-[#2a2a35] p-2 rounded-lg"><span className="text-gray-400 block text-[10px] uppercase">{t.work.rateUnit}</span> <span className="font-bold text-blue-400">{dailyAvgHour}</span></div>
+                    <div className="bg-[#2a2a35] p-2 rounded-lg"><span className="text-gray-400 block text-[10px] uppercase">{t.work.effUnit}</span> <span className="font-bold text-purple-400">{dailyAvgKm}</span></div>
                   </div>
                   
                   <div className="flex justify-between gap-2 pt-1">
                     <button onClick={() => handleEdit(shift)} className="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 py-2.5 rounded-lg text-yellow-500 text-sm font-bold transition flex items-center justify-center gap-1">
-                      ✏️ Редагувати
+                      ✏️ {t.common.edit}
                     </button>
                     <button onClick={() => handleDelete(shift.id)} className="w-12 bg-red-900/20 hover:bg-red-900/40 border border-red-900/30 rounded-lg text-red-500 transition flex items-center justify-center">
                       🗑️
