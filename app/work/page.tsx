@@ -65,6 +65,13 @@ export default function WorkDashboard() {
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [km, setKm] = useState("");
   const [hours, setHours] = useState("");
+  
+  // === СТАН ДЛЯ КАЛЬКУЛЯТОРА ГОДИН (Тепер за замовчуванням порожній масив) ===
+  const [showCalc, setShowCalc] = useState(false);
+  const [shiftStart, setShiftStart] = useState("");
+  const [shiftEnd, setShiftEnd] = useState("");
+  const [breaks, setBreaks] = useState<{start: string, end: string}[]>([]);
+
   const [earnings, setEarnings] = useState({ uber: "", wolt: "", bolt: "", glovo: "" });
   const [orders, setOrders] = useState({ uber: "", wolt: "", bolt: "", glovo: "" });
   const [tips, setTips] = useState({ uber: "", wolt: "", bolt: "", glovo: "" });
@@ -77,8 +84,10 @@ export default function WorkDashboard() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   
   const [showBestMonthDay, setShowBestMonthDay] = useState(false);
-  const [includeTips, setIncludeTips] = useState(false);
-  const [includeBonuses, setIncludeBonuses] = useState(false);
+  
+  const [includeTips, setIncludeTips] = useState(true);
+  const [includeBonuses, setIncludeBonuses] = useState(true);
+  
   const [showMobileTable, setShowMobileTable] = useState(false);
 
   const [shifts, setShifts] = useState<Shift[]>([]);
@@ -106,23 +115,14 @@ export default function WorkDashboard() {
   }, [router]);
 
   const checkNickname = async (sessionUser: any) => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("nickname")
-      .eq("id", sessionUser.id)
-      .single();
-
+    const { data, error } = await supabase.from("profiles").select("nickname").eq("id", sessionUser.id).single();
     if (error || !data || !data.nickname) {
       const metaNickname = sessionUser.user_metadata?.nickname;
       if (metaNickname) {
         await supabase.from("profiles").upsert({ id: sessionUser.id, nickname: metaNickname });
         setUserNickname(metaNickname);
-      } else {
-        setShowNicknameModal(true);
-      }
-    } else {
-      setUserNickname(data.nickname);
-    }
+      } else { setShowNicknameModal(true); }
+    } else { setUserNickname(data.nickname); }
   };
 
   const handleNicknameSubmit = async (e: React.FormEvent) => {
@@ -134,8 +134,7 @@ export default function WorkDashboard() {
     const { data: existing } = await supabase.from("profiles").select("nickname").eq("nickname", cleanNickname);
     if (existing && existing.length > 0) {
       setNicknameError(lang === "pl" ? "Ta nazwa jest już zajęta!" : lang === "en" ? "This nickname is already taken!" : lang === "ru" ? "Этот ник уже занят!" : "Цей нікнейм уже зайнятий!");
-      setIsSavingNickname(false);
-      return;
+      setIsSavingNickname(false); return;
     }
     const { error } = await supabase.from("profiles").upsert({ id: userId, nickname: cleanNickname });
     if (error) setNicknameError(error.message);
@@ -145,11 +144,7 @@ export default function WorkDashboard() {
 
   const fetchShifts = async (uid: string) => {
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from("work_shifts")
-      .select("*")
-      .eq("user_id", uid)
-      .order("date", { ascending: false });
+    const { data, error } = await supabase.from("work_shifts").select("*").eq("user_id", uid).order("date", { ascending: false });
     if (!error && data) setShifts(data);
     setIsLoading(false);
   };
@@ -168,10 +163,43 @@ export default function WorkDashboard() {
 
   const removePlatform = (platform: string) => {
     setActivePlatforms(activePlatforms.filter(p => p !== platform));
-    handleEarningChange(platform, "");
-    handleOrderChange(platform, "");
-    handleTipChange(platform, "");
-    handleBonusChange(platform, "");
+    handleEarningChange(platform, ""); handleOrderChange(platform, ""); handleTipChange(platform, ""); handleBonusChange(platform, "");
+  };
+
+  const calculateHours = () => {
+    if (!shiftStart || !shiftEnd) return;
+    
+    const parseTime = (timeStr: string) => {
+      const [h, m] = timeStr.split(':').map(Number);
+      return h * 60 + m;
+    };
+
+    let startMin = parseTime(shiftStart);
+    let endMin = parseTime(shiftEnd);
+    
+    if (endMin < startMin) endMin += 24 * 60;
+
+    let totalWorkMin = endMin - startMin;
+
+    breaks.forEach(b => {
+      if (b.start && b.end) {
+        let bStart = parseTime(b.start);
+        let bEnd = parseTime(b.end);
+        
+        if (bEnd < bStart) bEnd += 24 * 60; 
+        
+        if (bStart < startMin && (bStart + 24 * 60) < endMin) {
+          bStart += 24 * 60;
+          bEnd += 24 * 60;
+        }
+        
+        totalWorkMin -= (bEnd - bStart);
+      }
+    });
+
+    const decimalHours = (totalWorkMin / 60).toFixed(2);
+    setHours(decimalHours);
+    setShowCalc(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -227,39 +255,12 @@ export default function WorkDashboard() {
     setKm(shift.km.toString());
     setHours(shift.hours.toString());
     
-    setEarnings({
-      uber: shift.uber > 0 ? shift.uber.toString() : "",
-      wolt: shift.wolt > 0 ? shift.wolt.toString() : "",
-      bolt: shift.bolt > 0 ? shift.bolt.toString() : "",
-      glovo: shift.glovo > 0 ? shift.glovo.toString() : "",
-    });
+    setEarnings({ uber: shift.uber > 0 ? shift.uber.toString() : "", wolt: shift.wolt > 0 ? shift.wolt.toString() : "", bolt: shift.bolt > 0 ? shift.bolt.toString() : "", glovo: shift.glovo > 0 ? shift.glovo.toString() : "" });
+    setOrders({ uber: shift.orders_uber > 0 ? shift.orders_uber.toString() : "", wolt: shift.orders_wolt > 0 ? shift.orders_wolt.toString() : "", bolt: shift.orders_bolt > 0 ? shift.orders_bolt.toString() : "", glovo: shift.orders_glovo > 0 ? shift.orders_glovo.toString() : "" });
+    setTips({ uber: shift.tips_uber > 0 ? shift.tips_uber.toString() : "", wolt: shift.tips_wolt > 0 ? shift.tips_wolt.toString() : "", bolt: shift.tips_bolt > 0 ? shift.tips_bolt.toString() : "", glovo: shift.tips_glovo > 0 ? shift.tips_glovo.toString() : "" });
+    setBonuses({ uber: shift.bonuses_uber > 0 ? shift.bonuses_uber.toString() : "", wolt: shift.bonuses_wolt > 0 ? shift.bonuses_wolt.toString() : "", bolt: shift.bonuses_bolt > 0 ? shift.bonuses_bolt.toString() : "", glovo: shift.bonuses_glovo > 0 ? shift.bonuses_glovo.toString() : "" });
 
-    setOrders({
-      uber: shift.orders_uber > 0 ? shift.orders_uber.toString() : "",
-      wolt: shift.orders_wolt > 0 ? shift.orders_wolt.toString() : "",
-      bolt: shift.orders_bolt > 0 ? shift.orders_bolt.toString() : "",
-      glovo: shift.orders_glovo > 0 ? shift.orders_glovo.toString() : "",
-    });
-
-    setTips({
-      uber: shift.tips_uber > 0 ? shift.tips_uber.toString() : "",
-      wolt: shift.tips_wolt > 0 ? shift.tips_wolt.toString() : "",
-      bolt: shift.tips_bolt > 0 ? shift.tips_bolt.toString() : "",
-      glovo: shift.tips_glovo > 0 ? shift.tips_glovo.toString() : "",
-    });
-
-    setBonuses({
-      uber: shift.bonuses_uber > 0 ? shift.bonuses_uber.toString() : "",
-      wolt: shift.bonuses_wolt > 0 ? shift.bonuses_wolt.toString() : "",
-      bolt: shift.bonuses_bolt > 0 ? shift.bonuses_bolt.toString() : "",
-      glovo: shift.bonuses_glovo > 0 ? shift.bonuses_glovo.toString() : "",
-    });
-
-    const hasExtras = (
-      (shift.tips_uber||0) + (shift.tips_wolt||0) + (shift.tips_bolt||0) + (shift.tips_glovo||0) + 
-      (shift.bonuses_uber||0) + (shift.bonuses_wolt||0) + (shift.bonuses_bolt||0) + (shift.bonuses_glovo||0)
-    ) > 0;
-    
+    const hasExtras = ((shift.tips_uber||0) + (shift.tips_wolt||0) + (shift.tips_bolt||0) + (shift.tips_glovo||0) + (shift.bonuses_uber||0) + (shift.bonuses_wolt||0) + (shift.bonuses_bolt||0) + (shift.bonuses_glovo||0)) > 0;
     setShowExtras(hasExtras);
 
     const active = [];
@@ -285,6 +286,7 @@ export default function WorkDashboard() {
     setDate(new Date().toISOString().split("T")[0]);
     setKm("");
     setHours("");
+    setShiftStart(""); setShiftEnd(""); setBreaks([]); setShowCalc(false);
     setEarnings({ uber: "", wolt: "", bolt: "", glovo: "" });
     setOrders({ uber: "", wolt: "", bolt: "", glovo: "" });
     setTips({ uber: "", wolt: "", bolt: "", glovo: "" });
@@ -299,51 +301,59 @@ export default function WorkDashboard() {
   const availableToAdd = ["uber", "wolt", "bolt", "glovo"].filter(p => !activePlatforms.includes(p));
   const filteredShifts = shifts.filter(shift => shift.date.startsWith(selectedMonth));
 
-  let totalEarned = 0, totalHours = 0, totalKm = 0, totalOrders = 0;
+  let totalVisualEarned = 0, totalHours = 0, totalKm = 0, totalOrders = 0;
+  let absTotalTips = 0, absTotalBaseAndBonuses = 0; 
   let maxEarned = 0, bestShiftDate = ""; 
 
   filteredShifts.forEach(shift => {
-    let dailyTotal = shift.uber + shift.wolt + shift.bolt + shift.glovo;
-    let dailyTips = (shift.tips_uber || 0) + (shift.tips_wolt || 0) + (shift.tips_bolt || 0) + (shift.tips_glovo || 0);
-    let dailyBonuses = (shift.bonuses_uber || 0) + (shift.bonuses_wolt || 0) + (shift.bonuses_bolt || 0) + (shift.bonuses_glovo || 0);
+    const dailyBase = shift.uber + shift.wolt + shift.bolt + shift.glovo;
+    const dailyTips = (shift.tips_uber || 0) + (shift.tips_wolt || 0) + (shift.tips_bolt || 0) + (shift.tips_glovo || 0);
+    const dailyBonuses = (shift.bonuses_uber || 0) + (shift.bonuses_wolt || 0) + (shift.bonuses_bolt || 0) + (shift.bonuses_glovo || 0);
     
-    if (includeTips) dailyTotal += dailyTips;
-    if (includeBonuses) dailyTotal += dailyBonuses;
+    let shiftVisualTotal = dailyBase;
+    if (includeTips) shiftVisualTotal += dailyTips;
+    if (includeBonuses) shiftVisualTotal += dailyBonuses;
+
+    absTotalTips += dailyTips;
+    absTotalBaseAndBonuses += (dailyBase + dailyBonuses);
 
     const dailyOrders = shift.orders_uber + shift.orders_wolt + shift.orders_bolt + shift.orders_glovo;
 
-    totalEarned += dailyTotal;
+    totalVisualEarned += shiftVisualTotal;
     totalHours += shift.hours;
     totalKm += shift.km;
     totalOrders += dailyOrders;
 
-    if (dailyTotal > maxEarned) { maxEarned = dailyTotal; bestShiftDate = shift.date; }
+    if (shiftVisualTotal > maxEarned) { maxEarned = shiftVisualTotal; bestShiftDate = shift.date; }
   });
 
   const totalDays = filteredShifts.length;
-  const avgPerHour = totalHours > 0 ? (totalEarned / totalHours).toFixed(2) : "0.00";
-  const avgPerKm = totalKm > 0 ? (totalEarned / totalKm).toFixed(2) : "0.00";
-  const avgPerOrder = totalOrders > 0 ? (totalEarned / totalOrders).toFixed(2) : "0.00";
+  const avgPerHour = totalHours > 0 ? (totalVisualEarned / totalHours).toFixed(2) : "0.00";
+  const avgPerKm = totalKm > 0 ? (totalVisualEarned / totalKm).toFixed(2) : "0.00";
+  const avgPerOrder = totalOrders > 0 ? (totalVisualEarned / totalOrders).toFixed(2) : "0.00";
   
   const avgKmPerDay = totalDays > 0 ? (totalKm / totalDays).toFixed(1) : "0.0";
   const avgHoursPerDay = totalDays > 0 ? (totalHours / totalDays).toFixed(1) : "0.0";
   const avgOrdersPerDay = totalDays > 0 ? (totalOrders / totalDays).toFixed(1) : "0.0";
-  const avgEarnedPerDay = totalDays > 0 ? (totalEarned / totalDays).toFixed(2) : "0.00";
+  const avgEarnedPerDay = totalDays > 0 ? (totalVisualEarned / totalDays).toFixed(2) : "0.00";
+
+  const absoluteTotalIncome = absTotalBaseAndBonuses + absTotalTips;
+  const tipsPercent = absoluteTotalIncome > 0 ? ((absTotalTips / absoluteTotalIncome) * 100).toFixed(1) : "0.0";
 
   const chronologicalShifts = [...filteredShifts].reverse();
 
   const chartDatasets: any[] = [
-    { type: 'bar', label: 'Uber', data: chronologicalShifts.map(s => s.uber), backgroundColor: "#4b5563", stack: 'Stack 0' },
-    { type: 'bar', label: 'Wolt', data: chronologicalShifts.map(s => s.wolt), backgroundColor: "#00c2e8", stack: 'Stack 0' },
-    { type: 'bar', label: 'Bolt', data: chronologicalShifts.map(s => s.bolt), backgroundColor: "#22c55e", stack: 'Stack 0' },
-    { type: 'bar', label: 'Glovo', data: chronologicalShifts.map(s => s.glovo), backgroundColor: "#eab308", stack: 'Stack 0' }
+    { type: 'bar', label: 'Uber', data: chronologicalShifts.map(s => s.uber), backgroundColor: "rgba(75, 85, 99, 0.4)", borderColor: "rgba(75, 85, 99, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 },
+    { type: 'bar', label: 'Wolt', data: chronologicalShifts.map(s => s.wolt), backgroundColor: "rgba(0, 194, 232, 0.4)", borderColor: "rgba(0, 194, 232, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 },
+    { type: 'bar', label: 'Bolt', data: chronologicalShifts.map(s => s.bolt), backgroundColor: "rgba(34, 197, 94, 0.4)", borderColor: "rgba(34, 197, 94, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 },
+    { type: 'bar', label: 'Glovo', data: chronologicalShifts.map(s => s.glovo), backgroundColor: "rgba(234, 179, 8, 0.4)", borderColor: "rgba(234, 179, 8, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 }
   ];
 
   if (includeTips) {
-    chartDatasets.push({ type: 'bar', label: t.work.tipsLabel, data: chronologicalShifts.map(s => (s.tips_uber||0) + (s.tips_wolt||0) + (s.tips_bolt||0) + (s.tips_glovo||0)), backgroundColor: "#f43f5e", stack: 'Stack 0' });
+    chartDatasets.push({ type: 'bar', label: t.work.tipsLabel, data: chronologicalShifts.map(s => (s.tips_uber||0) + (s.tips_wolt||0) + (s.tips_bolt||0) + (s.tips_glovo||0)), backgroundColor: "rgba(244, 63, 94, 0.4)", borderColor: "rgba(244, 63, 94, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 });
   }
   if (includeBonuses) {
-    chartDatasets.push({ type: 'bar', label: t.work.bonusesLabel, data: chronologicalShifts.map(s => (s.bonuses_uber||0) + (s.bonuses_wolt||0) + (s.bonuses_bolt||0) + (s.bonuses_glovo||0)), backgroundColor: "#a855f7", stack: 'Stack 0' });
+    chartDatasets.push({ type: 'bar', label: t.work.bonusesLabel, data: chronologicalShifts.map(s => (s.bonuses_uber||0) + (s.bonuses_wolt||0) + (s.bonuses_bolt||0) + (s.bonuses_glovo||0)), backgroundColor: "rgba(168, 85, 247, 0.4)", borderColor: "rgba(168, 85, 247, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 });
   }
 
   chartDatasets.push(
@@ -355,10 +365,10 @@ export default function WorkDashboard() {
         if (includeBonuses) total += (s.bonuses_uber||0) + (s.bonuses_wolt||0) + (s.bonuses_bolt||0) + (s.bonuses_glovo||0);
         return s.hours > 0 ? Number((total / s.hours).toFixed(2)) : 0;
       }),
-      borderColor: "#00e5ff", backgroundColor: "#00e5ff", borderWidth: 4, pointRadius: 4, tension: 0.3, yAxisID: 'y1'
+      borderColor: "#00e5ff", backgroundColor: "#00e5ff", borderWidth: 4, pointRadius: 4, tension: 0.3, yAxisID: 'y1', order: 1
     },
-    { type: 'line', label: t.work.tableKm, data: chronologicalShifts.map(s => s.km), borderColor: "rgba(168, 85, 247, 0.5)", backgroundColor: "rgba(168, 85, 247, 0.5)", borderWidth: 2, pointRadius: 2, yAxisID: 'y1' },
-    { type: 'line', label: t.work.tableHours, data: chronologicalShifts.map(s => s.hours), borderColor: "rgba(244, 63, 94, 0.5)", backgroundColor: "rgba(244, 63, 94, 0.5)", borderWidth: 2, pointRadius: 2, yAxisID: 'y1' }
+    { type: 'line', label: t.work.tableKm, data: chronologicalShifts.map(s => s.km), borderColor: "#a855f7", backgroundColor: "#a855f7", borderWidth: 3, pointRadius: 3, tension: 0.3, yAxisID: 'y1', order: 1 },
+    { type: 'line', label: t.work.tableHours, data: chronologicalShifts.map(s => s.hours), borderColor: "#f43f5e", backgroundColor: "#f43f5e", borderWidth: 3, pointRadius: 3, tension: 0.3, yAxisID: 'y1', order: 1 }
   );
 
   const monthlyChartData = {
@@ -404,9 +414,9 @@ export default function WorkDashboard() {
           </button>
         )}
 
-        <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isFormOpen ? "max-h-[2000px] opacity-100 mb-8" : "max-h-0 opacity-0"}`}>
+        <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isFormOpen ? "max-h-[2500px] opacity-100 mb-8" : "max-h-0 opacity-0"}`}>
           <form onSubmit={handleSubmit} className={`p-5 md:p-6 rounded-xl border shadow-lg transition-all ${editingId ? 'bg-[#25251a] border-yellow-700/50' : 'bg-[#1e1e24] border-gray-800'}`}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-4">
               <div>
                 <label className="block text-sm text-gray-400 mb-1.5">{t.work.date}</label>
                 <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} disabled={editingId !== null} className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3.5 text-white focus:outline-none focus:border-green-500 disabled:opacity-50 text-base" />
@@ -418,8 +428,62 @@ export default function WorkDashboard() {
               <div>
                 <label className="block text-sm text-gray-400 mb-1.5">{t.work.hours}</label>
                 <input type="number" step="0.1" required value={hours} onChange={(e) => setHours(e.target.value)} className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3.5 text-white focus:outline-none focus:border-green-500 text-base font-medium" />
+                
+                <div className="mt-2 flex items-center justify-between px-1">
+                  <button type="button" onClick={() => setShowCalc(!showCalc)} className="text-[11px] font-bold text-blue-400 hover:text-blue-300 transition flex items-center gap-1.5 bg-blue-500/10 px-2 py-1 rounded-md border border-blue-500/20">
+                    🧮 {t.work.calcHoursBtn}
+                  </button>
+                  <span className="text-gray-500 cursor-help text-xs" title={t.work.calcTooltip}>❓</span>
+                </div>
               </div>
             </div>
+
+            {showCalc && (
+              <div className="col-span-1 md:col-span-3 bg-[#17171d] p-4 md:p-5 rounded-xl border border-blue-900/50 mb-6 shadow-inner animate-fade-in">
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1.5">{t.work.shiftStart}</label>
+                    <input type="time" value={shiftStart} onChange={(e) => setShiftStart(e.target.value)} className="w-full bg-[#2a2a35] border border-gray-700 rounded-lg p-2.5 text-white font-bold focus:border-blue-500 focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1.5">{t.work.shiftEnd}</label>
+                    <input type="time" value={shiftEnd} onChange={(e) => setShiftEnd(e.target.value)} className="w-full bg-[#2a2a35] border border-gray-700 rounded-lg p-2.5 text-white font-bold focus:border-blue-500 focus:outline-none" />
+                  </div>
+                </div>
+
+                {breaks.length > 0 && (
+                  <div className="mb-4 p-3 bg-[#1e1e24] rounded-lg border border-gray-800">
+                    <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mb-2 block">
+                      Перерви
+                    </span>
+                    <div className="space-y-3">
+                      {breaks.map((brk, idx) => (
+                        <div key={idx} className="flex gap-2 items-end">
+                          <div className="flex-1">
+                            <label className="block text-[9px] text-gray-500 uppercase tracking-wider mb-1">{t.work.breakStart} {idx + 1}</label>
+                            <input type="time" value={brk.start} onChange={(e) => { const newBreaks = [...breaks]; newBreaks[idx].start = e.target.value; setBreaks(newBreaks); }} className="w-full bg-[#2a2a35]/60 border border-gray-700 rounded-lg p-2 text-white text-sm focus:border-yellow-500 focus:outline-none" />
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-[9px] text-gray-500 uppercase tracking-wider mb-1">{t.work.breakEnd} {idx + 1}</label>
+                            <input type="time" value={brk.end} onChange={(e) => { const newBreaks = [...breaks]; newBreaks[idx].end = e.target.value; setBreaks(newBreaks); }} className="w-full bg-[#2a2a35]/60 border border-gray-700 rounded-lg p-2 text-white text-sm focus:border-yellow-500 focus:outline-none" />
+                          </div>
+                          <button type="button" onClick={() => setBreaks(breaks.filter((_, i) => i !== idx))} className="bg-red-900/20 text-red-500 p-2 rounded-lg border border-red-900/30 hover:bg-red-900/40 transition">✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center border-t border-gray-800 pt-4">
+                  <button type="button" onClick={() => setBreaks([...breaks, { start: "", end: "" }])} className="text-xs font-bold text-yellow-500 hover:text-yellow-400 transition bg-yellow-500/10 px-3 py-1.5 rounded-md border border-yellow-500/20">
+                    {t.work.addBreakBtn}
+                  </button>
+                  <button type="button" onClick={calculateHours} disabled={!shiftStart || !shiftEnd} className="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold py-2 px-5 rounded-lg text-sm transition shadow-md">
+                    {t.work.calcActionBtn}
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div className="border-t border-gray-800 pt-5 mb-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
@@ -525,22 +589,26 @@ export default function WorkDashboard() {
 
         <div className="mb-4">
           <span className="text-xs font-semibold text-gray-500 tracking-wider uppercase mb-2 block">{t.work.totalMonthTitle}</span>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="bg-gradient-to-br from-[#1e1e24] to-[#252530] p-4 md:p-5 rounded-xl border border-gray-800 text-center shadow-md">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            <div className="col-span-2 sm:col-span-1 bg-gradient-to-br from-[#1e1e24] to-[#252530] p-4 rounded-xl border border-gray-800 text-center shadow-md">
               <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.work.totalIncome}</h3>
-              <p className="text-xl sm:text-2xl md:text-3xl font-black text-green-400">{totalEarned.toFixed(2)} <span className="text-[10px] sm:text-sm md:text-base font-normal">{t.common.currency}</span></p>
+              <p className="text-xl sm:text-2xl font-black text-green-400">{totalVisualEarned.toFixed(2)} <span className="text-[10px] sm:text-sm font-normal">{t.common.currency}</span></p>
             </div>
             <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
               <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.work.totalOrders}</h3>
-              <p className="text-xl md:text-2xl font-bold text-blue-400">{totalOrders} <span className="text-[10px] font-normal text-gray-500">{t.work.tableOrders}</span></p>
+              <p className="text-xl sm:text-2xl font-bold text-blue-400">{totalOrders} <span className="text-[10px] font-normal text-gray-500">{t.work.tableOrders}</span></p>
             </div>
             <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
               <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.work.totalHours}</h3>
-              <p className="text-xl md:text-2xl font-bold text-white">{totalHours.toFixed(1)} <span className="text-[10px] font-normal text-gray-500">{t.common.hrs}</span></p>
+              <p className="text-xl sm:text-2xl font-bold text-white">{totalHours.toFixed(1)} <span className="text-[10px] font-normal text-gray-500">{t.common.hrs}</span></p>
             </div>
             <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
               <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.work.totalKm}</h3>
-              <p className="text-xl md:text-2xl font-bold text-purple-400">{totalKm.toFixed(1)} <span className="text-[10px] font-normal text-gray-500">{t.common.km}</span></p>
+              <p className="text-xl sm:text-2xl font-bold text-purple-400">{totalKm.toFixed(1)} <span className="text-[10px] font-normal text-gray-500">{t.common.km}</span></p>
+            </div>
+            <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
+              <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.work.tipsPercent}</h3>
+              <p className="text-xl sm:text-2xl font-bold text-rose-400">{tipsPercent} <span className="text-[10px] font-normal text-gray-500">%</span></p>
             </div>
           </div>
         </div>
@@ -576,9 +644,13 @@ export default function WorkDashboard() {
         </div>
 
         {filteredShifts.length > 0 && (
-          <div className="bg-[#1e1e24] p-3 md:p-6 rounded-xl border border-gray-800 mb-8 hidden sm:block shadow-sm">
+          <div className="bg-[#1e1e24] p-3 md:p-6 rounded-xl border border-gray-800 mb-8 shadow-sm">
             <h3 className="text-sm font-medium text-gray-400 mb-4">{t.work.chartTitle}</h3>
-            <div className="w-full h-72 relative"><Bar data={monthlyChartData as any} options={monthlyChartOptions as any} /></div>
+            <div className="w-full overflow-x-auto pb-2">
+              <div className="h-64 md:h-72 min-w-[700px] relative">
+                <Bar data={monthlyChartData as any} options={monthlyChartOptions as any} />
+              </div>
+            </div>
           </div>
         )}
 
@@ -600,60 +672,54 @@ export default function WorkDashboard() {
               <tr className="bg-[#2a2a35] text-gray-400 text-[11px] uppercase tracking-wider border-b border-gray-800">
                 <th className="p-4 font-bold text-gray-300">{t.work.tableDate}</th>
                 <th className="p-4 font-bold text-blue-400 bg-blue-500/5">{t.work.tableOrders} ℹ️</th>
-                <th className="p-4 font-bold text-green-400 bg-green-500/5">{t.work.tableIncome} ℹ️</th>
-                <th className="p-4 font-medium">{t.work.tableBonuses} ℹ️</th>
-                <th className="p-4 font-medium">{t.work.tableTips} ℹ️</th>
+                <th className="p-4 font-bold text-green-400 bg-green-500/5">{t.work.tableIncome}</th>
+                <th className="p-4 font-medium text-gray-400">{t.work.tableBase} ℹ️</th>
+                <th className="p-4 font-medium text-purple-400">{t.work.tableBonuses} ℹ️</th>
+                <th className="p-4 font-medium text-rose-400">{t.work.tableTips} ℹ️</th>
                 <th className="p-4 font-medium">{t.work.tableHours}</th>
                 <th className="p-4 font-medium">{t.work.tableKm}</th>
-                
                 <th className="p-4 font-bold text-cyan-400 border-l-2 border-gray-700/70 bg-cyan-950/20">{t.work.tableRate}</th>
                 <th className="p-4 font-bold text-purple-400 bg-purple-950/20">{t.work.tableEff}</th>
-                <th className="p-4 font-bold text-yellow-400 bg-yellow-950/20">{t.work.orderUnit.toUpperCase()} ℹ️</th>
-                
+                <th className="p-4 font-bold text-yellow-400 bg-yellow-950/20">{t.work.orderUnit.toUpperCase()}</th>
                 <th className="p-4 font-medium text-right">{t.work.tableActions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800 text-sm">
               {isLoading ? (
-                <tr><td colSpan={11} className="p-8 text-center text-gray-500">{t.common.loading}</td></tr>
+                <tr><td colSpan={12} className="p-8 text-center text-gray-500">{t.common.loading}</td></tr>
               ) : filteredShifts.length === 0 ? (
-                <tr><td colSpan={11} className="p-8 text-center text-gray-500">{t.work.noRecords}</td></tr>
+                <tr><td colSpan={12} className="p-8 text-center text-gray-500">{t.work.noRecords}</td></tr>
               ) : (
                 filteredShifts.map((shift) => {
-                  const dailyTotal = shift.uber + shift.wolt + shift.bolt + shift.glovo;
+                  const dailyBase = shift.uber + shift.wolt + shift.bolt + shift.glovo;
                   const dailyTips = (shift.tips_uber||0) + (shift.tips_wolt||0) + (shift.tips_bolt||0) + (shift.tips_glovo||0);
                   const dailyBonuses = (shift.bonuses_uber||0) + (shift.bonuses_wolt||0) + (shift.bonuses_bolt||0) + (shift.bonuses_glovo||0);
                   
-                  let visualTotal = dailyTotal;
-                  if (includeTips) visualTotal += dailyTips;
-                  if (includeBonuses) visualTotal += dailyBonuses;
-                  
+                  const absoluteTotal = dailyBase + dailyTips + dailyBonuses; // ЗАВЖДИ ПОВНА СУМА
                   const dailyOrders = shift.orders_uber + shift.orders_wolt + shift.orders_bolt + shift.orders_glovo;
                   
-                  const dailyAvgHour = shift.hours > 0 ? (visualTotal / shift.hours).toFixed(2) : "0.00";
-                  const dailyAvgKm = shift.km > 0 ? (visualTotal / shift.km).toFixed(2) : "0.00";
-                  const dailyAvgOrder = dailyOrders > 0 ? (visualTotal / dailyOrders).toFixed(2) : "0.00";
+                  const dailyAvgHour = shift.hours > 0 ? (absoluteTotal / shift.hours).toFixed(2) : "0.00";
+                  const dailyAvgKm = shift.km > 0 ? (absoluteTotal / shift.km).toFixed(2) : "0.00";
+                  const dailyAvgOrder = dailyOrders > 0 ? (absoluteTotal / dailyOrders).toFixed(2) : "0.00";
 
-                  const incomeTooltip = `Uber: ${shift.uber.toFixed(2)} \nWolt: ${shift.wolt.toFixed(2)} \nBolt: ${shift.bolt.toFixed(2)} \nGlovo: ${shift.glovo.toFixed(2)}`;
+                  const baseTooltip = `Uber: ${shift.uber.toFixed(2)}\nWolt: ${shift.wolt.toFixed(2)}\nBolt: ${shift.bolt.toFixed(2)}\nGlovo: ${shift.glovo.toFixed(2)}`;
                   const ordersTooltip = `Uber: ${shift.orders_uber}\nWolt: ${shift.orders_wolt}\nBolt: ${shift.orders_bolt}\nGlovo: ${shift.orders_glovo}`;
-                  const tipsTooltip = `Uber: ${(shift.tips_uber||0).toFixed(2)} \nWolt: ${(shift.tips_wolt||0).toFixed(2)} \nBolt: ${(shift.tips_bolt||0).toFixed(2)} \nGlovo: ${(shift.tips_glovo||0).toFixed(2)}`;
-                  const bonusesTooltip = `Uber: ${(shift.bonuses_uber||0).toFixed(2)} \nWolt: ${(shift.bonuses_wolt||0).toFixed(2)} \nBolt: ${(shift.bonuses_bolt||0).toFixed(2)} \nGlovo: ${(shift.bonuses_glovo||0).toFixed(2)}`;
-                  const orderPriceTooltip = `Uber: ${shift.orders_uber > 0 ? (shift.uber / shift.orders_uber).toFixed(2) : "0.00"} \nWolt: ${shift.orders_wolt > 0 ? (shift.wolt / shift.orders_wolt).toFixed(2) : "0.00"} \nBolt: ${shift.orders_bolt > 0 ? (shift.bolt / shift.orders_bolt).toFixed(2) : "0.00"} \nGlovo: ${shift.orders_glovo > 0 ? (shift.glovo / shift.orders_glovo).toFixed(2) : "0.00"}`;
+                  const tipsTooltip = `Uber: ${(shift.tips_uber||0).toFixed(2)}\nWolt: ${(shift.tips_wolt||0).toFixed(2)}\nBolt: ${(shift.tips_bolt||0).toFixed(2)}\nGlovo: ${(shift.tips_glovo||0).toFixed(2)}`;
+                  const bonusesTooltip = `Uber: ${(shift.bonuses_uber||0).toFixed(2)}\nWolt: ${(shift.bonuses_wolt||0).toFixed(2)}\nBolt: ${(shift.bonuses_bolt||0).toFixed(2)}\nGlovo: ${(shift.bonuses_glovo||0).toFixed(2)}`;
 
                   return (
                     <tr key={shift.id} className="hover:bg-[#2a2a35] transition">
                       <td className="p-4 font-medium">{new Date(shift.date).toLocaleDateString("uk-UA")}</td>
                       <td className="p-4 text-blue-400 font-bold bg-blue-500/5 cursor-help" title={ordersTooltip}>{dailyOrders > 0 ? dailyOrders : "-"}</td>
-                      <td className="p-4 font-bold text-green-400 bg-green-500/5 cursor-help" title={incomeTooltip}>{visualTotal.toFixed(2)}</td>
-                      <td className="p-4 text-purple-400 cursor-help" title={bonusesTooltip}>{dailyBonuses > 0 ? `+${dailyBonuses.toFixed(2)}` : "-"}</td>
-                      <td className="p-4 text-rose-400 cursor-help" title={tipsTooltip}>{dailyTips > 0 ? `+${dailyTips.toFixed(2)}` : "-"}</td>
+                      <td className="p-4 font-bold text-green-400 bg-green-500/5">{absoluteTotal.toFixed(2)}</td>
+                      <td className="p-4 text-gray-400 cursor-help" title={baseTooltip}>{dailyBase.toFixed(2)}</td>
+                      <td className="p-4 text-purple-400 cursor-help" title={bonusesTooltip}>{dailyBonuses > 0 ? dailyBonuses.toFixed(2) : "-"}</td>
+                      <td className="p-4 text-rose-400 cursor-help" title={tipsTooltip}>{dailyTips > 0 ? dailyTips.toFixed(2) : "-"}</td>
                       <td className="p-4">{shift.hours}</td>
                       <td className="p-4 text-gray-400">{shift.km}</td>
-                      
                       <td className="p-4 text-cyan-400 font-bold border-l-2 border-gray-700/70 bg-cyan-950/20">{dailyAvgHour}</td>
                       <td className="p-4 text-purple-400 font-bold bg-purple-950/20">{dailyAvgKm}</td>
-                      <td className="p-4 text-yellow-400 font-bold bg-yellow-950/20 cursor-help" title={orderPriceTooltip}>{dailyAvgOrder}</td>
-                      
+                      <td className="p-4 text-yellow-400 font-bold bg-yellow-950/20">{dailyAvgOrder}</td>
                       <td className="p-4 text-right">
                         <button onClick={() => handleEdit(shift)} className="text-gray-400 hover:text-yellow-500 p-2 transition">✏️</button>
                         <button onClick={() => handleDelete(shift.id)} className="text-gray-400 hover:text-red-500 p-2 transition">🗑️</button>
@@ -673,34 +739,32 @@ export default function WorkDashboard() {
             <div className="text-center text-gray-500 py-8 bg-[#1e1e24] rounded-xl border border-gray-800">{t.work.noRecords}</div>
           ) : (
             filteredShifts.map((shift) => {
-              const dailyTotal = shift.uber + shift.wolt + shift.bolt + shift.glovo;
+              const dailyBase = shift.uber + shift.wolt + shift.bolt + shift.glovo;
               const dailyTips = (shift.tips_uber||0) + (shift.tips_wolt||0) + (shift.tips_bolt||0) + (shift.tips_glovo||0);
               const dailyBonuses = (shift.bonuses_uber||0) + (shift.bonuses_wolt||0) + (shift.bonuses_bolt||0) + (shift.bonuses_glovo||0);
-              
-              let visualTotal = dailyTotal;
-              if (includeTips) visualTotal += dailyTips;
-              if (includeBonuses) visualTotal += dailyBonuses;
-              
+              const absoluteTotal = dailyBase + dailyTips + dailyBonuses; // ЗАВЖДИ ПОВНА СУМА
               const dailyOrders = shift.orders_uber + shift.orders_wolt + shift.orders_bolt + shift.orders_glovo;
-              const dailyAvgHour = shift.hours > 0 ? (visualTotal / shift.hours).toFixed(2) : "0.00";
-              const dailyAvgKm = shift.km > 0 ? (visualTotal / shift.km).toFixed(2) : "0.00";
-              const dailyAvgOrder = dailyOrders > 0 ? (visualTotal / dailyOrders).toFixed(2) : "0.00";
+              
+              const dailyAvgHour = shift.hours > 0 ? (absoluteTotal / shift.hours).toFixed(2) : "0.00";
+              const dailyAvgKm = shift.km > 0 ? (absoluteTotal / shift.km).toFixed(2) : "0.00";
+              const dailyAvgOrder = dailyOrders > 0 ? (absoluteTotal / dailyOrders).toFixed(2) : "0.00";
               
               return (
                 <div key={shift.id} className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 shadow-sm flex flex-col gap-3">
                   <div className="flex justify-between items-center border-b border-gray-700/50 pb-2.5">
                     <span className="font-bold text-white text-base">{new Date(shift.date).toLocaleDateString("uk-UA", { weekday: 'short', day: 'numeric', month: 'short' })}</span>
-                    <span className="font-black text-green-400 text-lg">{visualTotal.toFixed(2)} <span className="text-[10px] font-normal">{t.common.currency}</span></span>
+                    <span className="font-black text-green-400 text-lg">{absoluteTotal.toFixed(2)} <span className="text-[10px] font-normal">{t.common.currency}</span></span>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-3 items-stretch">
-                    <div className="flex flex-col gap-1.5 text-xs bg-[#17171d] p-2.5 rounded-lg border border-gray-800/60">
+                    <div className="flex flex-col gap-1 text-xs bg-[#17171d] p-2.5 rounded-lg border border-gray-800/60">
                       <span className="text-gray-500 uppercase text-[9px] tracking-wider font-semibold block mb-1">Дані зміни</span>
-                      <div className="flex justify-between text-gray-300"><span>Замовлень:</span><strong className="text-blue-400">{dailyOrders}</strong></div>
-                      <div className="flex justify-between text-gray-300"><span>Години:</span><strong className="text-white">{shift.hours} год</strong></div>
-                      <div className="flex justify-between text-gray-300"><span>Пробіг:</span><strong className="text-purple-400">{shift.km} км</strong></div>
-                      {dailyBonuses > 0 && <div className="flex justify-between text-purple-400"><span>Бонуси:</span><strong>+{dailyBonuses.toFixed(2)}</strong></div>}
-                      {dailyTips > 0 && <div className="flex justify-between text-rose-400"><span>Чай:</span><strong>+{dailyTips.toFixed(2)}</strong></div>}
+                      <div className="flex justify-between text-gray-400"><span>Ставка:</span><strong>{dailyBase.toFixed(2)}</strong></div>
+                      {dailyTips > 0 && <div className="flex justify-between text-rose-400"><span>Чай:</span><strong>{dailyTips.toFixed(2)}</strong></div>}
+                      {dailyBonuses > 0 && <div className="flex justify-between text-purple-400"><span>Бонуси:</span><strong>{dailyBonuses.toFixed(2)}</strong></div>}
+                      <div className="flex justify-between text-blue-400 border-t border-gray-800 mt-1 pt-1"><span>Замовлень:</span><strong>{dailyOrders}</strong></div>
+                      <div className="flex justify-between text-white"><span>Години:</span><strong>{shift.hours}</strong></div>
+                      <div className="flex justify-between text-gray-300"><span>Пробіг:</span><strong>{shift.km}</strong></div>
                     </div>
 
                     <div className="flex flex-col gap-1.5 text-xs bg-[#22222a]/50 p-2.5 rounded-lg border border-cyan-950/30 flex-1 justify-center">
