@@ -68,6 +68,7 @@ export default function WorkDashboard() {
   
   // === СТАН ДЛЯ КАЛЬКУЛЯТОРА ГОДИН (Тепер за замовчуванням порожній масив) ===
   const [showCalc, setShowCalc] = useState(false);
+  const [showCalcInfo, setShowCalcInfo] = useState(false);
   const [shiftStart, setShiftStart] = useState("");
   const [shiftEnd, setShiftEnd] = useState("");
   const [breaks, setBreaks] = useState<{start: string, end: string}[]>([]);
@@ -416,72 +417,83 @@ export default function WorkDashboard() {
 
         <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isFormOpen ? "max-h-[2500px] opacity-100 mb-8" : "max-h-0 opacity-0"}`}>
           <form onSubmit={handleSubmit} className={`p-5 md:p-6 rounded-xl border shadow-lg transition-all ${editingId ? 'bg-[#25251a] border-yellow-700/50' : 'bg-[#1e1e24] border-gray-800'}`}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-4">
               <div>
                 <label className="block text-sm text-gray-400 mb-1.5">{t.work.date}</label>
-                <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} disabled={editingId !== null} className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3.5 text-white focus:outline-none focus:border-green-500 disabled:opacity-50 text-base" />
+                <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} disabled={editingId !== null} className="w-full h-[52px] px-4 bg-[#2a2a35] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-green-500 disabled:opacity-50 text-base" />
               </div>
               <div>
                 <label className="block text-sm text-gray-400 mb-1.5">{t.work.mileage}</label>
-                <input type="number" step="0.1" required value={km} onChange={(e) => setKm(e.target.value)} className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3.5 text-white focus:outline-none focus:border-green-500 text-base font-medium" />
+                <input type="number" step="0.1" required value={km} onChange={(e) => setKm(e.target.value)} className="w-full h-[52px] px-4 bg-[#2a2a35] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-green-500 text-base font-medium" />
               </div>
               <div>
                 <label className="block text-sm text-gray-400 mb-1.5">{t.work.hours}</label>
-                <input type="number" step="0.1" required value={hours} onChange={(e) => setHours(e.target.value)} className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3.5 text-white focus:outline-none focus:border-green-500 text-base font-medium" />
+                <input type="number" step="0.1" required value={hours} onChange={(e) => setHours(e.target.value)} className="w-full h-[52px] px-4 bg-[#2a2a35] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-green-500 text-base font-medium" />
                 
                 <div className="mt-2 flex items-center justify-between px-1">
                   <button type="button" onClick={() => setShowCalc(!showCalc)} className="text-[11px] font-bold text-blue-400 hover:text-blue-300 transition flex items-center gap-1.5 bg-blue-500/10 px-2 py-1 rounded-md border border-blue-500/20">
                     🧮 {t.work.calcHoursBtn}
                   </button>
-                  <span className="text-gray-500 cursor-help text-xs" title={t.work.calcTooltip}>❓</span>
+                  <button type="button" onClick={() => setShowCalcInfo(!showCalcInfo)} className="text-gray-400 hover:text-white transition text-xs w-6 h-6 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700">
+                    ❓
+                  </button>
                 </div>
               </div>
             </div>
 
+            {showCalcInfo && (
+              <div className="mb-4 p-3 bg-[#1e2330] border border-blue-900/50 rounded-xl text-xs text-blue-200 leading-relaxed shadow-inner">
+                {t.work.calcTooltip}
+              </div>
+            )}
+
             {showCalc && (
               <div className="col-span-1 md:col-span-3 bg-[#17171d] p-4 md:p-5 rounded-xl border border-blue-900/50 mb-6 shadow-inner animate-fade-in">
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-2 gap-3 mb-4">
                   <div>
                     <label className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1.5">{t.work.shiftStart}</label>
-                    <input type="time" value={shiftStart} onChange={(e) => setShiftStart(e.target.value)} className="w-full bg-[#2a2a35] border border-gray-700 rounded-lg p-2.5 text-white font-bold focus:border-blue-500 focus:outline-none" />
+                    <input type="time" value={shiftStart} onChange={(e) => setShiftStart(e.target.value)} className="w-full h-[48px] px-3 bg-[#2a2a35] border border-gray-700 rounded-lg text-white font-bold focus:border-blue-500 focus:outline-none" />
                   </div>
                   <div>
                     <label className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1.5">{t.work.shiftEnd}</label>
-                    <input type="time" value={shiftEnd} onChange={(e) => setShiftEnd(e.target.value)} className="w-full bg-[#2a2a35] border border-gray-700 rounded-lg p-2.5 text-white font-bold focus:border-blue-500 focus:outline-none" />
+                    <input type="time" value={shiftEnd} onChange={(e) => setShiftEnd(e.target.value)} className="w-full h-[48px] px-3 bg-[#2a2a35] border border-gray-700 rounded-lg text-white font-bold focus:border-blue-500 focus:outline-none" />
                   </div>
                 </div>
 
                 {breaks.length > 0 && (
-                  <div className="mb-4 p-3 bg-[#1e1e24] rounded-lg border border-gray-800">
+                  <div className="mb-4">
                     <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mb-2 block">
                       Перерви
                     </span>
                     <div className="space-y-3">
                       {breaks.map((brk, idx) => (
-                        <div key={idx} className="flex gap-2 items-end">
-                          <div className="flex-1">
-                            <label className="block text-[9px] text-gray-500 uppercase tracking-wider mb-1">{t.work.breakStart} {idx + 1}</label>
-                            <input type="time" value={brk.start} onChange={(e) => { const newBreaks = [...breaks]; newBreaks[idx].start = e.target.value; setBreaks(newBreaks); }} className="w-full bg-[#2a2a35]/60 border border-gray-700 rounded-lg p-2 text-white text-sm focus:border-yellow-500 focus:outline-none" />
+                        <div key={idx} className="relative bg-[#22222a] p-3 rounded-lg border border-gray-800 flex flex-col gap-2">
+                          <button type="button" onClick={() => setBreaks(breaks.filter((_, i) => i !== idx))} className="absolute top-2 right-2 bg-red-900/20 text-red-500 w-6 h-6 rounded-md flex items-center justify-center border border-red-900/30 hover:bg-red-900/40 transition">✕</button>
+                          <span className="text-[10px] font-bold text-gray-500">Перерва {idx + 1}</span>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-[9px] text-gray-500 uppercase tracking-wider mb-1">{t.work.breakStart}</label>
+                              <input type="time" value={brk.start} onChange={(e) => { const newBreaks = [...breaks]; newBreaks[idx].start = e.target.value; setBreaks(newBreaks); }} className="w-full h-[44px] px-3 bg-[#1e1e24] border border-gray-700 rounded-lg text-white text-sm focus:border-yellow-500 focus:outline-none" />
+                            </div>
+                            <div>
+                              <label className="block text-[9px] text-gray-500 uppercase tracking-wider mb-1">{t.work.breakEnd}</label>
+                              <input type="time" value={brk.end} onChange={(e) => { const newBreaks = [...breaks]; newBreaks[idx].end = e.target.value; setBreaks(newBreaks); }} className="w-full h-[44px] px-3 bg-[#1e1e24] border border-gray-700 rounded-lg text-white text-sm focus:border-yellow-500 focus:outline-none" />
+                            </div>
                           </div>
-                          <div className="flex-1">
-                            <label className="block text-[9px] text-gray-500 uppercase tracking-wider mb-1">{t.work.breakEnd} {idx + 1}</label>
-                            <input type="time" value={brk.end} onChange={(e) => { const newBreaks = [...breaks]; newBreaks[idx].end = e.target.value; setBreaks(newBreaks); }} className="w-full bg-[#2a2a35]/60 border border-gray-700 rounded-lg p-2 text-white text-sm focus:border-yellow-500 focus:outline-none" />
-                          </div>
-                          <button type="button" onClick={() => setBreaks(breaks.filter((_, i) => i !== idx))} className="bg-red-900/20 text-red-500 p-2 rounded-lg border border-red-900/30 hover:bg-red-900/40 transition">✕</button>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
 
-                <div className="flex justify-between items-center border-t border-gray-800 pt-4">
-                  <button type="button" onClick={() => setBreaks([...breaks, { start: "", end: "" }])} className="text-xs font-bold text-yellow-500 hover:text-yellow-400 transition bg-yellow-500/10 px-3 py-1.5 rounded-md border border-yellow-500/20">
-                    {t.work.addBreakBtn}
-                  </button>
-                  <button type="button" onClick={calculateHours} disabled={!shiftStart || !shiftEnd} className="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold py-2 px-5 rounded-lg text-sm transition shadow-md">
-                    {t.work.calcActionBtn}
-                  </button>
-                </div>
+              <div className="flex flex-col sm:flex-row gap-3 border-t border-gray-800 pt-4 mt-2">
+                    <button type="button" onClick={() => setBreaks([...breaks, { start: "", end: "" }])} className="sm:w-1/3 w-full py-3.5 rounded-xl text-sm font-bold text-yellow-500 hover:text-yellow-400 transition bg-yellow-500/10 border border-yellow-500/20 hover:bg-yellow-500/20 flex items-center justify-center">
+                      {t.work.addBreakBtn}
+                    </button>
+                    <button type="button" onClick={calculateHours} disabled={!shiftStart || !shiftEnd} className="flex-1 w-full py-3.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 disabled:bg-gray-800 disabled:text-gray-500 transition shadow-md flex items-center justify-center">
+                      {t.work.calcActionBtn}
+                    </button>
+                  </div>
               </div>
             )}
 
