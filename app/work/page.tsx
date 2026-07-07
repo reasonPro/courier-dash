@@ -34,27 +34,19 @@ ChartJS.register(
 );
 
 type Shift = {
-  id: number;
-  date: string;
-  km: number;
-  hours: number;
-  uber: number;
-  wolt: number;
-  bolt: number;
-  glovo: number;
-  orders_uber: number;
-  orders_wolt: number;
-  orders_bolt: number;
-  orders_glovo: number;
-  tips_uber: number;
-  tips_wolt: number;
-  tips_bolt: number;
-  tips_glovo: number;
-  bonuses_uber: number;
-  bonuses_wolt: number;
-  bonuses_bolt: number;
-  bonuses_glovo: number;
+  id: number; date: string; km: number; hours: number;
+  uber: number; wolt: number; bolt: number; glovo: number;
+  orders_uber: number; orders_wolt: number; orders_bolt: number; orders_glovo: number;
+  tips_uber: number; tips_wolt: number; tips_bolt: number; tips_glovo: number;
+  bonuses_uber: number; bonuses_wolt: number; bonuses_bolt: number; bonuses_glovo: number;
   user_id: string;
+};
+
+type TaxSettings = {
+  uber_type: string; uber_val: number;
+  wolt_type: string; wolt_val: number;
+  bolt_type: string; bolt_val: number;
+  glovo_type: string; glovo_val: number;
 };
 
 export default function WorkDashboard() {
@@ -66,7 +58,6 @@ export default function WorkDashboard() {
   const [km, setKm] = useState("");
   const [hours, setHours] = useState("");
   
-  // === СТАН ДЛЯ КАЛЬКУЛЯТОРА ГОДИН (Тепер за замовчуванням порожній масив) ===
   const [showCalc, setShowCalc] = useState(false);
   const [showCalcInfo, setShowCalcInfo] = useState(false);
   const [shiftStart, setShiftStart] = useState("");
@@ -85,10 +76,8 @@ export default function WorkDashboard() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   
   const [showBestMonthDay, setShowBestMonthDay] = useState(false);
-  
   const [includeTips, setIncludeTips] = useState(true);
   const [includeBonuses, setIncludeBonuses] = useState(true);
-  
   const [showMobileTable, setShowMobileTable] = useState(false);
 
   const [shifts, setShifts] = useState<Shift[]>([]);
@@ -101,6 +90,16 @@ export default function WorkDashboard() {
   const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [isSavingNickname, setIsSavingNickname] = useState(false);
 
+  // === СТАНИ ПОДАТКІВ ===
+  const [taxSettings, setTaxSettings] = useState<TaxSettings | null>(null);
+  const [isNetto, setIsNetto] = useState(false);
+  const [showTaxModal, setShowTaxModal] = useState(false);
+  const [isSavingTaxes, setIsSavingTaxes] = useState(false);
+  const [taxForm, setTaxForm] = useState<TaxSettings>({
+    uber_type: 'none', uber_val: 0, wolt_type: 'none', wolt_val: 0,
+    bolt_type: 'none', bolt_val: 0, glovo_type: 'none', glovo_val: 0
+  });
+
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -110,6 +109,7 @@ export default function WorkDashboard() {
         setUserId(session.user.id);
         fetchShifts(session.user.id);
         checkNickname(session.user);
+        fetchTaxSettings(session.user.id);
       }
     };
     checkUser();
@@ -124,6 +124,32 @@ export default function WorkDashboard() {
         setUserNickname(metaNickname);
       } else { setShowNicknameModal(true); }
     } else { setUserNickname(data.nickname); }
+  };
+
+  const fetchTaxSettings = async (uid: string) => {
+    let { data, error } = await supabase.from("tax_settings").select("*").eq("user_id", uid).single();
+    if (error || !data) {
+      const { data: newData } = await supabase.from("tax_settings").insert([{ user_id: uid }]).select().single();
+      if (newData) data = newData;
+    }
+    if (data) {
+      setTaxSettings(data);
+      setTaxForm({
+        uber_type: data.uber_type || 'none', uber_val: data.uber_val || 0,
+        wolt_type: data.wolt_type || 'none', wolt_val: data.wolt_val || 0,
+        bolt_type: data.bolt_type || 'none', bolt_val: data.bolt_val || 0,
+        glovo_type: data.glovo_type || 'none', glovo_val: data.glovo_val || 0
+      });
+    }
+  };
+
+  const saveTaxSettings = async () => {
+    if (!userId) return;
+    setIsSavingTaxes(true);
+    const { error } = await supabase.from("tax_settings").update(taxForm).eq("user_id", userId);
+    if (!error) setTaxSettings(taxForm);
+    setIsSavingTaxes(false);
+    setShowTaxModal(false);
   };
 
   const handleNicknameSubmit = async (e: React.FormEvent) => {
@@ -169,37 +195,22 @@ export default function WorkDashboard() {
 
   const calculateHours = () => {
     if (!shiftStart || !shiftEnd) return;
-    
-    const parseTime = (timeStr: string) => {
-      const [h, m] = timeStr.split(':').map(Number);
-      return h * 60 + m;
-    };
-
+    const parseTime = (timeStr: string) => { const [h, m] = timeStr.split(':').map(Number); return h * 60 + m; };
     let startMin = parseTime(shiftStart);
     let endMin = parseTime(shiftEnd);
-    
     if (endMin < startMin) endMin += 24 * 60;
-
     let totalWorkMin = endMin - startMin;
 
     breaks.forEach(b => {
       if (b.start && b.end) {
         let bStart = parseTime(b.start);
         let bEnd = parseTime(b.end);
-        
         if (bEnd < bStart) bEnd += 24 * 60; 
-        
-        if (bStart < startMin && (bStart + 24 * 60) < endMin) {
-          bStart += 24 * 60;
-          bEnd += 24 * 60;
-        }
-        
+        if (bStart < startMin && (bStart + 24 * 60) < endMin) { bStart += 24 * 60; bEnd += 24 * 60; }
         totalWorkMin -= (bEnd - bStart);
       }
     });
-
-    const decimalHours = (totalWorkMin / 60).toFixed(2);
-    setHours(decimalHours);
+    setHours((totalWorkMin / 60).toFixed(2));
     setShowCalc(false);
   };
 
@@ -209,30 +220,23 @@ export default function WorkDashboard() {
     setIsSubmitting(true);
 
     const shiftData = {
-      date: date,
-      km: parseFloat(km) || 0,
-      hours: parseFloat(hours) || 0,
-      
+      date: date, km: parseFloat(km) || 0, hours: parseFloat(hours) || 0,
       uber: activePlatforms.includes("uber") ? parseFloat(earnings.uber) || 0 : 0,
       wolt: activePlatforms.includes("wolt") ? parseFloat(earnings.wolt) || 0 : 0,
       bolt: activePlatforms.includes("bolt") ? parseFloat(earnings.bolt) || 0 : 0,
       glovo: activePlatforms.includes("glovo") ? parseFloat(earnings.glovo) || 0 : 0,
-      
       orders_uber: activePlatforms.includes("uber") ? parseInt(orders.uber) || 0 : 0,
       orders_wolt: activePlatforms.includes("wolt") ? parseInt(orders.wolt) || 0 : 0,
       orders_bolt: activePlatforms.includes("bolt") ? parseInt(orders.bolt) || 0 : 0,
       orders_glovo: activePlatforms.includes("glovo") ? parseInt(orders.glovo) || 0 : 0,
-      
       tips_uber: activePlatforms.includes("uber") ? parseFloat(tips.uber) || 0 : 0,
       tips_wolt: activePlatforms.includes("wolt") ? parseFloat(tips.wolt) || 0 : 0,
       tips_bolt: activePlatforms.includes("bolt") ? parseFloat(tips.bolt) || 0 : 0,
       tips_glovo: activePlatforms.includes("glovo") ? parseFloat(tips.glovo) || 0 : 0,
-      
       bonuses_uber: activePlatforms.includes("uber") ? parseFloat(bonuses.uber) || 0 : 0,
       bonuses_wolt: activePlatforms.includes("wolt") ? parseFloat(bonuses.wolt) || 0 : 0,
       bonuses_bolt: activePlatforms.includes("bolt") ? parseFloat(bonuses.bolt) || 0 : 0,
       bonuses_glovo: activePlatforms.includes("glovo") ? parseFloat(bonuses.glovo) || 0 : 0,
-      
       user_id: userId,
     };
 
@@ -251,11 +255,7 @@ export default function WorkDashboard() {
   };
 
   const handleEdit = (shift: Shift) => {
-    setEditingId(shift.id);
-    setDate(shift.date);
-    setKm(shift.km.toString());
-    setHours(shift.hours.toString());
-    
+    setEditingId(shift.id); setDate(shift.date); setKm(shift.km.toString()); setHours(shift.hours.toString());
     setEarnings({ uber: shift.uber > 0 ? shift.uber.toString() : "", wolt: shift.wolt > 0 ? shift.wolt.toString() : "", bolt: shift.bolt > 0 ? shift.bolt.toString() : "", glovo: shift.glovo > 0 ? shift.glovo.toString() : "" });
     setOrders({ uber: shift.orders_uber > 0 ? shift.orders_uber.toString() : "", wolt: shift.orders_wolt > 0 ? shift.orders_wolt.toString() : "", bolt: shift.orders_bolt > 0 ? shift.orders_bolt.toString() : "", glovo: shift.orders_glovo > 0 ? shift.orders_glovo.toString() : "" });
     setTips({ uber: shift.tips_uber > 0 ? shift.tips_uber.toString() : "", wolt: shift.tips_wolt > 0 ? shift.tips_wolt.toString() : "", bolt: shift.tips_bolt > 0 ? shift.tips_bolt.toString() : "", glovo: shift.tips_glovo > 0 ? shift.tips_glovo.toString() : "" });
@@ -283,18 +283,13 @@ export default function WorkDashboard() {
   };
 
   const resetForm = () => {
-    setEditingId(null);
-    setDate(new Date().toISOString().split("T")[0]);
-    setKm("");
-    setHours("");
-    setShiftStart(""); setShiftEnd(""); setBreaks([]); setShowCalc(false);
+    setEditingId(null); setDate(new Date().toISOString().split("T")[0]); setKm(""); setHours("");
+    setShiftStart(""); setShiftEnd(""); setBreaks([]); setShowCalc(false); setShowCalcInfo(false);
     setEarnings({ uber: "", wolt: "", bolt: "", glovo: "" });
     setOrders({ uber: "", wolt: "", bolt: "", glovo: "" });
     setTips({ uber: "", wolt: "", bolt: "", glovo: "" });
     setBonuses({ uber: "", wolt: "", bolt: "", glovo: "" });
-    setShowExtras(false);
-    setActivePlatforms(["uber", "wolt"]);
-    setIsFormOpen(false);
+    setShowExtras(false); setActivePlatforms(["uber", "wolt"]); setIsFormOpen(false);
   };
 
   if (!userId) return <div className="min-h-screen bg-[#121212] text-white flex items-center justify-center">{t.common.loading}</div>;
@@ -302,18 +297,79 @@ export default function WorkDashboard() {
   const availableToAdd = ["uber", "wolt", "bolt", "glovo"].filter(p => !activePlatforms.includes(p));
   const filteredShifts = shifts.filter(shift => shift.date.startsWith(selectedMonth));
 
+  // =======================================================
+  // ПОДАТКОВА МАТЕМАТИКА (НЕТТО / БРУТТО)
+  // =======================================================
+  
+  // Допоміжна функція для визначення номеру тижня (ISO)
+  const getISOWeek = (dateStr: string) => {
+    const d = new Date(dateStr); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 3 - (d.getDay() || 7));
+    const week1 = new Date(d.getFullYear(), 0, 4);
+    return 1 + Math.round(((d.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() || 7)) / 7);
+  };
+
+  // Збираємо статистику активності по кожній програмі за місяць
+  const platStats = {
+    uber: { gross: 0, days: 0, weeks: new Set<number>() },
+    wolt: { gross: 0, days: 0, weeks: new Set<number>() },
+    bolt: { gross: 0, days: 0, weeks: new Set<number>() },
+    glovo: { gross: 0, days: 0, weeks: new Set<number>() }
+  };
+
+  filteredShifts.forEach(s => {
+    const w = getISOWeek(s.date);
+    (["uber", "wolt", "bolt", "glovo"] as const).forEach(p => {
+      let pGross = s[p];
+      if (includeTips) pGross += (s[`tips_${p}` as keyof Shift] as number || 0);
+      if (includeBonuses) pGross += (s[`bonuses_${p}` as keyof Shift] as number || 0);
+      if (pGross > 0 || (s[`orders_${p}` as keyof Shift] as number) > 0) {
+        platStats[p].gross += pGross;
+        platStats[p].days += 1;
+        platStats[p].weeks.add(w);
+      }
+    });
+  });
+
+  // Розраховуємо щоденне відрахування податків для графіків та карток
+  const platDeductions = { uber: { percent: 0, fixedPerDay: 0 }, wolt: { percent: 0, fixedPerDay: 0 }, bolt: { percent: 0, fixedPerDay: 0 }, glovo: { percent: 0, fixedPerDay: 0 } };
+  
+  if (taxSettings) {
+    (["uber", "wolt", "bolt", "glovo"] as const).forEach(p => {
+      const type = taxSettings[`${p}_type` as keyof TaxSettings];
+      const val = Number(taxSettings[`${p}_val` as keyof TaxSettings]) || 0;
+      if (platStats[p].days > 0) {
+        if (type === 'percent') platDeductions[p].percent = val;
+        else if (type === 'fixed_week') platDeductions[p].fixedPerDay = (val * platStats[p].weeks.size) / platStats[p].days;
+        else if (type === 'fixed_month') platDeductions[p].fixedPerDay = val / platStats[p].days;
+      }
+    });
+  }
+
+  // Функція для отримання Нетто-доходу по конкретній платформі
+  const getPlatNetto = (gross: number, p: "uber"|"wolt"|"bolt"|"glovo") => {
+    if (gross <= 0) return 0;
+    return gross - (gross * (platDeductions[p].percent / 100)) - platDeductions[p].fixedPerDay;
+  };
+
+  // =======================================================
+  // ПІДРАХУНКИ
+  // =======================================================
   let totalVisualEarned = 0, totalHours = 0, totalKm = 0, totalOrders = 0;
   let absTotalTips = 0, absTotalBaseAndBonuses = 0; 
   let maxEarned = 0, bestShiftDate = ""; 
 
   filteredShifts.forEach(shift => {
-    const dailyBase = shift.uber + shift.wolt + shift.bolt + shift.glovo;
+    let shiftVisualTotal = 0;
+    let dailyBase = shift.uber + shift.wolt + shift.bolt + shift.glovo;
     const dailyTips = (shift.tips_uber || 0) + (shift.tips_wolt || 0) + (shift.tips_bolt || 0) + (shift.tips_glovo || 0);
     const dailyBonuses = (shift.bonuses_uber || 0) + (shift.bonuses_wolt || 0) + (shift.bonuses_bolt || 0) + (shift.bonuses_glovo || 0);
     
-    let shiftVisualTotal = dailyBase;
-    if (includeTips) shiftVisualTotal += dailyTips;
-    if (includeBonuses) shiftVisualTotal += dailyBonuses;
+    (["uber", "wolt", "bolt", "glovo"] as const).forEach(p => {
+      let pGross = shift[p];
+      if (includeTips) pGross += (shift[`tips_${p}` as keyof Shift] as number || 0);
+      if (includeBonuses) pGross += (shift[`bonuses_${p}` as keyof Shift] as number || 0);
+      shiftVisualTotal += (isNetto && pGross > 0) ? getPlatNetto(pGross, p) : pGross;
+    });
 
     absTotalTips += dailyTips;
     absTotalBaseAndBonuses += (dailyBase + dailyBonuses);
@@ -343,28 +399,45 @@ export default function WorkDashboard() {
 
   const chronologicalShifts = [...filteredShifts].reverse();
 
+  // Функція для графіка, щоб пропорційно зменшувати стовпчики в режимі НЕТТО
+  const getChartVal = (shift: Shift, p: "uber"|"wolt"|"bolt"|"glovo", type: "base"|"tips"|"bonuses") => {
+    let pGross = shift[p];
+    let pTips = shift[`tips_${p}` as keyof Shift] as number || 0;
+    let pBon = shift[`bonuses_${p}` as keyof Shift] as number || 0;
+    let totalGross = pGross + (includeTips ? pTips : 0) + (includeBonuses ? pBon : 0);
+    
+    let rawVal = type === "base" ? pGross : (type === "tips" ? pTips : pBon);
+    if (!isNetto || totalGross <= 0) return rawVal;
+    
+    const netto = getPlatNetto(totalGross, p);
+    const ratio = netto / totalGross;
+    return rawVal * ratio;
+  };
+
   const chartDatasets: any[] = [
-    { type: 'bar', label: 'Uber', data: chronologicalShifts.map(s => s.uber), backgroundColor: "rgba(75, 85, 99, 0.4)", borderColor: "rgba(75, 85, 99, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 },
-    { type: 'bar', label: 'Wolt', data: chronologicalShifts.map(s => s.wolt), backgroundColor: "rgba(0, 194, 232, 0.4)", borderColor: "rgba(0, 194, 232, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 },
-    { type: 'bar', label: 'Bolt', data: chronologicalShifts.map(s => s.bolt), backgroundColor: "rgba(34, 197, 94, 0.4)", borderColor: "rgba(34, 197, 94, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 },
-    { type: 'bar', label: 'Glovo', data: chronologicalShifts.map(s => s.glovo), backgroundColor: "rgba(234, 179, 8, 0.4)", borderColor: "rgba(234, 179, 8, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 }
+    { type: 'bar', label: 'Uber', data: chronologicalShifts.map(s => getChartVal(s, "uber", "base")), backgroundColor: "rgba(75, 85, 99, 0.4)", borderColor: "rgba(75, 85, 99, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 },
+    { type: 'bar', label: 'Wolt', data: chronologicalShifts.map(s => getChartVal(s, "wolt", "base")), backgroundColor: "rgba(0, 194, 232, 0.4)", borderColor: "rgba(0, 194, 232, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 },
+    { type: 'bar', label: 'Bolt', data: chronologicalShifts.map(s => getChartVal(s, "bolt", "base")), backgroundColor: "rgba(34, 197, 94, 0.4)", borderColor: "rgba(34, 197, 94, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 },
+    { type: 'bar', label: 'Glovo', data: chronologicalShifts.map(s => getChartVal(s, "glovo", "base")), backgroundColor: "rgba(234, 179, 8, 0.4)", borderColor: "rgba(234, 179, 8, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 }
   ];
 
   if (includeTips) {
-    chartDatasets.push({ type: 'bar', label: t.work.tipsLabel, data: chronologicalShifts.map(s => (s.tips_uber||0) + (s.tips_wolt||0) + (s.tips_bolt||0) + (s.tips_glovo||0)), backgroundColor: "rgba(244, 63, 94, 0.4)", borderColor: "rgba(244, 63, 94, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 });
+    chartDatasets.push({ type: 'bar', label: t.work.tipsLabel, data: chronologicalShifts.map(s => getChartVal(s,"uber","tips") + getChartVal(s,"wolt","tips") + getChartVal(s,"bolt","tips") + getChartVal(s,"glovo","tips")), backgroundColor: "rgba(244, 63, 94, 0.4)", borderColor: "rgba(244, 63, 94, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 });
   }
   if (includeBonuses) {
-    chartDatasets.push({ type: 'bar', label: t.work.bonusesLabel, data: chronologicalShifts.map(s => (s.bonuses_uber||0) + (s.bonuses_wolt||0) + (s.bonuses_bolt||0) + (s.bonuses_glovo||0)), backgroundColor: "rgba(168, 85, 247, 0.4)", borderColor: "rgba(168, 85, 247, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 });
+    chartDatasets.push({ type: 'bar', label: t.work.bonusesLabel, data: chronologicalShifts.map(s => getChartVal(s,"uber","bonuses") + getChartVal(s,"wolt","bonuses") + getChartVal(s,"bolt","bonuses") + getChartVal(s,"glovo","bonuses")), backgroundColor: "rgba(168, 85, 247, 0.4)", borderColor: "rgba(168, 85, 247, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 });
   }
 
   chartDatasets.push(
     {
       type: 'line', label: t.work.tableRate,
       data: chronologicalShifts.map(s => {
-        let total = s.uber + s.wolt + s.bolt + s.glovo;
-        if (includeTips) total += (s.tips_uber||0) + (s.tips_wolt||0) + (s.tips_bolt||0) + (s.tips_glovo||0);
-        if (includeBonuses) total += (s.bonuses_uber||0) + (s.bonuses_wolt||0) + (s.bonuses_bolt||0) + (s.bonuses_glovo||0);
-        return s.hours > 0 ? Number((total / s.hours).toFixed(2)) : 0;
+        let sVisual = 0;
+        (["uber", "wolt", "bolt", "glovo"] as const).forEach(p => {
+          let pGross = s[p] + (includeTips ? (s[`tips_${p}` as keyof Shift] as number||0) : 0) + (includeBonuses ? (s[`bonuses_${p}` as keyof Shift] as number||0) : 0);
+          sVisual += (isNetto && pGross > 0) ? getPlatNetto(pGross, p) : pGross;
+        });
+        return s.hours > 0 ? Number((sVisual / s.hours).toFixed(2)) : 0;
       }),
       borderColor: "#00e5ff", backgroundColor: "#00e5ff", borderWidth: 4, pointRadius: 4, tension: 0.3, yAxisID: 'y1', order: 1
     },
@@ -391,6 +464,7 @@ export default function WorkDashboard() {
     <div className="min-h-screen bg-[#121212] text-white p-4 md:p-10">
       <div className="max-w-6xl mx-auto">
         
+        {/* Шапка меню */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-gray-800 pb-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold">{editingId ? t.work.editTitle : t.work.title}</h1>
@@ -399,11 +473,11 @@ export default function WorkDashboard() {
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
             <div className="flex bg-[#1e1e24] p-1 rounded-lg border border-gray-700 text-xs font-bold">
               {(["pl", "uk", "en", "ru"] as const).map((l) => (
-                <button key={l} onClick={() => setLanguage(l)} className={`px-2 py-1.5 rounded-md uppercase transition-all ${lang === l ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm" : "text-gray-400 hover:text-white"}`}>
-                  {l}
-                </button>
+                <button key={l} onClick={() => setLanguage(l)} className={`px-2 py-1.5 rounded-md uppercase transition-all ${lang === l ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm" : "text-gray-400 hover:text-white"}`}>{l}</button>
               ))}
             </div>
+            {/* Кнопка Податків */}
+            <button onClick={() => setShowTaxModal(true)} className="bg-blue-900/20 hover:bg-blue-900/40 border border-blue-900/30 text-blue-400 text-sm font-medium px-4 py-2 rounded-lg transition text-center">{t.work.taxesBtn}</button>
             <Link href="/garage" className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition text-center">{t.work.garageBtn}</Link>
             <button onClick={handleLogout} className="bg-red-900/20 text-red-400 hover:bg-red-900/40 text-sm font-medium px-4 py-2 rounded-lg transition text-center">{t.common.logout}</button>
           </div>
@@ -417,7 +491,7 @@ export default function WorkDashboard() {
 
         <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isFormOpen ? "max-h-[2500px] opacity-100 mb-8" : "max-h-0 opacity-0"}`}>
           <form onSubmit={handleSubmit} className={`p-5 md:p-6 rounded-xl border shadow-lg transition-all ${editingId ? 'bg-[#25251a] border-yellow-700/50' : 'bg-[#1e1e24] border-gray-800'}`}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-4">
               <div>
                 <label className="block text-sm text-gray-400 mb-1.5">{t.work.date}</label>
                 <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} disabled={editingId !== null} className="w-full h-[52px] px-4 bg-[#2a2a35] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-green-500 disabled:opacity-50 text-base" />
@@ -434,15 +508,13 @@ export default function WorkDashboard() {
                   <button type="button" onClick={() => setShowCalc(!showCalc)} className="text-[11px] font-bold text-blue-400 hover:text-blue-300 transition flex items-center gap-1.5 bg-blue-500/10 px-2 py-1 rounded-md border border-blue-500/20">
                     🧮 {t.work.calcHoursBtn}
                   </button>
-                  <button type="button" onClick={() => setShowCalcInfo(!showCalcInfo)} className="text-gray-400 hover:text-white transition text-xs w-6 h-6 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700">
-                    ❓
-                  </button>
+                  <button type="button" onClick={() => setShowCalcInfo(!showCalcInfo)} className="text-gray-400 hover:text-white transition text-xs w-6 h-6 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700">❓</button>
                 </div>
               </div>
             </div>
 
             {showCalcInfo && (
-              <div className="mb-4 p-3 bg-[#1e2330] border border-blue-900/50 rounded-xl text-xs text-blue-200 leading-relaxed shadow-inner">
+              <div className="mb-4 p-3 bg-[#1e2330] border border-blue-900/50 rounded-xl text-xs text-blue-200 leading-relaxed shadow-inner animate-fade-in">
                 {t.work.calcTooltip}
               </div>
             )}
@@ -462,9 +534,7 @@ export default function WorkDashboard() {
 
                 {breaks.length > 0 && (
                   <div className="mb-4">
-                    <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mb-2 block">
-                      Перерви
-                    </span>
+                    <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mb-2 block">Перерви</span>
                     <div className="space-y-3">
                       {breaks.map((brk, idx) => (
                         <div key={idx} className="relative bg-[#22222a] p-3 rounded-lg border border-gray-800 flex flex-col gap-2">
@@ -486,14 +556,14 @@ export default function WorkDashboard() {
                   </div>
                 )}
 
-              <div className="flex flex-col sm:flex-row gap-3 border-t border-gray-800 pt-4 mt-2">
-                    <button type="button" onClick={() => setBreaks([...breaks, { start: "", end: "" }])} className="sm:w-1/3 w-full py-3.5 rounded-xl text-sm font-bold text-yellow-500 hover:text-yellow-400 transition bg-yellow-500/10 border border-yellow-500/20 hover:bg-yellow-500/20 flex items-center justify-center">
-                      {t.work.addBreakBtn}
-                    </button>
-                    <button type="button" onClick={calculateHours} disabled={!shiftStart || !shiftEnd} className="flex-1 w-full py-3.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 disabled:bg-gray-800 disabled:text-gray-500 transition shadow-md flex items-center justify-center">
-                      {t.work.calcActionBtn}
-                    </button>
-                  </div>
+                <div className="flex flex-col sm:flex-row gap-3 border-t border-gray-800 pt-4 mt-2">
+                  <button type="button" onClick={() => setBreaks([...breaks, { start: "", end: "" }])} className="sm:w-1/3 w-full py-3.5 rounded-xl text-sm font-bold text-yellow-500 hover:text-yellow-400 transition bg-yellow-500/10 border border-yellow-500/20 hover:bg-yellow-500/20 flex items-center justify-center">
+                    {t.work.addBreakBtn}
+                  </button>
+                  <button type="button" onClick={calculateHours} disabled={!shiftStart || !shiftEnd} className="flex-1 w-full py-3.5 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 disabled:bg-gray-800 disabled:text-gray-500 transition shadow-md flex items-center justify-center">
+                    {t.work.calcActionBtn}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -562,13 +632,27 @@ export default function WorkDashboard() {
           </form>
         </div>
 
+        {/* НАВІГАЦІЯ СТАТИСТИКИ + БРУТТО/НЕТТО */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 border-b border-gray-800 pb-4">
           <h2 className="text-xl md:text-2xl font-bold">{t.work.statsTitle}</h2>
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-            <Link href="/work/year" className="flex-1 sm:flex-none text-center bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-medium transition text-sm">
-              {t.work.yearReportBtn}
-            </Link>
-            <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="flex-1 sm:flex-none bg-[#2a2a35] border border-gray-700 rounded-lg p-1.5 text-white focus:outline-none focus:border-green-500 font-medium text-center" />
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+            
+            {/* ТУМБЛЕР БРУТТО/НЕТТО */}
+            <div className="flex bg-[#1e1e24] p-1 rounded-lg border border-gray-700 font-bold text-[11px] uppercase tracking-wider w-full sm:w-auto">
+              <button onClick={() => setIsNetto(false)} className={`flex-1 sm:flex-none px-4 py-2 rounded-md transition ${!isNetto ? 'bg-gradient-to-r from-green-600 to-green-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}>
+                {t.work.brutto}
+              </button>
+              <button onClick={() => setIsNetto(true)} className={`flex-1 sm:flex-none px-4 py-2 rounded-md transition ${isNetto ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}>
+                {t.work.netto}
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Link href="/work/year" className="flex-1 sm:flex-none text-center bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white px-4 py-2 rounded-lg font-medium transition text-sm">
+                {t.work.yearReportBtn}
+              </Link>
+              <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="flex-1 sm:flex-none bg-[#2a2a35] border border-gray-700 rounded-lg p-1.5 text-white focus:outline-none focus:border-green-500 font-medium text-center" />
+            </div>
           </div>
         </div>
 
@@ -600,11 +684,12 @@ export default function WorkDashboard() {
         )}
 
         <div className="mb-4">
-          <span className="text-xs font-semibold text-gray-500 tracking-wider uppercase mb-2 block">{t.work.totalMonthTitle}</span>
+          <span className="text-xs font-semibold text-gray-500 tracking-wider uppercase mb-2 block">{t.work.totalMonthTitle} {isNetto && <span className="text-blue-400">({t.work.netto})</span>}</span>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            <div className="col-span-2 sm:col-span-1 bg-gradient-to-br from-[#1e1e24] to-[#252530] p-4 rounded-xl border border-gray-800 text-center shadow-md">
+            <div className="col-span-2 sm:col-span-1 bg-gradient-to-br from-[#1e1e24] to-[#252530] p-4 rounded-xl border border-gray-800 text-center shadow-md relative overflow-hidden">
+              {isNetto && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>}
               <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.work.totalIncome}</h3>
-              <p className="text-xl sm:text-2xl font-black text-green-400">{totalVisualEarned.toFixed(2)} <span className="text-[10px] sm:text-sm font-normal">{t.common.currency}</span></p>
+              <p className={`text-xl sm:text-2xl font-black ${isNetto ? 'text-blue-400' : 'text-green-400'}`}>{totalVisualEarned.toFixed(2)} <span className="text-[10px] sm:text-sm font-normal">{t.common.currency}</span></p>
             </div>
             <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
               <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.work.totalOrders}</h3>
@@ -626,11 +711,11 @@ export default function WorkDashboard() {
         </div>
 
         <div className="mb-8">
-          <span className="text-xs font-semibold text-gray-500 tracking-wider uppercase mb-2 block">{t.work.avgStatsTitle}</span>
+          <span className="text-xs font-semibold text-gray-500 tracking-wider uppercase mb-2 block">{t.work.avgStatsTitle} {isNetto && <span className="text-blue-400">({t.work.netto})</span>}</span>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-            <div className="bg-[#1e1e24] p-3 rounded-xl border border-gray-800 text-center border-b-2 border-green-500/50 shadow-sm">
+            <div className={`bg-[#1e1e24] p-3 rounded-xl border border-gray-800 text-center border-b-2 shadow-sm ${isNetto ? 'border-blue-500/50' : 'border-green-500/50'}`}>
               <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{t.work.incomePerDay}</h3>
-              <p className="text-lg font-bold text-green-400">{avgEarnedPerDay} <span className="text-[10px] font-normal">{t.common.currency}</span></p>
+              <p className={`text-lg font-bold ${isNetto ? 'text-blue-400' : 'text-green-400'}`}>{avgEarnedPerDay} <span className="text-[10px] font-normal">{t.common.currency}</span></p>
             </div>
             <div className="bg-[#1e1e24] p-3 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
               <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{t.work.ratePerHour}</h3>
@@ -657,7 +742,7 @@ export default function WorkDashboard() {
 
         {filteredShifts.length > 0 && (
           <div className="bg-[#1e1e24] p-3 md:p-6 rounded-xl border border-gray-800 mb-8 shadow-sm">
-            <h3 className="text-sm font-medium text-gray-400 mb-4">{t.work.chartTitle}</h3>
+            <h3 className="text-sm font-medium text-gray-400 mb-4">{t.work.chartTitle} {isNetto && <span className="text-blue-400">({t.work.netto})</span>}</h3>
             <div className="w-full overflow-x-auto pb-2">
               <div className="h-64 md:h-72 min-w-[700px] relative">
                 <Bar data={monthlyChartData as any} options={monthlyChartOptions as any} />
@@ -667,7 +752,7 @@ export default function WorkDashboard() {
         )}
 
         <div className="mb-2 flex justify-between items-end">
-          <h2 className="text-lg font-medium text-white">{t.work.historyTitle}</h2>
+          <h2 className="text-lg font-medium text-white">{t.work.historyTitle} <span className="text-xs text-gray-500 block sm:inline mt-1 sm:mt-0">(Завжди показує {t.work.brutto})</span></h2>
           <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">{t.work.workDays} {filteredShifts.length}</span>
         </div>
 
@@ -706,7 +791,6 @@ export default function WorkDashboard() {
                   const dailyBase = shift.uber + shift.wolt + shift.bolt + shift.glovo;
                   const dailyTips = (shift.tips_uber||0) + (shift.tips_wolt||0) + (shift.tips_bolt||0) + (shift.tips_glovo||0);
                   const dailyBonuses = (shift.bonuses_uber||0) + (shift.bonuses_wolt||0) + (shift.bonuses_bolt||0) + (shift.bonuses_glovo||0);
-                  
                   const absoluteTotal = dailyBase + dailyTips + dailyBonuses; // ЗАВЖДИ ПОВНА СУМА
                   const dailyOrders = shift.orders_uber + shift.orders_wolt + shift.orders_bolt + shift.orders_glovo;
                   
@@ -798,6 +882,56 @@ export default function WorkDashboard() {
         </div>
 
       </div>
+
+      {/* МОДАЛЬНЕ ВІКНО: ПОДАТКИ */}
+      {showTaxModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl overflow-y-auto">
+          <div className="bg-[#1e1e24] border border-gray-800 rounded-2xl w-full max-w-2xl p-6 md:p-8 relative shadow-2xl my-8">
+            <button onClick={() => setShowTaxModal(false)} className="absolute top-4 right-4 text-gray-500 hover:text-white transition text-xl">✕</button>
+            <h2 className="text-2xl font-black text-white mb-2">{t.work.taxModalTitle}</h2>
+            <p className="text-gray-400 text-sm mb-6 leading-relaxed">{t.work.taxModalDesc}</p>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              {(["uber", "wolt", "bolt", "glovo"] as const).map(p => (
+                <div key={p} className="bg-[#2a2a35] p-4 rounded-xl border border-gray-700">
+                  <span className="font-bold text-lg text-white capitalize block mb-3 border-b border-gray-600 pb-2">{p}</span>
+                  <div className="space-y-3">
+                    <select 
+                      value={taxForm[`${p}_type` as keyof TaxSettings]} 
+                      onChange={(e) => setTaxForm({...taxForm, [`${p}_type`]: e.target.value})}
+                      className="w-full bg-[#1e1e24] border border-gray-600 rounded-lg p-2.5 text-white text-sm focus:border-blue-500 focus:outline-none"
+                    >
+                      <option value="none">{t.work.taxTypeNone}</option>
+                      <option value="percent">{t.work.taxTypePercent}</option>
+                      <option value="fixed_week">{t.work.taxTypeFixedWeek}</option>
+                      <option value="fixed_month">{t.work.taxTypeFixedMonth}</option>
+                    </select>
+                    {taxForm[`${p}_type` as keyof TaxSettings] !== 'none' && (
+                      <div className="relative">
+                        <input 
+                          type="number" step="0.01" placeholder="0.00"
+                          value={taxForm[`${p}_val` as keyof TaxSettings]}
+                          onChange={(e) => setTaxForm({...taxForm, [`${p}_val`]: parseFloat(e.target.value) || 0})}
+                          className="w-full bg-[#1e1e24] border border-gray-600 rounded-lg p-2.5 text-white text-base font-bold focus:border-blue-500 focus:outline-none pl-4"
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm">
+                          {taxForm[`${p}_type` as keyof TaxSettings] === 'percent' ? '%' : 'зл'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button onClick={saveTaxSettings} disabled={isSavingTaxes} className="w-full py-4 rounded-xl font-bold text-lg text-white bg-blue-600 hover:bg-blue-500 transition shadow-lg disabled:opacity-50">
+              {isSavingTaxes ? t.work.saving : t.common.save}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* МОДАЛЬНЕ ВІКНО: НІКНЕЙМ */}
       {showNicknameModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
           <div className="bg-[#1e1e24] border border-gray-800 rounded-2xl w-full max-w-md p-6 md:p-8 relative shadow-2xl text-center">
@@ -805,10 +939,7 @@ export default function WorkDashboard() {
               {lang === "pl" ? "Wybierz swój pseudonim" : lang === "en" ? "Choose your nickname" : lang === "ru" ? "Выбери свой никнейм" : "Придумай свій нікнейм"}
             </h2>
             <p className="text-gray-400 text-sm mb-6">
-              {lang === "pl" ? "Wprowadzamy globalny ranking kurierów! Wybierz unikalną nazwę, aby brać udział i widzieć wyniki innych." : 
-               lang === "en" ? "We are introducing a global courier leaderboard! Choose a unique name to participate and see others' stats." : 
-               lang === "ru" ? "Мы внедряем глобальный рейтинг курьеров! Выбери уникальное имя, чтобы участвовать и видеть результаты других." : 
-               "Ми впроваджуємо загальний рейтинг кур'єрів! Обери унікальне ім'я, щоб брати участь та бачити результати друзів."}
+              {lang === "pl" ? "Wprowadzamy globalny ranking kurierów!" : lang === "en" ? "We are introducing a global courier leaderboard!" : lang === "ru" ? "Мы внедряем глобальный рейтинг курьеров!" : "Ми впроваджуємо загальний рейтинг кур'єрів!"}
             </p>
             {nicknameError && <div className="bg-red-900/30 border border-red-700/50 text-red-400 p-3 rounded-xl text-xs mb-4 text-left">{nicknameError}</div>}
             <form onSubmit={handleNicknameSubmit} className="space-y-4">
