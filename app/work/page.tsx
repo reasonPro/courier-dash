@@ -100,6 +100,22 @@ export default function WorkDashboard() {
     bolt_type: 'none', bolt_val: "", glovo_type: 'none', glovo_val: ""
   });
 
+  // === СИСТЕМА СПОВІЩЕНЬ (Toast) та ВИДАЛЕННЯ ===
+  const [toast, setToast] = useState<{message: string, type: 'error'|'warning'|'success'} | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
+  const showToast = (message: string, type: 'error'|'warning'|'success') => {
+    setToast({ message, type });
+  };
+  // ===============================================
+
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -147,7 +163,6 @@ export default function WorkDashboard() {
     if (!userId) return;
     setIsSavingTaxes(true);
     
-    // Очищаємо дані перед збереженням (замінюємо кому на крапку і робимо числом)
     const cleanData = {
       uber_type: taxForm.uber_type, uber_val: parseFloat(String(taxForm.uber_val).replace(',', '.')) || 0,
       wolt_type: taxForm.wolt_type, wolt_val: parseFloat(String(taxForm.wolt_val).replace(',', '.')) || 0,
@@ -164,6 +179,9 @@ export default function WorkDashboard() {
         bolt_type: cleanData.bolt_type, bolt_val: cleanData.bolt_val || "",
         glovo_type: cleanData.glovo_type, glovo_val: cleanData.glovo_val || ""
       });
+      showToast(lang === "pl" ? "Zapisano pomyślnie!" : lang === "en" ? "Saved successfully!" : lang === "ru" ? "Успешно сохранено!" : "Успішно збережено!", "success");
+    } else {
+      showToast(t.work.errorPrefix + error.message, "error");
     }
     setIsSavingTaxes(false);
     setShowTaxModal(false);
@@ -259,14 +277,23 @@ export default function WorkDashboard() {
 
     if (editingId) {
       const { error } = await supabase.from("work_shifts").update(shiftData).eq("id", editingId);
-      if (error) alert(t.work.updateError + error.message);
-      else { resetForm(); fetchShifts(userId); }
+      if (error) showToast(t.work.updateError + error.message, "error");
+      else { 
+        resetForm(); fetchShifts(userId);
+        showToast(lang === "pl" ? "Zaktualizowano!" : lang === "en" ? "Updated!" : lang === "ru" ? "Обновлено!" : "Оновлено!", "success");
+      }
     } else {
       const { error } = await supabase.from("work_shifts").insert([shiftData]);
       if (error) {
-        if (error.message.includes("duplicate key") || error.code === '23505') alert(t.work.duplicateError);
-        else alert(t.work.errorPrefix + error.message);
-      } else { resetForm(); fetchShifts(userId); }
+        if (error.message.includes("duplicate key") || error.code === '23505') {
+          showToast(t.work.duplicateError, "error");
+        } else {
+          showToast(t.work.errorPrefix + error.message, "error");
+        }
+      } else { 
+        resetForm(); fetchShifts(userId);
+        showToast(lang === "pl" ? "Zapisano zmianę!" : lang === "en" ? "Shift saved!" : lang === "ru" ? "Смена сохранена!" : "Зміну збережено!", "success");
+      }
     }
     setIsSubmitting(false);
   };
@@ -291,12 +318,20 @@ export default function WorkDashboard() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm(t.work.confirmDelete)) {
-      const { error } = await supabase.from("work_shifts").delete().eq("id", id);
-      if (error) alert(t.work.errorPrefix + error.message);
-      else if (userId) fetchShifts(userId);
+  const confirmDelete = (id: number) => {
+    setDeleteConfirmId(id);
+  };
+
+  const executeDelete = async () => {
+    if (!deleteConfirmId) return;
+    const { error } = await supabase.from("work_shifts").delete().eq("id", deleteConfirmId);
+    if (error) {
+      showToast(t.work.errorPrefix + error.message, "error");
+    } else {
+      if (userId) fetchShifts(userId);
+      showToast(lang === "pl" ? "Usunięto pomyślnie!" : lang === "en" ? "Deleted successfully!" : lang === "ru" ? "Успешно удалено!" : "Успішно видалено!", "success");
     }
+    setDeleteConfirmId(null);
   };
 
   const resetForm = () => {
@@ -309,13 +344,34 @@ export default function WorkDashboard() {
     setShowExtras(false); setActivePlatforms(["uber", "wolt"]); setIsFormOpen(false);
   };
 
+  // --- SMART NETTO LOCK L0GIC ---
+  const hasTaxesConfigured = () => {
+    if (!taxSettings) return false;
+    return (["uber", "wolt", "bolt", "glovo"] as const).some(p => {
+       const type = taxSettings[`${p}_type` as keyof TaxSettings];
+       const val = Number(taxSettings[`${p}_val` as keyof TaxSettings]) || 0;
+       return type !== 'none' && val > 0;
+    });
+  };
+
+  const handleNettoToggle = () => {
+    if (hasTaxesConfigured()) {
+      setIsNetto(true);
+    } else {
+      const msg = lang === "pl" ? "Skonfiguruj podatki, aby zobaczyć NETTO!" : lang === "en" ? "Set up taxes to see NET income!" : lang === "ru" ? "Настройте налоги, чтобы увидеть НЕТТО!" : "Налаштуйте податки та комісії, щоб побачити розрахунок НЕТТО!";
+      showToast(msg, 'warning');
+      setShowTaxModal(true);
+    }
+  };
+  // ------------------------------
+
   if (!userId) return <div className="min-h-screen bg-[#121212] text-white flex items-center justify-center">{t.common.loading}</div>;
 
   const availableToAdd = ["uber", "wolt", "bolt", "glovo"].filter(p => !activePlatforms.includes(p));
   const filteredShifts = shifts.filter(shift => shift.date.startsWith(selectedMonth));
 
   // =======================================================
-  // ПОДАТКОВА МАТЕМАТИКА (НЕТТО / БРУТТО) - ОНОВЛЕНА
+  // ПОДАТКОВА МАТЕМАТИКА
   // =======================================================
   
   const getISOWeek = (dateStr: string) => {
@@ -489,11 +545,26 @@ export default function WorkDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white p-4 md:p-10">
+    <div className="min-h-screen bg-[#121212] text-white p-4 md:p-10 relative">
+      
+      {/* КРАСИВІ СПОВІЩЕННЯ (TOASTS) */}
+      <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] transition-all duration-500 ease-out ${toast ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0 pointer-events-none'}`}>
+        {toast && (
+          <div className={`flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl border backdrop-blur-md font-medium text-sm text-white
+            ${toast.type === 'error' ? 'bg-red-900/80 border-red-500/50' : 
+              toast.type === 'warning' ? 'bg-yellow-900/80 border-yellow-500/50 text-yellow-100' : 
+              'bg-green-900/80 border-green-500/50'}
+          `}>
+            <span className="text-xl">{toast.type === 'error' ? '⚠️' : toast.type === 'warning' ? '🔒' : '✅'}</span>
+            <span>{toast.message}</span>
+          </div>
+        )}
+      </div>
+
       <div className="max-w-6xl mx-auto">
         
-        {/* Шапка меню */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-gray-800 pb-4">
+        {/* Шапка меню (ТІЛЬКИ НАВІГАЦІЯ) */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold">{editingId ? t.work.editTitle : t.work.title}</h1>
             {userNickname && <p className="text-xs text-gray-500 mt-1">@ {userNickname}</p>}
@@ -504,14 +575,13 @@ export default function WorkDashboard() {
                 <button key={l} onClick={() => setLanguage(l)} className={`px-2 py-1.5 rounded-md uppercase transition-all ${lang === l ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm" : "text-gray-400 hover:text-white"}`}>{l}</button>
               ))}
             </div>
-            <button onClick={() => setShowTaxModal(true)} className="bg-blue-900/20 hover:bg-blue-900/40 border border-blue-900/30 text-blue-400 text-sm font-medium px-4 py-2 rounded-lg transition text-center">{t.work.taxesBtn}</button>
             <Link href="/garage" className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition text-center">{t.work.garageBtn}</Link>
             <button onClick={handleLogout} className="bg-red-900/20 text-red-400 hover:bg-red-900/40 text-sm font-medium px-4 py-2 rounded-lg transition text-center">{t.common.logout}</button>
           </div>
         </div>
 
         {!isFormOpen && (
-          <button onClick={() => setIsFormOpen(true)} className="w-full mb-6 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-bold px-6 py-4 rounded-xl transition shadow-lg text-lg">
+          <button onClick={() => setIsFormOpen(true)} className="w-full mb-8 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-bold px-6 py-4 rounded-xl transition shadow-lg text-lg">
             {t.work.addShiftBtn}
           </button>
         )}
@@ -659,36 +729,52 @@ export default function WorkDashboard() {
           </form>
         </div>
 
-        {/* НАВІГАЦІЯ СТАТИСТИКИ + БРУТТО/НЕТТО */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 border-b border-gray-800 pb-4">
-          <h2 className="text-xl md:text-2xl font-bold">{t.work.statsTitle}</h2>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-            
-            <div className="flex bg-[#1e1e24] p-1 rounded-lg border border-gray-700 font-bold text-[11px] uppercase tracking-wider w-full sm:w-auto">
-              <button onClick={() => setIsNetto(false)} className={`flex-1 sm:flex-none px-4 py-2 rounded-md transition ${!isNetto ? 'bg-gradient-to-r from-green-600 to-green-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}>
-                {t.work.brutto}
-              </button>
-              <button onClick={() => setIsNetto(true)} className={`flex-1 sm:flex-none px-4 py-2 rounded-md transition ${isNetto ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}>
-                {t.work.netto}
-              </button>
-            </div>
-
+        {/* НОВА ПАНЕЛЬ УПРАВЛІННЯ СТАТИСТИКОЮ (Control Panel) */}
+        <div className="mb-6 bg-[#1e1e24] border border-gray-800 rounded-xl p-4 md:p-5 shadow-sm">
+          
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 pb-4 border-b border-gray-700/50">
+            <h2 className="text-xl md:text-2xl font-bold text-white">{t.work.statsTitle}</h2>
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <Link href="/work/year" className="flex-1 sm:flex-none text-center bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white px-4 py-2 rounded-lg font-medium transition text-sm">
+              <Link href="/work/year" className="flex-1 sm:flex-none text-center bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white px-4 py-2.5 rounded-lg font-medium transition text-sm">
                 {t.work.yearReportBtn}
               </Link>
-              <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="flex-1 sm:flex-none bg-[#2a2a35] border border-gray-700 rounded-lg p-1.5 text-white focus:outline-none focus:border-green-500 font-medium text-center appearance-none" />
+              <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="flex-1 sm:flex-none bg-[#2a2a35] border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500 font-medium text-center appearance-none" />
             </div>
           </div>
-        </div>
 
-        <div className="flex flex-wrap gap-2 mb-5">
-          <button onClick={() => setIncludeTips(!includeTips)} className={`px-4 py-2 rounded-full text-xs font-bold transition border shadow-sm ${includeTips ? 'bg-rose-500/20 text-rose-400 border-rose-500/50' : 'bg-[#1e1e24] text-gray-500 border-gray-800 hover:text-gray-300'}`}>
-             {includeTips ? "✓ " : "+ "}{t.work.toggleTips}
-          </button>
-          <button onClick={() => setIncludeBonuses(!includeBonuses)} className={`px-4 py-2 rounded-full text-xs font-bold transition border shadow-sm ${includeBonuses ? 'bg-purple-500/20 text-purple-400 border-purple-500/50' : 'bg-[#1e1e24] text-gray-500 border-gray-800 hover:text-gray-300'}`}>
-             {includeBonuses ? "✓ " : "+ "}{t.work.toggleBonuses}
-          </button>
+          <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+            
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full xl:w-auto bg-[#17171d] p-3 rounded-lg border border-gray-800">
+              <span className="text-[11px] text-gray-500 font-medium uppercase tracking-wider">
+                {lang === "pl" ? "Uwzględnij w dochodach:" : lang === "en" ? "Include in income:" : lang === "ru" ? "Учитывать в доходах:" : "Враховувати у доходах:"}
+              </span>
+              <div className="flex gap-2">
+                <button onClick={() => setIncludeTips(!includeTips)} className={`px-4 py-1.5 rounded-md text-xs font-bold transition border shadow-sm ${includeTips ? 'bg-rose-500/20 text-rose-400 border-rose-500/50' : 'bg-[#1e1e24] text-gray-500 border-gray-800 hover:text-gray-300'}`}>
+                  {includeTips ? "✓ " : "+ "}{t.work.toggleTips}
+                </button>
+                <button onClick={() => setIncludeBonuses(!includeBonuses)} className={`px-4 py-1.5 rounded-md text-xs font-bold transition border shadow-sm ${includeBonuses ? 'bg-purple-500/20 text-purple-400 border-purple-500/50' : 'bg-[#1e1e24] text-gray-500 border-gray-800 hover:text-gray-300'}`}>
+                  {includeBonuses ? "✓ " : "+ "}{t.work.toggleBonuses}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:w-auto">
+              <button onClick={() => setShowTaxModal(true)} className="flex items-center justify-center gap-1.5 bg-blue-900/20 hover:bg-blue-900/40 border border-blue-900/30 text-blue-400 text-sm font-bold px-4 py-2 rounded-lg transition h-[40px]">
+                ⚙️ {t.work.taxesBtn}
+              </button>
+              
+              <div className="flex bg-[#17171d] p-1 rounded-lg border border-gray-800 font-bold text-[11px] uppercase tracking-wider w-full sm:w-auto h-[40px]">
+                <button onClick={() => setIsNetto(false)} className={`flex-1 sm:flex-none px-5 rounded-md transition ${!isNetto ? 'bg-gradient-to-r from-green-600 to-green-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}>
+                  {t.work.brutto}
+                </button>
+                <button onClick={handleNettoToggle} className={`flex-1 sm:flex-none px-5 rounded-md transition flex items-center justify-center gap-1.5 ${isNetto ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}>
+                  {!hasTaxesConfigured() && <span className="text-[10px]">🔒</span>}
+                  {t.work.netto}
+                </button>
+              </div>
+            </div>
+
+          </div>
         </div>
 
         {bestShiftDate && (
@@ -844,7 +930,7 @@ export default function WorkDashboard() {
                       <td className="p-4 text-yellow-400 font-bold bg-yellow-950/20">{dailyAvgOrder}</td>
                       <td className="p-4 text-right">
                         <button onClick={() => handleEdit(shift)} className="text-gray-400 hover:text-yellow-500 p-2 transition">✏️</button>
-                        <button onClick={() => handleDelete(shift.id)} className="text-gray-400 hover:text-red-500 p-2 transition">🗑️</button>
+                        <button onClick={() => confirmDelete(shift.id)} className="text-gray-400 hover:text-red-500 p-2 transition">🗑️</button>
                       </td>
                     </tr>
                   );
@@ -899,7 +985,7 @@ export default function WorkDashboard() {
                   
                   <div className="flex justify-between gap-2 border-t border-gray-800/50 pt-2.5">
                     <button onClick={() => handleEdit(shift)} className="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 py-2 rounded-lg text-yellow-500 text-xs font-bold transition flex items-center justify-center gap-1">✏️ {t.common.edit}</button>
-                    <button onClick={() => handleDelete(shift.id)} className="w-10 bg-red-900/10 hover:bg-red-900/30 border border-red-900/20 rounded-lg text-red-500 transition text-xs flex items-center justify-center">🗑️</button>
+                    <button onClick={() => confirmDelete(shift.id)} className="w-10 bg-red-900/10 hover:bg-red-900/30 border border-red-900/20 rounded-lg text-red-500 transition text-xs flex items-center justify-center">🗑️</button>
                   </div>
                 </div>
               );
@@ -908,6 +994,21 @@ export default function WorkDashboard() {
         </div>
 
       </div>
+
+      {/* КАСТОМНЕ ВІКНО ПІДТВЕРДЖЕННЯ ВИДАЛЕННЯ */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#1e1e24] border border-gray-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center">
+            <div className="text-red-500 text-4xl mb-4">🗑️</div>
+            <h3 className="text-xl font-bold text-white mb-2">{lang === "pl" ? "Usunąć zmianę?" : lang === "en" ? "Delete shift?" : lang === "ru" ? "Удалить смену?" : "Видалити зміну?"}</h3>
+            <p className="text-gray-400 text-sm mb-6">{t.work.confirmDelete}</p>
+            <div className="flex gap-3">
+               <button onClick={() => setDeleteConfirmId(null)} className="flex-1 py-3 rounded-xl font-bold bg-gray-800 hover:bg-gray-700 text-white transition">{t.common.cancel}</button>
+               <button onClick={executeDelete} className="flex-1 py-3 rounded-xl font-bold bg-red-600 hover:bg-red-500 text-white transition">{t.common.delete}</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* МОДАЛЬНЕ ВІКНО: ПОДАТКИ */}
       {showTaxModal && (
