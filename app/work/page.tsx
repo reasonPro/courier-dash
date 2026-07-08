@@ -43,10 +43,10 @@ type Shift = {
 };
 
 type TaxSettings = {
-  uber_type: string; uber_val: number;
-  wolt_type: string; wolt_val: number;
-  bolt_type: string; bolt_val: number;
-  glovo_type: string; glovo_val: number;
+  uber_type: string; uber_val: number | string;
+  wolt_type: string; wolt_val: number | string;
+  bolt_type: string; bolt_val: number | string;
+  glovo_type: string; glovo_val: number | string;
 };
 
 export default function WorkDashboard() {
@@ -96,8 +96,8 @@ export default function WorkDashboard() {
   const [showTaxModal, setShowTaxModal] = useState(false);
   const [isSavingTaxes, setIsSavingTaxes] = useState(false);
   const [taxForm, setTaxForm] = useState<TaxSettings>({
-    uber_type: 'none', uber_val: 0, wolt_type: 'none', wolt_val: 0,
-    bolt_type: 'none', bolt_val: 0, glovo_type: 'none', glovo_val: 0
+    uber_type: 'none', uber_val: "", wolt_type: 'none', wolt_val: "",
+    bolt_type: 'none', bolt_val: "", glovo_type: 'none', glovo_val: ""
   });
 
   useEffect(() => {
@@ -135,10 +135,10 @@ export default function WorkDashboard() {
     if (data) {
       setTaxSettings(data);
       setTaxForm({
-        uber_type: data.uber_type || 'none', uber_val: data.uber_val || 0,
-        wolt_type: data.wolt_type || 'none', wolt_val: data.wolt_val || 0,
-        bolt_type: data.bolt_type || 'none', bolt_val: data.bolt_val || 0,
-        glovo_type: data.glovo_type || 'none', glovo_val: data.glovo_val || 0
+        uber_type: data.uber_type || 'none', uber_val: data.uber_val || "",
+        wolt_type: data.wolt_type || 'none', wolt_val: data.wolt_val || "",
+        bolt_type: data.bolt_type || 'none', bolt_val: data.bolt_val || "",
+        glovo_type: data.glovo_type || 'none', glovo_val: data.glovo_val || ""
       });
     }
   };
@@ -146,8 +146,25 @@ export default function WorkDashboard() {
   const saveTaxSettings = async () => {
     if (!userId) return;
     setIsSavingTaxes(true);
-    const { error } = await supabase.from("tax_settings").update(taxForm).eq("user_id", userId);
-    if (!error) setTaxSettings(taxForm);
+    
+    // Очищаємо дані перед збереженням (замінюємо кому на крапку і робимо числом)
+    const cleanData = {
+      uber_type: taxForm.uber_type, uber_val: parseFloat(String(taxForm.uber_val).replace(',', '.')) || 0,
+      wolt_type: taxForm.wolt_type, wolt_val: parseFloat(String(taxForm.wolt_val).replace(',', '.')) || 0,
+      bolt_type: taxForm.bolt_type, bolt_val: parseFloat(String(taxForm.bolt_val).replace(',', '.')) || 0,
+      glovo_type: taxForm.glovo_type, glovo_val: parseFloat(String(taxForm.glovo_val).replace(',', '.')) || 0,
+    };
+
+    const { error } = await supabase.from("tax_settings").update(cleanData).eq("user_id", userId);
+    if (!error) {
+      setTaxSettings(cleanData);
+      setTaxForm({
+        uber_type: cleanData.uber_type, uber_val: cleanData.uber_val || "",
+        wolt_type: cleanData.wolt_type, wolt_val: cleanData.wolt_val || "",
+        bolt_type: cleanData.bolt_type, bolt_val: cleanData.bolt_val || "",
+        glovo_type: cleanData.glovo_type, glovo_val: cleanData.glovo_val || ""
+      });
+    }
     setIsSavingTaxes(false);
     setShowTaxModal(false);
   };
@@ -298,23 +315,23 @@ export default function WorkDashboard() {
   const filteredShifts = shifts.filter(shift => shift.date.startsWith(selectedMonth));
 
   // =======================================================
-  // ПОДАТКОВА МАТЕМАТИКА (НЕТТО / БРУТТО)
+  // ПОДАТКОВА МАТЕМАТИКА (НЕТТО / БРУТТО) - ОНОВЛЕНА
   // =======================================================
   
-  // Допоміжна функція для визначення номеру тижня (ISO)
   const getISOWeek = (dateStr: string) => {
     const d = new Date(dateStr); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 3 - (d.getDay() || 7));
     const week1 = new Date(d.getFullYear(), 0, 4);
     return 1 + Math.round(((d.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() || 7)) / 7);
   };
 
-  // Збираємо статистику активності по кожній програмі за місяць
   const platStats = {
     uber: { gross: 0, days: 0, weeks: new Set<number>() },
     wolt: { gross: 0, days: 0, weeks: new Set<number>() },
     bolt: { gross: 0, days: 0, weeks: new Set<number>() },
     glovo: { gross: 0, days: 0, weeks: new Set<number>() }
   };
+
+  let totalFleetGross = 0;
 
   filteredShifts.forEach(s => {
     const w = getISOWeek(s.date);
@@ -326,31 +343,43 @@ export default function WorkDashboard() {
         platStats[p].gross += pGross;
         platStats[p].days += 1;
         platStats[p].weeks.add(w);
+        if (p !== "glovo") totalFleetGross += pGross;
       }
     });
   });
 
-  // Розраховуємо щоденне відрахування податків для графіків та карток
-  const platDeductions = { uber: { percent: 0, fixedPerDay: 0 }, wolt: { percent: 0, fixedPerDay: 0 }, bolt: { percent: 0, fixedPerDay: 0 }, glovo: { percent: 0, fixedPerDay: 0 } };
+  const platPercents = { uber: 0, wolt: 0, bolt: 0, glovo: 0 };
+  let totalFixedTax = 0; 
   
   if (taxSettings) {
     (["uber", "wolt", "bolt", "glovo"] as const).forEach(p => {
       const type = taxSettings[`${p}_type` as keyof TaxSettings];
       const val = Number(taxSettings[`${p}_val` as keyof TaxSettings]) || 0;
-      if (platStats[p].days > 0) {
-        if (type === 'percent') platDeductions[p].percent = val;
-        else if (type === 'fixed_week') platDeductions[p].fixedPerDay = (val * platStats[p].weeks.size) / platStats[p].days;
-        else if (type === 'fixed_month') platDeductions[p].fixedPerDay = val / platStats[p].days;
+      
+      if (type === 'percent') {
+        platPercents[p] = val / 100;
+      } else if (platStats[p].days > 0) {
+        if (type === 'fixed_week') {
+          const weeksCount = Math.min(4, platStats[p].weeks.size);
+          totalFixedTax += val * weeksCount;
+        } else if (type === 'fixed_month') {
+          totalFixedTax += val;
+        }
       }
     });
   }
 
-  // Функція для отримання Нетто-доходу по конкретній платформі
+  const fleetFixedRatio = totalFleetGross > 0 ? (totalFixedTax / totalFleetGross) : 0;
+
   const getPlatNetto = (gross: number, p: "uber"|"wolt"|"bolt"|"glovo") => {
     if (gross <= 0) return 0;
-    return gross - (gross * (platDeductions[p].percent / 100)) - platDeductions[p].fixedPerDay;
+    let net = gross - (gross * platPercents[p]);
+    if (p !== "glovo") {
+      net -= (gross * fleetFixedRatio); 
+    }
+    return net;
   };
-
+  
   // =======================================================
   // ПІДРАХУНКИ
   // =======================================================
@@ -399,7 +428,6 @@ export default function WorkDashboard() {
 
   const chronologicalShifts = [...filteredShifts].reverse();
 
-  // Функція для графіка, щоб пропорційно зменшувати стовпчики в режимі НЕТТО
   const getChartVal = (shift: Shift, p: "uber"|"wolt"|"bolt"|"glovo", type: "base"|"tips"|"bonuses") => {
     let pGross = shift[p];
     let pTips = shift[`tips_${p}` as keyof Shift] as number || 0;
@@ -476,7 +504,6 @@ export default function WorkDashboard() {
                 <button key={l} onClick={() => setLanguage(l)} className={`px-2 py-1.5 rounded-md uppercase transition-all ${lang === l ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm" : "text-gray-400 hover:text-white"}`}>{l}</button>
               ))}
             </div>
-            {/* Кнопка Податків */}
             <button onClick={() => setShowTaxModal(true)} className="bg-blue-900/20 hover:bg-blue-900/40 border border-blue-900/30 text-blue-400 text-sm font-medium px-4 py-2 rounded-lg transition text-center">{t.work.taxesBtn}</button>
             <Link href="/garage" className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition text-center">{t.work.garageBtn}</Link>
             <button onClick={handleLogout} className="bg-red-900/20 text-red-400 hover:bg-red-900/40 text-sm font-medium px-4 py-2 rounded-lg transition text-center">{t.common.logout}</button>
@@ -494,15 +521,15 @@ export default function WorkDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-4">
               <div>
                 <label className="block text-sm text-gray-400 mb-1.5">{t.work.date}</label>
-                <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} disabled={editingId !== null} className="w-full h-[52px] px-4 bg-[#2a2a35] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-green-500 disabled:opacity-50 text-base" />
+                <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} disabled={editingId !== null} className="w-full p-3.5 bg-[#2a2a35] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-green-500 disabled:opacity-50 text-base appearance-none" />
               </div>
               <div>
                 <label className="block text-sm text-gray-400 mb-1.5">{t.work.mileage}</label>
-                <input type="number" step="0.1" required value={km} onChange={(e) => setKm(e.target.value)} className="w-full h-[52px] px-4 bg-[#2a2a35] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-green-500 text-base font-medium" />
+                <input type="number" step="0.1" required value={km} onChange={(e) => setKm(e.target.value)} className="w-full p-3.5 bg-[#2a2a35] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-green-500 text-base font-medium appearance-none" />
               </div>
               <div>
                 <label className="block text-sm text-gray-400 mb-1.5">{t.work.hours}</label>
-                <input type="number" step="0.1" required value={hours} onChange={(e) => setHours(e.target.value)} className="w-full h-[52px] px-4 bg-[#2a2a35] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-green-500 text-base font-medium" />
+                <input type="number" step="0.1" required value={hours} onChange={(e) => setHours(e.target.value)} className="w-full p-3.5 bg-[#2a2a35] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-green-500 text-base font-medium appearance-none" />
                 
                 <div className="mt-2 flex items-center justify-between px-1">
                   <button type="button" onClick={() => setShowCalc(!showCalc)} className="text-[11px] font-bold text-blue-400 hover:text-blue-300 transition flex items-center gap-1.5 bg-blue-500/10 px-2 py-1 rounded-md border border-blue-500/20">
@@ -524,11 +551,11 @@ export default function WorkDashboard() {
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div>
                     <label className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1.5">{t.work.shiftStart}</label>
-                    <input type="time" value={shiftStart} onChange={(e) => setShiftStart(e.target.value)} className="w-full h-[48px] px-3 bg-[#2a2a35] border border-gray-700 rounded-lg text-white font-bold focus:border-blue-500 focus:outline-none" />
+                    <input type="time" value={shiftStart} onChange={(e) => setShiftStart(e.target.value)} className="w-full p-3 bg-[#2a2a35] border border-gray-700 rounded-lg text-white font-bold focus:border-blue-500 focus:outline-none appearance-none" />
                   </div>
                   <div>
                     <label className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1.5">{t.work.shiftEnd}</label>
-                    <input type="time" value={shiftEnd} onChange={(e) => setShiftEnd(e.target.value)} className="w-full h-[48px] px-3 bg-[#2a2a35] border border-gray-700 rounded-lg text-white font-bold focus:border-blue-500 focus:outline-none" />
+                    <input type="time" value={shiftEnd} onChange={(e) => setShiftEnd(e.target.value)} className="w-full p-3 bg-[#2a2a35] border border-gray-700 rounded-lg text-white font-bold focus:border-blue-500 focus:outline-none appearance-none" />
                   </div>
                 </div>
 
@@ -543,11 +570,11 @@ export default function WorkDashboard() {
                           <div className="grid grid-cols-2 gap-3">
                             <div>
                               <label className="block text-[9px] text-gray-500 uppercase tracking-wider mb-1">{t.work.breakStart}</label>
-                              <input type="time" value={brk.start} onChange={(e) => { const newBreaks = [...breaks]; newBreaks[idx].start = e.target.value; setBreaks(newBreaks); }} className="w-full h-[44px] px-3 bg-[#1e1e24] border border-gray-700 rounded-lg text-white text-sm focus:border-yellow-500 focus:outline-none" />
+                              <input type="time" value={brk.start} onChange={(e) => { const newBreaks = [...breaks]; newBreaks[idx].start = e.target.value; setBreaks(newBreaks); }} className="w-full p-2.5 bg-[#1e1e24] border border-gray-700 rounded-lg text-white text-sm focus:border-yellow-500 focus:outline-none appearance-none" />
                             </div>
                             <div>
                               <label className="block text-[9px] text-gray-500 uppercase tracking-wider mb-1">{t.work.breakEnd}</label>
-                              <input type="time" value={brk.end} onChange={(e) => { const newBreaks = [...breaks]; newBreaks[idx].end = e.target.value; setBreaks(newBreaks); }} className="w-full h-[44px] px-3 bg-[#1e1e24] border border-gray-700 rounded-lg text-white text-sm focus:border-yellow-500 focus:outline-none" />
+                              <input type="time" value={brk.end} onChange={(e) => { const newBreaks = [...breaks]; newBreaks[idx].end = e.target.value; setBreaks(newBreaks); }} className="w-full p-2.5 bg-[#1e1e24] border border-gray-700 rounded-lg text-white text-sm focus:border-yellow-500 focus:outline-none appearance-none" />
                             </div>
                           </div>
                         </div>
@@ -591,21 +618,21 @@ export default function WorkDashboard() {
                     <div className={`grid gap-3 ${showExtras ? "grid-cols-2" : "grid-cols-2"}`}>
                       <div>
                         <span className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1">{t.work.incomePlatforms}</span>
-                        <input type="number" step="0.01" value={earnings[platform as keyof typeof earnings]} onChange={(e) => handleEarningChange(platform, e.target.value)} placeholder="0.00" className="w-full bg-[#1e1e24] border border-gray-700 rounded-lg p-2.5 text-white text-sm md:text-base font-bold focus:outline-none focus:border-green-500 transition" />
+                        <input type="number" step="0.01" value={earnings[platform as keyof typeof earnings]} onChange={(e) => handleEarningChange(platform, e.target.value)} placeholder="0.00" className="w-full bg-[#1e1e24] border border-gray-700 rounded-lg p-2.5 text-white text-sm md:text-base font-bold focus:outline-none focus:border-green-500 transition appearance-none" />
                       </div>
                       <div>
                         <span className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1">{t.work.ordersLabel}</span>
-                        <input type="number" step="1" value={orders[platform as keyof typeof orders]} onChange={(e) => handleOrderChange(platform, e.target.value)} placeholder="0" className="w-full bg-[#1e1e24] border border-gray-700 rounded-lg p-2.5 text-white text-sm md:text-base font-bold focus:outline-none focus:border-blue-500 transition" />
+                        <input type="number" step="1" value={orders[platform as keyof typeof orders]} onChange={(e) => handleOrderChange(platform, e.target.value)} placeholder="0" className="w-full bg-[#1e1e24] border border-gray-700 rounded-lg p-2.5 text-white text-sm md:text-base font-bold focus:outline-none focus:border-blue-500 transition appearance-none" />
                       </div>
                       {showExtras && (
                         <>
                           <div>
                             <span className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1">{t.work.tipsLabel}</span>
-                            <input type="number" step="0.01" value={tips[platform as keyof typeof tips]} onChange={(e) => handleTipChange(platform, e.target.value)} placeholder="0.00" className="w-full bg-[#1e1e24] border border-gray-700 rounded-lg p-2.5 text-rose-400 text-sm md:text-base font-bold focus:outline-none focus:border-rose-500 transition" />
+                            <input type="number" step="0.01" value={tips[platform as keyof typeof tips]} onChange={(e) => handleTipChange(platform, e.target.value)} placeholder="0.00" className="w-full bg-[#1e1e24] border border-gray-700 rounded-lg p-2.5 text-rose-400 text-sm md:text-base font-bold focus:outline-none focus:border-rose-500 transition appearance-none" />
                           </div>
                           <div>
                             <span className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1">{t.work.bonusesLabel}</span>
-                            <input type="number" step="0.01" value={bonuses[platform as keyof typeof bonuses]} onChange={(e) => handleBonusChange(platform, e.target.value)} placeholder="0.00" className="w-full bg-[#1e1e24] border border-gray-700 rounded-lg p-2.5 text-purple-400 text-sm md:text-base font-bold focus:outline-none focus:border-purple-500 transition" />
+                            <input type="number" step="0.01" value={bonuses[platform as keyof typeof bonuses]} onChange={(e) => handleBonusChange(platform, e.target.value)} placeholder="0.00" className="w-full bg-[#1e1e24] border border-gray-700 rounded-lg p-2.5 text-purple-400 text-sm md:text-base font-bold focus:outline-none focus:border-purple-500 transition appearance-none" />
                           </div>
                         </>
                       )}
@@ -637,7 +664,6 @@ export default function WorkDashboard() {
           <h2 className="text-xl md:text-2xl font-bold">{t.work.statsTitle}</h2>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
             
-            {/* ТУМБЛЕР БРУТТО/НЕТТО */}
             <div className="flex bg-[#1e1e24] p-1 rounded-lg border border-gray-700 font-bold text-[11px] uppercase tracking-wider w-full sm:w-auto">
               <button onClick={() => setIsNetto(false)} className={`flex-1 sm:flex-none px-4 py-2 rounded-md transition ${!isNetto ? 'bg-gradient-to-r from-green-600 to-green-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}>
                 {t.work.brutto}
@@ -651,7 +677,7 @@ export default function WorkDashboard() {
               <Link href="/work/year" className="flex-1 sm:flex-none text-center bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white px-4 py-2 rounded-lg font-medium transition text-sm">
                 {t.work.yearReportBtn}
               </Link>
-              <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="flex-1 sm:flex-none bg-[#2a2a35] border border-gray-700 rounded-lg p-1.5 text-white focus:outline-none focus:border-green-500 font-medium text-center" />
+              <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="flex-1 sm:flex-none bg-[#2a2a35] border border-gray-700 rounded-lg p-1.5 text-white focus:outline-none focus:border-green-500 font-medium text-center appearance-none" />
             </div>
           </div>
         </div>
@@ -899,7 +925,7 @@ export default function WorkDashboard() {
                     <select 
                       value={taxForm[`${p}_type` as keyof TaxSettings]} 
                       onChange={(e) => setTaxForm({...taxForm, [`${p}_type`]: e.target.value})}
-                      className="w-full bg-[#1e1e24] border border-gray-600 rounded-lg p-2.5 text-white text-sm focus:border-blue-500 focus:outline-none"
+                      className="w-full bg-[#1e1e24] border border-gray-600 rounded-lg p-3 text-white text-sm focus:border-blue-500 focus:outline-none appearance-none"
                     >
                       <option value="none">{t.work.taxTypeNone}</option>
                       <option value="percent">{t.work.taxTypePercent}</option>
@@ -909,12 +935,12 @@ export default function WorkDashboard() {
                     {taxForm[`${p}_type` as keyof TaxSettings] !== 'none' && (
                       <div className="relative">
                         <input 
-                          type="number" step="0.01" placeholder="0.00"
+                          type="text" inputMode="decimal" placeholder="0"
                           value={taxForm[`${p}_val` as keyof TaxSettings]}
-                          onChange={(e) => setTaxForm({...taxForm, [`${p}_val`]: parseFloat(e.target.value) || 0})}
-                          className="w-full bg-[#1e1e24] border border-gray-600 rounded-lg p-2.5 text-white text-base font-bold focus:border-blue-500 focus:outline-none pl-4"
+                          onChange={(e) => setTaxForm({...taxForm, [`${p}_val`]: e.target.value.replace(/[^0-9.,]/g, '')})}
+                          className="w-full bg-[#1e1e24] border border-gray-600 rounded-lg p-3 text-white text-base font-bold focus:border-blue-500 focus:outline-none pl-4 pr-10 appearance-none"
                         />
-                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm">
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm pointer-events-none">
                           {taxForm[`${p}_type` as keyof TaxSettings] === 'percent' ? '%' : 'зл'}
                         </span>
                       </div>
@@ -944,7 +970,7 @@ export default function WorkDashboard() {
             {nicknameError && <div className="bg-red-900/30 border border-red-700/50 text-red-400 p-3 rounded-xl text-xs mb-4 text-left">{nicknameError}</div>}
             <form onSubmit={handleNicknameSubmit} className="space-y-4">
               <div className="text-left">
-                <input type="text" required pattern="^[a-zA-Z0-9_]{3,15}$" title="Від 3 до 15 символів" value={newNickname} onChange={(e) => setNewNickname(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))} placeholder="Courier_Hero_2026" className="w-full text-center font-bold tracking-wide text-lg bg-[#2a2a35] border border-gray-700 rounded-xl p-3.5 text-white focus:outline-none focus:border-blue-500" />
+                <input type="text" required pattern="^[a-zA-Z0-9_]{3,15}$" title="Від 3 до 15 символів" value={newNickname} onChange={(e) => setNewNickname(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))} placeholder="Courier_Hero_2026" className="w-full text-center font-bold tracking-wide text-lg bg-[#2a2a35] border border-gray-700 rounded-xl p-3.5 text-white focus:outline-none focus:border-blue-500 appearance-none" />
               </div>
               <button type="submit" disabled={isSavingNickname || !newNickname.trim()} className={`w-full py-4 rounded-xl font-bold text-lg text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 transition shadow-lg ${(isSavingNickname || !newNickname.trim()) && "opacity-50 cursor-not-allowed"}`}>
                 {isSavingNickname ? t.work.saving : (lang === "pl" ? "Zatwierdź" : lang === "en" ? "Confirm" : lang === "ru" ? "Подтвердить" : "Підтвердити 🚀")}
