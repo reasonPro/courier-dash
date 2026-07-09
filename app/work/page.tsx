@@ -90,7 +90,6 @@ export default function WorkDashboard() {
   const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [isSavingNickname, setIsSavingNickname] = useState(false);
 
-  // === СТАНИ ПОДАТКІВ ===
   const [taxSettings, setTaxSettings] = useState<TaxSettings | null>(null);
   const [isNetto, setIsNetto] = useState(false);
   const [showTaxModal, setShowTaxModal] = useState(false);
@@ -100,9 +99,39 @@ export default function WorkDashboard() {
     bolt_type: 'none', bolt_val: "", glovo_type: 'none', glovo_val: ""
   });
 
-  // === СИСТЕМА СПОВІЩЕНЬ (Toast) та ВИДАЛЕННЯ ===
   const [toast, setToast] = useState<{message: string, type: 'error'|'warning'|'success'} | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+
+  // === НАЛАШТУВАННЯ ВВОДУ ДАНИХ (ПРОБІГ, ГОДИНИ) ===
+  const [showFieldSettings, setShowFieldSettings] = useState(false);
+  const [fieldSettings, setFieldSettings] = useState({ km: true, hours: true, orders: true });
+
+  const fDict = {
+    pl: { formTitle: "Szczegóły zmiany", title: "Ustawienia pól", desc: "Uwaga: jeśli wyłączysz te pola, odpowiednie statystyki (np. zł/km, zł/godz) nie będą obliczane, a formularz nie będzie ich wymagał.", trackKm: "Wymagaj przebiegu (km)", trackHrs: "Wymagaj godzin", trackOrd: "Wymagaj zamówień", close: "Gotowe" },
+    en: { formTitle: "Shift Details", title: "Field Settings", desc: "Note: disabling these fields will hide the corresponding statistics (e.g., pln/km, pln/hr) and remove them from the required form fields.", trackKm: "Require mileage (km)", trackHrs: "Require hours", trackOrd: "Require orders", close: "Done" },
+    ru: { formTitle: "Детали смены", title: "Настройки полей", desc: "Внимание: при отключении этих полей соответствующая статистика (зл/км, зл/час) рассчитываться не будет, а форма перестанет их требовать.", trackKm: "Требовать пробег (км)", trackHrs: "Требовать часы", trackOrd: "Требовать заказы", close: "Готово" },
+    uk: { formTitle: "Деталі зміни", title: "Налаштування полів", desc: "Увага: при вимкненні цих полів відповідна статистика (зл/км, зл/год) не буде розраховуватися, а форма перестане вимагати їх обов'язкове заповнення.", trackKm: "Вимагати пробіг (км)", trackHrs: "Вимагати години", trackOrd: "Вимагати замовлення", close: "Зберегти налаштування" }
+  };
+  const fText = fDict[lang as keyof typeof fDict] || fDict.uk;
+
+  useEffect(() => {
+    const savedFields = localStorage.getItem("courier_field_settings");
+    if (savedFields) {
+      try { setFieldSettings(JSON.parse(savedFields)); } catch (e) {}
+    }
+  }, []);
+
+  const updateFieldSetting = (key: keyof typeof fieldSettings, val: boolean) => {
+    const newVal = { ...fieldSettings, [key]: val };
+    setFieldSettings(newVal);
+    localStorage.setItem("courier_field_settings", JSON.stringify(newVal));
+    if (!val) {
+      if (key === 'km') setKm("");
+      if (key === 'hours') { setHours(""); setShowCalc(false); }
+      if (key === 'orders') setOrders({ uber: "", wolt: "", bolt: "", glovo: "" });
+    }
+  };
+  // ===============================================
 
   useEffect(() => {
     if (toast) {
@@ -114,7 +143,6 @@ export default function WorkDashboard() {
   const showToast = (message: string, type: 'error'|'warning'|'success') => {
     setToast({ message, type });
   };
-  // ===============================================
 
   useEffect(() => {
     const checkUser = async () => {
@@ -344,7 +372,6 @@ export default function WorkDashboard() {
     setShowExtras(false); setActivePlatforms(["uber", "wolt"]); setIsFormOpen(false);
   };
 
-  // --- SMART NETTO LOCK L0GIC ---
   const hasTaxesConfigured = () => {
     if (!taxSettings) return false;
     return (["uber", "wolt", "bolt", "glovo"] as const).some(p => {
@@ -363,17 +390,12 @@ export default function WorkDashboard() {
       setShowTaxModal(true);
     }
   };
-  // ------------------------------
 
   if (!userId) return <div className="min-h-screen bg-[#121212] text-white flex items-center justify-center">{t.common.loading}</div>;
 
   const availableToAdd = ["uber", "wolt", "bolt", "glovo"].filter(p => !activePlatforms.includes(p));
   const filteredShifts = shifts.filter(shift => shift.date.startsWith(selectedMonth));
 
-  // =======================================================
-  // ПОДАТКОВА МАТЕМАТИКА
-  // =======================================================
-  
   const getISOWeek = (dateStr: string) => {
     const d = new Date(dateStr); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 3 - (d.getDay() || 7));
     const week1 = new Date(d.getFullYear(), 0, 4);
@@ -436,9 +458,6 @@ export default function WorkDashboard() {
     return net;
   };
   
-  // =======================================================
-  // ПІДРАХУНКИ
-  // =======================================================
   let totalVisualEarned = 0, totalHours = 0, totalKm = 0, totalOrders = 0;
   let absTotalTips = 0, absTotalBaseAndBonuses = 0; 
   let maxEarned = 0, bestShiftDate = ""; 
@@ -470,13 +489,14 @@ export default function WorkDashboard() {
   });
 
   const totalDays = filteredShifts.length;
-  const avgPerHour = totalHours > 0 ? (totalVisualEarned / totalHours).toFixed(2) : "0.00";
-  const avgPerKm = totalKm > 0 ? (totalVisualEarned / totalKm).toFixed(2) : "0.00";
-  const avgPerOrder = totalOrders > 0 ? (totalVisualEarned / totalOrders).toFixed(2) : "0.00";
+  // Елегантні прочерки, якщо даних немає (замість кривих 0.00)
+  const avgPerHour = totalHours > 0 ? (totalVisualEarned / totalHours).toFixed(2) : "—";
+  const avgPerKm = totalKm > 0 ? (totalVisualEarned / totalKm).toFixed(2) : "—";
+  const avgPerOrder = totalOrders > 0 ? (totalVisualEarned / totalOrders).toFixed(2) : "—";
   
-  const avgKmPerDay = totalDays > 0 ? (totalKm / totalDays).toFixed(1) : "0.0";
-  const avgHoursPerDay = totalDays > 0 ? (totalHours / totalDays).toFixed(1) : "0.0";
-  const avgOrdersPerDay = totalDays > 0 ? (totalOrders / totalDays).toFixed(1) : "0.0";
+  const avgKmPerDay = totalDays > 0 ? (totalKm / totalDays).toFixed(1) : "—";
+  const avgHoursPerDay = totalDays > 0 ? (totalHours / totalDays).toFixed(1) : "—";
+  const avgOrdersPerDay = totalDays > 0 ? (totalOrders / totalDays).toFixed(1) : "—";
   const avgEarnedPerDay = totalDays > 0 ? (totalVisualEarned / totalDays).toFixed(2) : "0.00";
 
   const absoluteTotalIncome = absTotalBaseAndBonuses + absTotalTips;
@@ -547,7 +567,6 @@ export default function WorkDashboard() {
   return (
     <div className="min-h-screen bg-[#121212] text-white p-4 md:p-10 relative">
       
-      {/* КРАСИВІ СПОВІЩЕННЯ (TOASTS) */}
       <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] transition-all duration-500 ease-out ${toast ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0 pointer-events-none'}`}>
         {toast && (
           <div className={`flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl border backdrop-blur-md font-medium text-sm text-white
@@ -563,7 +582,6 @@ export default function WorkDashboard() {
 
       <div className="max-w-6xl mx-auto">
         
-        {/* Шапка меню (ТІЛЬКИ НАВІГАЦІЯ) */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold">{editingId ? t.work.editTitle : t.work.title}</h1>
@@ -588,35 +606,46 @@ export default function WorkDashboard() {
 
         <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isFormOpen ? "max-h-[2500px] opacity-100 mb-8" : "max-h-0 opacity-0"}`}>
           <form onSubmit={handleSubmit} className={`p-5 md:p-6 rounded-xl border shadow-lg transition-all ${editingId ? 'bg-[#25251a] border-yellow-700/50' : 'bg-[#1e1e24] border-gray-800'}`}>
+            
+            {/* ШАПКА ФОРМИ З КНОПКОЮ НАЛАШТУВАНЬ */}
+            <div className="flex justify-between items-center mb-5 border-b border-gray-700/50 pb-3">
+               <h3 className="text-gray-300 font-bold flex items-center gap-2">📝 {fText.formTitle}</h3>
+               <button type="button" onClick={() => setShowFieldSettings(true)} className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white px-3 py-1.5 rounded-lg transition border border-gray-700 flex items-center gap-1.5 font-medium shadow-sm">
+                 ⚙️ {fText.title}
+               </button>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-4">
               <div>
                 <label className="block text-sm text-gray-400 mb-1.5">{t.work.date}</label>
                 <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} disabled={editingId !== null} className="w-full p-3.5 bg-[#2a2a35] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-green-500 disabled:opacity-50 text-base appearance-none" />
               </div>
-              <div>
+              <div className={!fieldSettings.km ? "opacity-50" : ""}>
                 <label className="block text-sm text-gray-400 mb-1.5">{t.work.mileage}</label>
-                <input type="number" step="0.1" required value={km} onChange={(e) => setKm(e.target.value)} className="w-full p-3.5 bg-[#2a2a35] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-green-500 text-base font-medium appearance-none" />
+                <input type="number" step="0.1" required={fieldSettings.km} disabled={!fieldSettings.km} value={fieldSettings.km ? km : ""} onChange={(e) => setKm(e.target.value)} className="w-full p-3.5 bg-[#2a2a35] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-green-500 disabled:cursor-not-allowed text-base font-medium appearance-none" />
               </div>
-              <div>
+              <div className={!fieldSettings.hours ? "opacity-50" : ""}>
                 <label className="block text-sm text-gray-400 mb-1.5">{t.work.hours}</label>
-                <input type="number" step="0.1" required value={hours} onChange={(e) => setHours(e.target.value)} className="w-full p-3.5 bg-[#2a2a35] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-green-500 text-base font-medium appearance-none" />
+                <input type="number" step="0.1" required={fieldSettings.hours} disabled={!fieldSettings.hours} value={fieldSettings.hours ? hours : ""} onChange={(e) => setHours(e.target.value)} className="w-full p-3.5 bg-[#2a2a35] border border-gray-700 rounded-xl text-white focus:outline-none focus:border-green-500 disabled:cursor-not-allowed text-base font-medium appearance-none" />
                 
-                <div className="mt-2 flex items-center justify-between px-1">
-                  <button type="button" onClick={() => setShowCalc(!showCalc)} className="text-[11px] font-bold text-blue-400 hover:text-blue-300 transition flex items-center gap-1.5 bg-blue-500/10 px-2 py-1 rounded-md border border-blue-500/20">
-                    🧮 {t.work.calcHoursBtn}
-                  </button>
-                  <button type="button" onClick={() => setShowCalcInfo(!showCalcInfo)} className="text-gray-400 hover:text-white transition text-xs w-6 h-6 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700">❓</button>
-                </div>
+                {fieldSettings.hours && (
+                  <div className="mt-2 flex items-center justify-between px-1">
+                    <button type="button" onClick={() => setShowCalc(!showCalc)} className="text-[11px] font-bold text-blue-400 hover:text-blue-300 transition flex items-center gap-1.5 bg-blue-500/10 px-2 py-1 rounded-md border border-blue-500/20">
+                      🧮 {t.work.calcHoursBtn}
+                    </button>
+                    <button type="button" onClick={() => setShowCalcInfo(!showCalcInfo)} className="text-gray-400 hover:text-white transition text-xs w-6 h-6 flex items-center justify-center bg-gray-800 rounded-full border border-gray-700">❓</button>
+                  </div>
+                )}
               </div>
             </div>
 
-            {showCalcInfo && (
+            {showCalcInfo && fieldSettings.hours && (
               <div className="mb-4 p-3 bg-[#1e2330] border border-blue-900/50 rounded-xl text-xs text-blue-200 leading-relaxed shadow-inner animate-fade-in">
                 {t.work.calcTooltip}
               </div>
             )}
 
-            {showCalc && (
+            {showCalc && fieldSettings.hours && (
               <div className="col-span-1 md:col-span-3 bg-[#17171d] p-4 md:p-5 rounded-xl border border-blue-900/50 mb-6 shadow-inner animate-fade-in">
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div>
@@ -690,9 +719,9 @@ export default function WorkDashboard() {
                         <span className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1">{t.work.incomePlatforms}</span>
                         <input type="number" step="0.01" value={earnings[platform as keyof typeof earnings]} onChange={(e) => handleEarningChange(platform, e.target.value)} placeholder="0.00" className="w-full bg-[#1e1e24] border border-gray-700 rounded-lg p-2.5 text-white text-sm md:text-base font-bold focus:outline-none focus:border-green-500 transition appearance-none" />
                       </div>
-                      <div>
+                      <div className={!fieldSettings.orders ? "opacity-50" : ""}>
                         <span className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1">{t.work.ordersLabel}</span>
-                        <input type="number" step="1" value={orders[platform as keyof typeof orders]} onChange={(e) => handleOrderChange(platform, e.target.value)} placeholder="0" className="w-full bg-[#1e1e24] border border-gray-700 rounded-lg p-2.5 text-white text-sm md:text-base font-bold focus:outline-none focus:border-blue-500 transition appearance-none" />
+                        <input type="number" step="1" required={fieldSettings.orders} disabled={!fieldSettings.orders} value={fieldSettings.orders ? orders[platform as keyof typeof orders] : ""} onChange={(e) => handleOrderChange(platform, e.target.value)} placeholder="0" className="w-full bg-[#1e1e24] border border-gray-700 rounded-lg p-2.5 text-white text-sm md:text-base font-bold focus:outline-none focus:border-blue-500 disabled:cursor-not-allowed transition appearance-none" />
                       </div>
                       {showExtras && (
                         <>
@@ -729,9 +758,7 @@ export default function WorkDashboard() {
           </form>
         </div>
 
-        {/* НОВА ПАНЕЛЬ УПРАВЛІННЯ СТАТИСТИКОЮ (Control Panel) */}
         <div className="mb-6 bg-[#1e1e24] border border-gray-800 rounded-xl p-4 md:p-5 shadow-sm">
-          
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 pb-4 border-b border-gray-700/50">
             <h2 className="text-xl md:text-2xl font-bold text-white">{t.work.statsTitle}</h2>
             <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -743,7 +770,6 @@ export default function WorkDashboard() {
           </div>
 
           <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
-            
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full xl:w-auto bg-[#17171d] p-3 rounded-lg border border-gray-800">
               <span className="text-[11px] text-gray-500 font-medium uppercase tracking-wider">
                 {lang === "pl" ? "Uwzględnij w dochodach:" : lang === "en" ? "Include in income:" : lang === "ru" ? "Учитывать в доходах:" : "Враховувати у доходах:"}
@@ -773,7 +799,6 @@ export default function WorkDashboard() {
                 </button>
               </div>
             </div>
-
           </div>
         </div>
 
@@ -805,15 +830,15 @@ export default function WorkDashboard() {
             </div>
             <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
               <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.work.totalOrders}</h3>
-              <p className="text-xl sm:text-2xl font-bold text-blue-400">{totalOrders} <span className="text-[10px] font-normal text-gray-500">{t.work.tableOrders}</span></p>
+              <p className="text-xl sm:text-2xl font-bold text-blue-400">{totalOrders > 0 ? totalOrders : "—"} <span className="text-[10px] font-normal text-gray-500">{totalOrders > 0 && t.work.tableOrders}</span></p>
             </div>
             <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
               <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.work.totalHours}</h3>
-              <p className="text-xl sm:text-2xl font-bold text-white">{totalHours.toFixed(1)} <span className="text-[10px] font-normal text-gray-500">{t.common.hrs}</span></p>
+              <p className="text-xl sm:text-2xl font-bold text-white">{totalHours > 0 ? totalHours.toFixed(1) : "—"} <span className="text-[10px] font-normal text-gray-500">{totalHours > 0 && t.common.hrs}</span></p>
             </div>
             <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
               <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.work.totalKm}</h3>
-              <p className="text-xl sm:text-2xl font-bold text-purple-400">{totalKm.toFixed(1)} <span className="text-[10px] font-normal text-gray-500">{t.common.km}</span></p>
+              <p className="text-xl sm:text-2xl font-bold text-purple-400">{totalKm > 0 ? totalKm.toFixed(1) : "—"} <span className="text-[10px] font-normal text-gray-500">{totalKm > 0 && t.common.km}</span></p>
             </div>
             <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
               <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.work.tipsPercent}</h3>
@@ -831,15 +856,15 @@ export default function WorkDashboard() {
             </div>
             <div className="bg-[#1e1e24] p-3 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
               <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{t.work.ratePerHour}</h3>
-              <p className="text-lg font-bold text-white">{avgPerHour} <span className="text-[10px] font-normal text-gray-500">{t.common.currency}</span></p>
+              <p className="text-lg font-bold text-white">{avgPerHour} <span className="text-[10px] font-normal text-gray-500">{avgPerHour !== "—" && t.common.currency}</span></p>
             </div>
             <div className="bg-[#1e1e24] p-3 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
               <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{t.work.ratePerOrder}</h3>
-              <p className="text-lg font-bold text-blue-400">{avgPerOrder} <span className="text-[10px] font-normal text-gray-500">{t.common.currency}</span></p>
+              <p className="text-lg font-bold text-blue-400">{avgPerOrder} <span className="text-[10px] font-normal text-gray-500">{avgPerOrder !== "—" && t.common.currency}</span></p>
             </div>
             <div className="bg-[#1e1e24] p-3 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
               <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{t.work.effPerKm}</h3>
-              <p className="text-lg font-bold text-purple-400">{avgPerKm} <span className="text-[10px] font-normal text-gray-500">{t.common.currency}</span></p>
+              <p className="text-lg font-bold text-purple-400">{avgPerKm} <span className="text-[10px] font-normal text-gray-500">{avgPerKm !== "—" && t.common.currency}</span></p>
             </div>
             <div className="bg-[#1e1e24] p-3 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
               <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{t.work.ordersPerDay}</h3>
@@ -906,9 +931,9 @@ export default function WorkDashboard() {
                   const absoluteTotal = dailyBase + dailyTips + dailyBonuses; // ЗАВЖДИ ПОВНА СУМА
                   const dailyOrders = shift.orders_uber + shift.orders_wolt + shift.orders_bolt + shift.orders_glovo;
                   
-                  const dailyAvgHour = shift.hours > 0 ? (absoluteTotal / shift.hours).toFixed(2) : "0.00";
-                  const dailyAvgKm = shift.km > 0 ? (absoluteTotal / shift.km).toFixed(2) : "0.00";
-                  const dailyAvgOrder = dailyOrders > 0 ? (absoluteTotal / dailyOrders).toFixed(2) : "0.00";
+                  const dailyAvgHour = shift.hours > 0 ? (absoluteTotal / shift.hours).toFixed(2) : "—";
+                  const dailyAvgKm = shift.km > 0 ? (absoluteTotal / shift.km).toFixed(2) : "—";
+                  const dailyAvgOrder = dailyOrders > 0 ? (absoluteTotal / dailyOrders).toFixed(2) : "—";
 
                   const baseTooltip = `Uber: ${shift.uber.toFixed(2)}\nWolt: ${shift.wolt.toFixed(2)}\nBolt: ${shift.bolt.toFixed(2)}\nGlovo: ${shift.glovo.toFixed(2)}`;
                   const ordersTooltip = `Uber: ${shift.orders_uber}\nWolt: ${shift.orders_wolt}\nBolt: ${shift.orders_bolt}\nGlovo: ${shift.orders_glovo}`;
@@ -923,8 +948,8 @@ export default function WorkDashboard() {
                       <td className="p-4 text-gray-400 cursor-help" title={baseTooltip}>{dailyBase.toFixed(2)}</td>
                       <td className="p-4 text-purple-400 cursor-help" title={bonusesTooltip}>{dailyBonuses > 0 ? dailyBonuses.toFixed(2) : "-"}</td>
                       <td className="p-4 text-rose-400 cursor-help" title={tipsTooltip}>{dailyTips > 0 ? dailyTips.toFixed(2) : "-"}</td>
-                      <td className="p-4">{shift.hours}</td>
-                      <td className="p-4 text-gray-400">{shift.km}</td>
+                      <td className="p-4">{shift.hours > 0 ? shift.hours : "—"}</td>
+                      <td className="p-4 text-gray-400">{shift.km > 0 ? shift.km : "—"}</td>
                       <td className="p-4 text-cyan-400 font-bold border-l-2 border-gray-700/70 bg-cyan-950/20">{dailyAvgHour}</td>
                       <td className="p-4 text-purple-400 font-bold bg-purple-950/20">{dailyAvgKm}</td>
                       <td className="p-4 text-yellow-400 font-bold bg-yellow-950/20">{dailyAvgOrder}</td>
@@ -953,9 +978,9 @@ export default function WorkDashboard() {
               const absoluteTotal = dailyBase + dailyTips + dailyBonuses; // ЗАВЖДИ ПОВНА СУМА
               const dailyOrders = shift.orders_uber + shift.orders_wolt + shift.orders_bolt + shift.orders_glovo;
               
-              const dailyAvgHour = shift.hours > 0 ? (absoluteTotal / shift.hours).toFixed(2) : "0.00";
-              const dailyAvgKm = shift.km > 0 ? (absoluteTotal / shift.km).toFixed(2) : "0.00";
-              const dailyAvgOrder = dailyOrders > 0 ? (absoluteTotal / dailyOrders).toFixed(2) : "0.00";
+              const dailyAvgHour = shift.hours > 0 ? (absoluteTotal / shift.hours).toFixed(2) : "—";
+              const dailyAvgKm = shift.km > 0 ? (absoluteTotal / shift.km).toFixed(2) : "—";
+              const dailyAvgOrder = dailyOrders > 0 ? (absoluteTotal / dailyOrders).toFixed(2) : "—";
               
               return (
                 <div key={shift.id} className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 shadow-sm flex flex-col gap-3">
@@ -970,9 +995,9 @@ export default function WorkDashboard() {
                       <div className="flex justify-between text-gray-400"><span>Ставка:</span><strong>{dailyBase.toFixed(2)}</strong></div>
                       {dailyTips > 0 && <div className="flex justify-between text-rose-400"><span>Чай:</span><strong>{dailyTips.toFixed(2)}</strong></div>}
                       {dailyBonuses > 0 && <div className="flex justify-between text-purple-400"><span>Бонуси:</span><strong>{dailyBonuses.toFixed(2)}</strong></div>}
-                      <div className="flex justify-between text-blue-400 border-t border-gray-800 mt-1 pt-1"><span>Замовлень:</span><strong>{dailyOrders}</strong></div>
-                      <div className="flex justify-between text-white"><span>Години:</span><strong>{shift.hours}</strong></div>
-                      <div className="flex justify-between text-gray-300"><span>Пробіг:</span><strong>{shift.km}</strong></div>
+                      <div className="flex justify-between text-blue-400 border-t border-gray-800 mt-1 pt-1"><span>Замовлень:</span><strong>{dailyOrders > 0 ? dailyOrders : "—"}</strong></div>
+                      <div className="flex justify-between text-white"><span>Години:</span><strong>{shift.hours > 0 ? shift.hours : "—"}</strong></div>
+                      <div className="flex justify-between text-gray-300"><span>Пробіг:</span><strong>{shift.km > 0 ? shift.km : "—"}</strong></div>
                     </div>
 
                     <div className="flex flex-col gap-1.5 text-xs bg-[#22222a]/50 p-2.5 rounded-lg border border-cyan-950/30 flex-1 justify-center">
@@ -1006,6 +1031,36 @@ export default function WorkDashboard() {
                <button onClick={() => setDeleteConfirmId(null)} className="flex-1 py-3 rounded-xl font-bold bg-gray-800 hover:bg-gray-700 text-white transition">{t.common.cancel}</button>
                <button onClick={executeDelete} className="flex-1 py-3 rounded-xl font-bold bg-red-600 hover:bg-red-500 text-white transition">{t.common.delete}</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* МОДАЛЬНЕ ВІКНО: НАЛАШТУВАННЯ ПОЛІВ */}
+      {showFieldSettings && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#1e1e24] border border-gray-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl relative">
+            <button type="button" onClick={() => setShowFieldSettings(false)} className="absolute top-4 right-4 text-gray-500 hover:text-white transition text-lg">✕</button>
+            <h3 className="text-xl font-bold text-white mb-3">⚙️ {fText.title}</h3>
+            <p className="text-xs leading-relaxed bg-blue-900/20 p-3 rounded-lg border border-blue-900/30 text-blue-200 mb-6">
+              ℹ️ {fText.desc}
+            </p>
+            <div className="space-y-4 mb-8">
+              <label className="flex items-center justify-between cursor-pointer group">
+                <span className="text-sm font-medium text-gray-300 group-hover:text-white transition">{fText.trackKm}</span>
+                <input type="checkbox" checked={fieldSettings.km} onChange={(e) => updateFieldSetting('km', e.target.checked)} className="w-5 h-5 accent-blue-500 cursor-pointer" />
+              </label>
+              <label className="flex items-center justify-between cursor-pointer group">
+                <span className="text-sm font-medium text-gray-300 group-hover:text-white transition">{fText.trackHrs}</span>
+                <input type="checkbox" checked={fieldSettings.hours} onChange={(e) => updateFieldSetting('hours', e.target.checked)} className="w-5 h-5 accent-blue-500 cursor-pointer" />
+              </label>
+              <label className="flex items-center justify-between cursor-pointer group">
+                <span className="text-sm font-medium text-gray-300 group-hover:text-white transition">{fText.trackOrd}</span>
+                <input type="checkbox" checked={fieldSettings.orders} onChange={(e) => updateFieldSetting('orders', e.target.checked)} className="w-5 h-5 accent-blue-500 cursor-pointer" />
+              </label>
+            </div>
+            <button type="button" onClick={() => setShowFieldSettings(false)} className="w-full py-3.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl text-white font-bold transition shadow-sm">
+              {fText.close}
+            </button>
           </div>
         </div>
       )}
