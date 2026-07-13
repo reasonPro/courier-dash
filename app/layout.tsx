@@ -6,7 +6,7 @@ import { LanguageProvider } from "../context/LanguageContext";
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
 // Заміни це посилання на свій поточний домен на Vercel (або на куплений домен .com)
-const APP_URL = "https://courier-dash.vercel.app";
+const APP_URL = "https://courier-dash-gamma.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
