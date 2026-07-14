@@ -1,16 +1,17 @@
 {
-    "name": "CourierDash",
-    "short_name": "CourierDash",
-    "description": "Дашборд для обліку доходів та ТО кур'єра",
-    "start_url": "/",
-    "display": "standalone",
-    "background_color": "#0a0a0e",
-    "theme_color": "#0a0a0e",
-    "icons": [
-      {
-        "src": "/icon-512.png",
-        "sizes": "512x512",
-        "type": "image/png"
-      }
-    ]
-  }
+  "name": "CourierDash",
+  "short_name": "CourierDash",
+  "description": "Дашборд для обліку доходів та ТО кур'єра",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0e",
+  "theme_color": "#0a0a0e",
+  "icons": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
