@@ -880,10 +880,32 @@ export default function WorkDashboard() {
         {filteredShifts.length > 0 && (
           <div className="bg-[#1e1e24] p-3 md:p-6 rounded-xl border border-gray-800 mb-8 shadow-sm">
             <h3 className="text-sm font-medium text-gray-400 mb-4">{t.work.chartTitle} {isNetto && <span className="text-blue-400">({t.work.netto})</span>}</h3>
-            <div className="w-full overflow-x-auto pb-2">
-              <div className="h-64 md:h-72 min-w-[700px] relative">
-                <Bar data={monthlyChartData as any} options={monthlyChartOptions as any} />
+            
+            {/* Відносний контейнер для магії з масками */}
+            <div className="relative w-full rounded-lg bg-[#1e1e24]">
+              
+              {/* Головний графік (той, що реально скролиться) */}
+              <div className="w-full overflow-x-auto pb-2 scrollbar-hide">
+                <div className="h-64 md:h-72 min-w-[700px] relative">
+                  <Bar data={monthlyChartData as any} options={monthlyChartOptions as any} />
+                </div>
               </div>
+
+              {/* ЛІВА ВІСЬ (Гроші) - Липка Маска */}
+              {/* Відображається тільки на мобільних (md:hidden) */}
+              <div className="md:hidden absolute top-0 left-0 h-full w-[45px] bg-[#1e1e24] pointer-events-none overflow-hidden shadow-[5px_0_15px_rgba(0,0,0,0.6)] z-10">
+                 <div className="h-64 w-[700px] absolute left-0 top-0">
+                    <Bar data={monthlyChartData as any} options={monthlyChartOptions as any} />
+                 </div>
+              </div>
+
+              {/* ПРАВА ВІСЬ (Км/Години) - Липка Маска */}
+              <div className="md:hidden absolute top-0 right-0 h-full w-[40px] bg-[#1e1e24] pointer-events-none overflow-hidden shadow-[-5px_0_15px_rgba(0,0,0,0.6)] z-10">
+                 <div className="h-64 w-[700px] absolute right-0 top-0">
+                    <Bar data={monthlyChartData as any} options={monthlyChartOptions as any} />
+                 </div>
+              </div>
+
             </div>
           </div>
         )}
