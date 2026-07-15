@@ -114,6 +114,15 @@ export default function WorkDashboard() {
   };
   const fText = fDict[lang as keyof typeof fDict] || fDict.uk;
 
+  // СЛОВНИК ДЛЯ КНОПКИ TELEGRAM
+  const tgDict = {
+    pl: "Aktualności",
+    en: "News",
+    ru: "Новости",
+    uk: "Новини"
+  };
+  const tgLabel = tgDict[lang as keyof typeof tgDict] || tgDict.uk;
+
   useEffect(() => {
     const savedFields = localStorage.getItem("courier_field_settings");
     if (savedFields) {
@@ -583,25 +592,102 @@ export default function WorkDashboard() {
       <div className="max-w-6xl mx-auto">
         
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">{editingId ? t.work.editTitle : t.work.title}</h1>
-            {userNickname && <p className="text-xs text-gray-500 mt-1">@ {userNickname}</p>}
-          </div>
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-            <div className="flex bg-[#1e1e24] p-1 rounded-lg border border-gray-700 text-xs font-bold">
-              {(["pl", "uk", "en", "ru"] as const).map((l) => (
-                <button key={l} onClick={() => setLanguage(l)} className={`px-2 py-1.5 rounded-md uppercase transition-all ${lang === l ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm" : "text-gray-400 hover:text-white"}`}>{l}</button>
-              ))}
+          
+          {/* TITLE & MOBILE LANG SWITCHER */}
+          <div className="flex justify-between items-center w-full sm:w-auto">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">{editingId ? t.work.editTitle : t.work.title}</h1>
+              {userNickname && <p className="text-xs text-gray-500 mt-1">@ {userNickname}</p>}
             </div>
-            <Link href="/garage" className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition text-center">{t.work.garageBtn}</Link>
-            <button onClick={handleLogout} className="bg-red-900/20 text-red-400 hover:bg-red-900/40 text-sm font-medium px-4 py-2 rounded-lg transition text-center">{t.common.logout}</button>
+            
+            {/* Мобільний перемикач мов (справа від заголовка) */}
+            <div className="sm:hidden relative">
+              <select
+                value={lang}
+                onChange={(e) => setLanguage(e.target.value as "pl" | "uk" | "en" | "ru")}
+                className="bg-[#1e1e24] border border-gray-700 text-white text-[11px] font-bold pl-2 pr-5 py-2 rounded-lg appearance-none uppercase h-[34px] w-[60px] outline-none focus:border-sky-500 transition-colors cursor-pointer text-center shadow-sm"
+              >
+                <option value="pl">PL</option>
+                <option value="uk">UK</option>
+                <option value="en">EN</option>
+                <option value="ru">RU</option>
+              </select>
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-[10px]">▼</span>
+            </div>
+          </div>
+          
+          {/* ACTION BUTTONS & DESKTOP LANG SWITCHER */}
+          <div className="grid grid-cols-3 sm:flex sm:flex-row items-center gap-2.5 w-full sm:w-auto mt-1 sm:mt-0">
+            
+            {/* ПК перемикач мов */}
+            <div className="hidden sm:block relative">
+              <select
+                value={lang}
+                onChange={(e) => setLanguage(e.target.value as "pl" | "uk" | "en" | "ru")}
+                className="bg-[#1e1e24] border border-gray-700 text-white text-xs font-bold pl-3 pr-6 py-2 rounded-lg appearance-none uppercase h-[36px] w-[68px] outline-none focus:border-sky-500 transition-colors cursor-pointer text-center shadow-sm"
+              >
+                <option value="pl">PL</option>
+                <option value="uk">UK</option>
+                <option value="en">EN</option>
+                <option value="ru">RU</option>
+              </select>
+              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-[10px]">▼</span>
+            </div>
+
+            {/* Кнопка Telegram */}
+            <a 
+              href="https://t.me/courier_dash" // ⚠️ ЗАМІНИ НА РЕАЛЬНЕ ПОСИЛАННЯ СВОГО КАНАЛУ
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="bg-sky-950/30 border border-sky-500/30 text-sky-400 text-[11px] sm:text-xs font-bold px-1.5 sm:px-3 py-2 rounded-lg flex items-center justify-center gap-1 sm:gap-1.5 h-[36px] w-full transition hover:bg-sky-950/50 hover:border-sky-400 shadow-sm"
+            >
+              <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current shrink-0" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.24-5.54 3.65-.52.36-.97.53-1.35.52-.42-.01-1.23-.24-1.83-.43-.74-.24-1.33-.37-1.28-.77.03-.21.32-.43.88-.65 3.44-1.5 5.74-2.49 6.88-2.97 3.28-1.36 3.96-1.59 4.41-1.6.1.01.32.03.46.15.12.1.15.24.17.34-.02.08-.01.2-.02.26z"/>
+              </svg>
+              <span className="truncate">{tgLabel}</span>
+            </a>
+
+            {/* Кнопка Гараж */}
+            <Link 
+              href="/garage" 
+              className="bg-gray-800 border border-gray-700 text-white text-[11px] sm:text-xs font-medium px-1.5 sm:px-3 py-2 rounded-lg flex items-center justify-center gap-1 sm:gap-1.5 h-[36px] w-full transition hover:bg-gray-700 shadow-sm truncate"
+            >
+              {t.work.garageBtn}
+            </Link>
+
+            {/* Кнопка Вихід */}
+            <button 
+              onClick={handleLogout} 
+              className="bg-red-900/20 border border-red-900/30 text-red-400 text-[11px] sm:text-xs font-medium px-1.5 sm:px-3 py-2 rounded-lg flex items-center justify-center h-[36px] w-full transition hover:bg-red-900/40 shadow-sm truncate"
+            >
+              {t.common.logout}
+            </button>
+            
           </div>
         </div>
 
+        {/* Кнопка додавання зміни (ДЛЯ ПК) */}
         {!isFormOpen && (
-          <button onClick={() => setIsFormOpen(true)} className="w-full mb-8 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-bold px-6 py-4 rounded-xl transition shadow-lg text-lg">
+          <button onClick={() => setIsFormOpen(true)} className="hidden md:block w-full mb-8 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-bold px-6 py-4 rounded-xl transition shadow-lg text-lg">
             {t.work.addShiftBtn}
           </button>
+        )}
+
+        {/* ПЛАВАЮЧА АНІМОВАНА КНОПКА (ДЛЯ ТЕЛЕФОНІВ) */}
+        {!isFormOpen && (
+          <div className="md:hidden fixed bottom-6 right-6 z-[90] flex items-center justify-center">
+            {/* Анімація "хвильки" */}
+            <div className="absolute w-full h-full bg-green-500 rounded-full animate-ping opacity-60"></div>
+            {/* Сама кнопка */}
+            <button 
+              onClick={() => { setIsFormOpen(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} 
+              className="relative bg-gradient-to-br from-green-400 to-green-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-[0_4px_20px_rgba(34,197,94,0.5)] border border-green-400/50 transition active:scale-95"
+            >
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"></path>
+              </svg>
+            </button>
+          </div>
         )}
 
         <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isFormOpen ? "max-h-[2500px] opacity-100 mb-8" : "max-h-0 opacity-0"}`}>
@@ -880,38 +966,21 @@ export default function WorkDashboard() {
         {filteredShifts.length > 0 && (
           <div className="bg-[#1e1e24] p-3 md:p-6 rounded-xl border border-gray-800 mb-8 shadow-sm">
             <h3 className="text-sm font-medium text-gray-400 mb-4">{t.work.chartTitle} {isNetto && <span className="text-blue-400">({t.work.netto})</span>}</h3>
-            
-            {/* Відносний контейнер для магії з масками */}
-            <div className="relative w-full rounded-lg bg-[#1e1e24]">
-              
-              {/* Головний графік (той, що реально скролиться) */}
-              <div className="w-full overflow-x-auto pb-2 scrollbar-hide">
-                <div className="h-64 md:h-72 min-w-[700px] relative">
-                  <Bar data={monthlyChartData as any} options={monthlyChartOptions as any} />
-                </div>
+            <div className="w-full overflow-x-auto pb-2">
+              <div className="h-64 md:h-72 min-w-[700px] relative">
+                <Bar data={monthlyChartData as any} options={monthlyChartOptions as any} />
               </div>
-
-              {/* ЛІВА ВІСЬ (Гроші) - Липка Маска */}
-              {/* Відображається тільки на мобільних (md:hidden) */}
-              <div className="md:hidden absolute top-0 left-0 h-full w-[45px] bg-[#1e1e24] pointer-events-none overflow-hidden shadow-[5px_0_15px_rgba(0,0,0,0.6)] z-10">
-                 <div className="h-64 w-[700px] absolute left-0 top-0">
-                    <Bar data={monthlyChartData as any} options={monthlyChartOptions as any} />
-                 </div>
-              </div>
-
-              {/* ПРАВА ВІСЬ (Км/Години) - Липка Маска */}
-              <div className="md:hidden absolute top-0 right-0 h-full w-[40px] bg-[#1e1e24] pointer-events-none overflow-hidden shadow-[-5px_0_15px_rgba(0,0,0,0.6)] z-10">
-                 <div className="h-64 w-[700px] absolute right-0 top-0">
-                    <Bar data={monthlyChartData as any} options={monthlyChartOptions as any} />
-                 </div>
-              </div>
-
             </div>
           </div>
         )}
 
         <div className="mb-2 flex justify-between items-end">
-          <h2 className="text-lg font-medium text-white">{t.work.historyTitle} <span className="text-xs text-gray-500 block sm:inline mt-1 sm:mt-0">(Завжди показує {t.work.brutto})</span></h2>
+          <h2 className="text-lg font-medium text-white">
+            {t.work.historyTitle}{" "}
+            <span className="text-xs text-gray-500 block sm:inline mt-1 sm:mt-0">
+              ({lang === "pl" ? "Zawsze pokazuje" : lang === "en" ? "Always shows" : lang === "ru" ? "Всегда показывает" : "Завжди показує"} {t.work.brutto})
+            </span>
+          </h2>
           <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">{t.work.workDays} {filteredShifts.length}</span>
         </div>
 
@@ -922,6 +991,7 @@ export default function WorkDashboard() {
           </button>
         </div>
 
+        {/* --- ПК ТАБЛИЦЯ (БЕЗ ЗМІН) --- */}
         <div className={`${showMobileTable ? 'block' : 'hidden'} md:block bg-[#1e1e24] rounded-xl border border-gray-800 overflow-x-auto mb-10`}>
           <table className="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
             <thead>
@@ -987,6 +1057,7 @@ export default function WorkDashboard() {
           </table>
         </div>
 
+        {/* --- ВИПРАВЛЕНА МОБІЛЬНА ТАБЛИЦЯ --- */}
         <div className={`${showMobileTable ? 'hidden' : 'flex'} md:hidden flex-col gap-3 pb-10`}>
           {isLoading ? (
             <div className="text-center text-gray-500 py-8 bg-[#1e1e24] rounded-xl border border-gray-800">{t.common.loading}</div>
@@ -1004,29 +1075,38 @@ export default function WorkDashboard() {
               const dailyAvgKm = shift.km > 0 ? (absoluteTotal / shift.km).toFixed(2) : "—";
               const dailyAvgOrder = dailyOrders > 0 ? (absoluteTotal / dailyOrders).toFixed(2) : "—";
               
+              // Динамічна локаль для правильного формату дати
+              const dateLocale = lang === "pl" ? "pl-PL" : lang === "en" ? "en-US" : lang === "ru" ? "ru-RU" : "uk-UA";
+              
               return (
                 <div key={shift.id} className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 shadow-sm flex flex-col gap-3">
                   <div className="flex justify-between items-center border-b border-gray-700/50 pb-2.5">
-                    <span className="font-bold text-white text-base">{new Date(shift.date).toLocaleDateString("uk-UA", { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+                    <span className="font-bold text-white text-base capitalize">
+                      {new Date(shift.date).toLocaleDateString(dateLocale, { weekday: 'short', day: 'numeric', month: 'short' })}
+                    </span>
                     <span className="font-black text-green-400 text-lg">{absoluteTotal.toFixed(2)} <span className="text-[10px] font-normal">{t.common.currency}</span></span>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-3 items-stretch">
                     <div className="flex flex-col gap-1 text-xs bg-[#17171d] p-2.5 rounded-lg border border-gray-800/60">
-                      <span className="text-gray-500 uppercase text-[9px] tracking-wider font-semibold block mb-1">Дані зміни</span>
-                      <div className="flex justify-between text-gray-400"><span>Ставка:</span><strong>{dailyBase.toFixed(2)}</strong></div>
-                      {dailyTips > 0 && <div className="flex justify-between text-rose-400"><span>Чай:</span><strong>{dailyTips.toFixed(2)}</strong></div>}
-                      {dailyBonuses > 0 && <div className="flex justify-between text-purple-400"><span>Бонуси:</span><strong>{dailyBonuses.toFixed(2)}</strong></div>}
-                      <div className="flex justify-between text-blue-400 border-t border-gray-800 mt-1 pt-1"><span>Замовлень:</span><strong>{dailyOrders > 0 ? dailyOrders : "—"}</strong></div>
-                      <div className="flex justify-between text-white"><span>Години:</span><strong>{shift.hours > 0 ? shift.hours : "—"}</strong></div>
-                      <div className="flex justify-between text-gray-300"><span>Пробіг:</span><strong>{shift.km > 0 ? shift.km : "—"}</strong></div>
+                      <span className="text-gray-500 uppercase text-[9px] tracking-wider font-semibold block mb-1">
+                        {lang === "pl" ? "Dane zmiany" : lang === "en" ? "Shift Data" : lang === "ru" ? "Данные смены" : "Дані зміни"}
+                      </span>
+                      <div className="flex justify-between text-gray-400"><span>{t.work.tableBase}:</span><strong>{dailyBase.toFixed(2)}</strong></div>
+                      {dailyTips > 0 && <div className="flex justify-between text-rose-400"><span>{t.work.tableTips}:</span><strong>{dailyTips.toFixed(2)}</strong></div>}
+                      {dailyBonuses > 0 && <div className="flex justify-between text-purple-400"><span>{t.work.tableBonuses}:</span><strong>{dailyBonuses.toFixed(2)}</strong></div>}
+                      <div className="flex justify-between text-blue-400 border-t border-gray-800 mt-1 pt-1"><span>{t.work.tableOrders}:</span><strong>{dailyOrders > 0 ? dailyOrders : "—"}</strong></div>
+                      <div className="flex justify-between text-white"><span>{t.work.tableHours}:</span><strong>{shift.hours > 0 ? shift.hours : "—"}</strong></div>
+                      <div className="flex justify-between text-gray-300"><span>{t.work.tableKm}:</span><strong>{shift.km > 0 ? shift.km : "—"}</strong></div>
                     </div>
 
                     <div className="flex flex-col gap-1.5 text-xs bg-[#22222a]/50 p-2.5 rounded-lg border border-cyan-950/30 flex-1 justify-center">
-                      <span className="text-gray-500 uppercase text-[9px] tracking-wider font-semibold block mb-1 text-center">Ефективність</span>
-                      <div className="flex justify-between border-b border-gray-800/50 pb-1 text-cyan-400"><span>Зл/Год:</span><strong>{dailyAvgHour}</strong></div>
-                      <div className="flex justify-between border-b border-gray-800/50 pb-1 text-purple-400"><span>Зл/Км:</span><strong>{dailyAvgKm}</strong></div>
-                      <div className="flex justify-between text-yellow-400"><span>Зл/Зам:</span><strong>{dailyAvgOrder}</strong></div>
+                      <span className="text-gray-500 uppercase text-[9px] tracking-wider font-semibold block mb-1 text-center">
+                        {lang === "pl" ? "Efektywność" : lang === "en" ? "Efficiency" : lang === "ru" ? "Эффективность" : "Ефективність"}
+                      </span>
+                      <div className="flex justify-between border-b border-gray-800/50 pb-1 text-cyan-400"><span>{t.work.tableRate}:</span><strong>{dailyAvgHour}</strong></div>
+                      <div className="flex justify-between border-b border-gray-800/50 pb-1 text-purple-400"><span>{t.work.tableEff}:</span><strong>{dailyAvgKm}</strong></div>
+                      <div className="flex justify-between text-yellow-400"><span>{t.work.orderUnit}:</span><strong>{dailyAvgOrder}</strong></div>
                     </div>
                   </div>
                   
