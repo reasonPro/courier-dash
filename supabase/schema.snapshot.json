@@ -1,0 +1,1061 @@
+﻿{
+    "schema":  "public",
+    "tables":  [
+                   {
+                       "kind":  "table",
+                       "name":  "garage_history",
+                       "rls_forced":  false,
+                       "rls_enabled":  true
+                   },
+                   {
+                       "kind":  "table",
+                       "name":  "garage_rules",
+                       "rls_forced":  false,
+                       "rls_enabled":  true
+                   },
+                   {
+                       "kind":  "table",
+                       "name":  "profiles",
+                       "rls_forced":  false,
+                       "rls_enabled":  true
+                   },
+                   {
+                       "kind":  "table",
+                       "name":  "tax_settings",
+                       "rls_forced":  false,
+                       "rls_enabled":  true
+                   },
+                   {
+                       "kind":  "table",
+                       "name":  "work_shifts",
+                       "rls_forced":  false,
+                       "rls_enabled":  true
+                   }
+               ],
+    "columns":  [
+                    {
+                        "name":  "id",
+                        "table":  "garage_history",
+                        "default":  null,
+                        "identity":  true,
+                        "nullable":  false,
+                        "position":  1,
+                        "udt_name":  "int8",
+                        "data_type":  "bigint",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  "BY DEFAULT",
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "created_at",
+                        "table":  "garage_history",
+                        "default":  "now()",
+                        "identity":  false,
+                        "nullable":  false,
+                        "position":  2,
+                        "udt_name":  "timestamptz",
+                        "data_type":  "timestamp with time zone",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "service_type",
+                        "table":  "garage_history",
+                        "default":  null,
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  3,
+                        "udt_name":  "text",
+                        "data_type":  "text",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "name",
+                        "table":  "garage_history",
+                        "default":  null,
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  4,
+                        "udt_name":  "text",
+                        "data_type":  "text",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "date",
+                        "table":  "garage_history",
+                        "default":  null,
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  5,
+                        "udt_name":  "date",
+                        "data_type":  "date",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "cost",
+                        "table":  "garage_history",
+                        "default":  null,
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  6,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "rule_id",
+                        "table":  "garage_history",
+                        "default":  null,
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  7,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "odometer",
+                        "table":  "garage_history",
+                        "default":  null,
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  8,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "user_id",
+                        "table":  "garage_history",
+                        "default":  null,
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  9,
+                        "udt_name":  "uuid",
+                        "data_type":  "uuid",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "id",
+                        "table":  "garage_rules",
+                        "default":  null,
+                        "identity":  true,
+                        "nullable":  false,
+                        "position":  1,
+                        "udt_name":  "int8",
+                        "data_type":  "bigint",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  "BY DEFAULT",
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "created_at",
+                        "table":  "garage_rules",
+                        "default":  "now()",
+                        "identity":  false,
+                        "nullable":  false,
+                        "position":  2,
+                        "udt_name":  "timestamptz",
+                        "data_type":  "timestamp with time zone",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "name",
+                        "table":  "garage_rules",
+                        "default":  null,
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  3,
+                        "udt_name":  "text",
+                        "data_type":  "text",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "interval_km",
+                        "table":  "garage_rules",
+                        "default":  null,
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  4,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "last_change_km",
+                        "table":  "garage_rules",
+                        "default":  "\u00270\u0027::numeric",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  5,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "user_id",
+                        "table":  "garage_rules",
+                        "default":  null,
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  6,
+                        "udt_name":  "uuid",
+                        "data_type":  "uuid",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "id",
+                        "table":  "profiles",
+                        "default":  null,
+                        "identity":  false,
+                        "nullable":  false,
+                        "position":  1,
+                        "udt_name":  "uuid",
+                        "data_type":  "uuid",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "nickname",
+                        "table":  "profiles",
+                        "default":  null,
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  2,
+                        "udt_name":  "text",
+                        "data_type":  "text",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "id",
+                        "table":  "tax_settings",
+                        "default":  "extensions.uuid_generate_v4()",
+                        "identity":  false,
+                        "nullable":  false,
+                        "position":  1,
+                        "udt_name":  "uuid",
+                        "data_type":  "uuid",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "user_id",
+                        "table":  "tax_settings",
+                        "default":  null,
+                        "identity":  false,
+                        "nullable":  false,
+                        "position":  2,
+                        "udt_name":  "uuid",
+                        "data_type":  "uuid",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "uber_type",
+                        "table":  "tax_settings",
+                        "default":  "\u0027none\u0027::text",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  3,
+                        "udt_name":  "text",
+                        "data_type":  "text",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "uber_val",
+                        "table":  "tax_settings",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  4,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "wolt_type",
+                        "table":  "tax_settings",
+                        "default":  "\u0027none\u0027::text",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  5,
+                        "udt_name":  "text",
+                        "data_type":  "text",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "wolt_val",
+                        "table":  "tax_settings",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  6,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "bolt_type",
+                        "table":  "tax_settings",
+                        "default":  "\u0027none\u0027::text",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  7,
+                        "udt_name":  "text",
+                        "data_type":  "text",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "bolt_val",
+                        "table":  "tax_settings",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  8,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "glovo_type",
+                        "table":  "tax_settings",
+                        "default":  "\u0027none\u0027::text",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  9,
+                        "udt_name":  "text",
+                        "data_type":  "text",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "glovo_val",
+                        "table":  "tax_settings",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  10,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "updated_at",
+                        "table":  "tax_settings",
+                        "default":  "timezone(\u0027utc\u0027::text, now())",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  11,
+                        "udt_name":  "timestamptz",
+                        "data_type":  "timestamp with time zone",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "id",
+                        "table":  "work_shifts",
+                        "default":  null,
+                        "identity":  true,
+                        "nullable":  false,
+                        "position":  1,
+                        "udt_name":  "int8",
+                        "data_type":  "bigint",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  "ALWAYS",
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "date",
+                        "table":  "work_shifts",
+                        "default":  null,
+                        "identity":  false,
+                        "nullable":  false,
+                        "position":  2,
+                        "udt_name":  "date",
+                        "data_type":  "date",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "km",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  false,
+                        "position":  3,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "hours",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  false,
+                        "position":  4,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "uber",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  false,
+                        "position":  5,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "wolt",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  false,
+                        "position":  6,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "bolt",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  false,
+                        "position":  7,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "glovo",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  false,
+                        "position":  8,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "created_at",
+                        "table":  "work_shifts",
+                        "default":  "timezone(\u0027utc\u0027::text, now())",
+                        "identity":  false,
+                        "nullable":  false,
+                        "position":  9,
+                        "udt_name":  "timestamptz",
+                        "data_type":  "timestamp with time zone",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "user_id",
+                        "table":  "work_shifts",
+                        "default":  "\u0027284cae3b-046c-4595-8f74-d826df4c1939\u0027::uuid",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  10,
+                        "udt_name":  "uuid",
+                        "data_type":  "uuid",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "orders_uber",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  11,
+                        "udt_name":  "int4",
+                        "data_type":  "integer",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "orders_wolt",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  12,
+                        "udt_name":  "int4",
+                        "data_type":  "integer",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "orders_bolt",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  13,
+                        "udt_name":  "int4",
+                        "data_type":  "integer",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "orders_glovo",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  14,
+                        "udt_name":  "int4",
+                        "data_type":  "integer",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "tips",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  15,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "bonuses",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  16,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "tips_uber",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  17,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "tips_wolt",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  18,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "tips_bolt",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  19,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "tips_glovo",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  20,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "bonuses_uber",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  21,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "bonuses_wolt",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  22,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "bonuses_bolt",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  23,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    },
+                    {
+                        "name":  "bonuses_glovo",
+                        "table":  "work_shifts",
+                        "default":  "0",
+                        "identity":  false,
+                        "nullable":  true,
+                        "position":  24,
+                        "udt_name":  "numeric",
+                        "data_type":  "numeric",
+                        "generated":  "NEVER",
+                        "udt_schema":  "pg_catalog",
+                        "identity_generation":  null,
+                        "generation_expression":  null
+                    }
+                ],
+    "indexes":  [
+                    {
+                        "name":  "garage_history_pkey",
+                        "table":  "garage_history",
+                        "definition":  "CREATE UNIQUE INDEX garage_history_pkey ON public.garage_history USING btree (id)"
+                    },
+                    {
+                        "name":  "garage_rules_pkey",
+                        "table":  "garage_rules",
+                        "definition":  "CREATE UNIQUE INDEX garage_rules_pkey ON public.garage_rules USING btree (id)"
+                    },
+                    {
+                        "name":  "profiles_nickname_key",
+                        "table":  "profiles",
+                        "definition":  "CREATE UNIQUE INDEX profiles_nickname_key ON public.profiles USING btree (nickname)"
+                    },
+                    {
+                        "name":  "profiles_pkey",
+                        "table":  "profiles",
+                        "definition":  "CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (id)"
+                    },
+                    {
+                        "name":  "tax_settings_pkey",
+                        "table":  "tax_settings",
+                        "definition":  "CREATE UNIQUE INDEX tax_settings_pkey ON public.tax_settings USING btree (id)"
+                    },
+                    {
+                        "name":  "tax_settings_user_id_key",
+                        "table":  "tax_settings",
+                        "definition":  "CREATE UNIQUE INDEX tax_settings_user_id_key ON public.tax_settings USING btree (user_id)"
+                    },
+                    {
+                        "name":  "work_shifts_pkey",
+                        "table":  "work_shifts",
+                        "definition":  "CREATE UNIQUE INDEX work_shifts_pkey ON public.work_shifts USING btree (id)"
+                    },
+                    {
+                        "name":  "work_shifts_user_date_key",
+                        "table":  "work_shifts",
+                        "definition":  "CREATE UNIQUE INDEX work_shifts_user_date_key ON public.work_shifts USING btree (user_id, date)"
+                    }
+                ],
+    "triggers":  [
+
+                 ],
+    "functions":  [
+
+                  ],
+    "captured_at":  "2026-07-23T08:17:12.138323+00:00",
+    "constraints":  [
+                        {
+                            "name":  "garage_history_pkey",
+                            "type":  "primary_key",
+                            "table":  "garage_history",
+                            "definition":  "PRIMARY KEY (id)"
+                        },
+                        {
+                            "name":  "garage_history_user_id_fkey",
+                            "type":  "foreign_key",
+                            "table":  "garage_history",
+                            "definition":  "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+                        },
+                        {
+                            "name":  "garage_rules_pkey",
+                            "type":  "primary_key",
+                            "table":  "garage_rules",
+                            "definition":  "PRIMARY KEY (id)"
+                        },
+                        {
+                            "name":  "garage_rules_user_id_fkey",
+                            "type":  "foreign_key",
+                            "table":  "garage_rules",
+                            "definition":  "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+                        },
+                        {
+                            "name":  "profiles_id_fkey",
+                            "type":  "foreign_key",
+                            "table":  "profiles",
+                            "definition":  "FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE"
+                        },
+                        {
+                            "name":  "profiles_nickname_key",
+                            "type":  "unique",
+                            "table":  "profiles",
+                            "definition":  "UNIQUE (nickname)"
+                        },
+                        {
+                            "name":  "profiles_pkey",
+                            "type":  "primary_key",
+                            "table":  "profiles",
+                            "definition":  "PRIMARY KEY (id)"
+                        },
+                        {
+                            "name":  "tax_settings_pkey",
+                            "type":  "primary_key",
+                            "table":  "tax_settings",
+                            "definition":  "PRIMARY KEY (id)"
+                        },
+                        {
+                            "name":  "tax_settings_user_id_fkey",
+                            "type":  "foreign_key",
+                            "table":  "tax_settings",
+                            "definition":  "FOREIGN KEY (user_id) REFERENCES auth.users(id)"
+                        },
+                        {
+                            "name":  "tax_settings_user_id_key",
+                            "type":  "unique",
+                            "table":  "tax_settings",
+                            "definition":  "UNIQUE (user_id)"
+                        },
+                        {
+                            "name":  "work_shifts_pkey",
+                            "type":  "primary_key",
+                            "table":  "work_shifts",
+                            "definition":  "PRIMARY KEY (id)"
+                        },
+                        {
+                            "name":  "work_shifts_user_date_key",
+                            "type":  "unique",
+                            "table":  "work_shifts",
+                            "definition":  "UNIQUE (user_id, date)"
+                        },
+                        {
+                            "name":  "work_shifts_user_id_fkey",
+                            "type":  "foreign_key",
+                            "table":  "work_shifts",
+                            "definition":  "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+                        }
+                    ],
+    "project_ref":  "wcwvmpsxrbnmzwdkbvgl",
+    "foreign_keys":  [
+                         {
+                             "name":  "garage_history_user_id_fkey",
+                             "table":  "garage_history",
+                             "definition":  "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+                             "referenced_table":  "users",
+                             "referenced_schema":  "auth"
+                         },
+                         {
+                             "name":  "garage_rules_user_id_fkey",
+                             "table":  "garage_rules",
+                             "definition":  "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+                             "referenced_table":  "users",
+                             "referenced_schema":  "auth"
+                         },
+                         {
+                             "name":  "profiles_id_fkey",
+                             "table":  "profiles",
+                             "definition":  "FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE",
+                             "referenced_table":  "users",
+                             "referenced_schema":  "auth"
+                         },
+                         {
+                             "name":  "tax_settings_user_id_fkey",
+                             "table":  "tax_settings",
+                             "definition":  "FOREIGN KEY (user_id) REFERENCES auth.users(id)",
+                             "referenced_table":  "users",
+                             "referenced_schema":  "auth"
+                         },
+                         {
+                             "name":  "work_shifts_user_id_fkey",
+                             "table":  "work_shifts",
+                             "definition":  "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+                             "referenced_table":  "users",
+                             "referenced_schema":  "auth"
+                         }
+                     ],
+    "primary_keys":  [
+                         {
+                             "name":  "garage_history_pkey",
+                             "table":  "garage_history",
+                             "definition":  "PRIMARY KEY (id)"
+                         },
+                         {
+                             "name":  "garage_rules_pkey",
+                             "table":  "garage_rules",
+                             "definition":  "PRIMARY KEY (id)"
+                         },
+                         {
+                             "name":  "profiles_pkey",
+                             "table":  "profiles",
+                             "definition":  "PRIMARY KEY (id)"
+                         },
+                         {
+                             "name":  "tax_settings_pkey",
+                             "table":  "tax_settings",
+                             "definition":  "PRIMARY KEY (id)"
+                         },
+                         {
+                             "name":  "work_shifts_pkey",
+                             "table":  "work_shifts",
+                             "definition":  "PRIMARY KEY (id)"
+                         }
+                     ],
+    "rls_policies":  [
+                         {
+                             "name":  "ÐÐ¾ÑÐ¸ÑÑÑÐ²Ð°Ñ ÐºÐµÑÑÑ ÑÐ²Ð¾ÑÑ ÑÑÑÐ¾ÑÑÑÑ",
+                             "roles":  [
+                                           "public"
+                                       ],
+                             "table":  "garage_history",
+                             "using":  "(auth.uid() = user_id)",
+                             "command":  "ALL",
+                             "permissive":  "PERMISSIVE",
+                             "with_check":  "(auth.uid() = user_id)"
+                         },
+                         {
+                             "name":  "ÐÐ¾ÑÐ¸ÑÑÑÐ²Ð°Ñ ÐºÐµÑÑÑ ÑÐ²Ð¾ÑÐ¼ Ð³Ð°ÑÐ°Ð¶ÐµÐ¼",
+                             "roles":  [
+                                           "public"
+                                       ],
+                             "table":  "garage_rules",
+                             "using":  "(auth.uid() = user_id)",
+                             "command":  "ALL",
+                             "permissive":  "PERMISSIVE",
+                             "with_check":  "(auth.uid() = user_id)"
+                         },
+                         {
+                             "name":  "ÐÐ¾ÑÐ¸ÑÑÑÐ²Ð°Ñ Ð¼Ð¾Ð¶Ðµ Ð¾Ð½Ð¾Ð²Ð»ÑÐ²Ð°ÑÐ¸ ÑÐ²ÑÐ¹ Ð¿",
+                             "roles":  [
+                                           "public"
+                                       ],
+                             "table":  "profiles",
+                             "using":  "(auth.uid() = id)",
+                             "command":  "UPDATE",
+                             "permissive":  "PERMISSIVE",
+                             "with_check":  null
+                         },
+                         {
+                             "name":  "ÐÐ¾ÑÐ¸ÑÑÑÐ²Ð°Ñ Ð¼Ð¾Ð¶Ðµ ÑÑÐ²Ð¾ÑÑÐ²Ð°ÑÐ¸ ÑÐ²ÑÐ¹ Ð¿",
+                             "roles":  [
+                                           "public"
+                                       ],
+                             "table":  "profiles",
+                             "using":  null,
+                             "command":  "INSERT",
+                             "permissive":  "PERMISSIVE",
+                             "with_check":  "(auth.uid() = id)"
+                         },
+                         {
+                             "name":  "ÐÑÐ¾ÑÑÐ»Ñ Ð¼Ð¾Ð¶ÑÑÑ ÑÐ¸ÑÐ°ÑÐ¸ Ð²ÑÑ",
+                             "roles":  [
+                                           "public"
+                                       ],
+                             "table":  "profiles",
+                             "using":  "true",
+                             "command":  "SELECT",
+                             "permissive":  "PERMISSIVE",
+                             "with_check":  null
+                         },
+                         {
+                             "name":  "Users can insert own tax settings",
+                             "roles":  [
+                                           "public"
+                                       ],
+                             "table":  "tax_settings",
+                             "using":  null,
+                             "command":  "INSERT",
+                             "permissive":  "PERMISSIVE",
+                             "with_check":  "(auth.uid() = user_id)"
+                         },
+                         {
+                             "name":  "Users can update own tax settings",
+                             "roles":  [
+                                           "public"
+                                       ],
+                             "table":  "tax_settings",
+                             "using":  "(auth.uid() = user_id)",
+                             "command":  "UPDATE",
+                             "permissive":  "PERMISSIVE",
+                             "with_check":  null
+                         },
+                         {
+                             "name":  "Users can view own tax settings",
+                             "roles":  [
+                                           "public"
+                                       ],
+                             "table":  "tax_settings",
+                             "using":  "(auth.uid() = user_id)",
+                             "command":  "SELECT",
+                             "permissive":  "PERMISSIVE",
+                             "with_check":  null
+                         },
+                         {
+                             "name":  "work_shifts_policy",
+                             "roles":  [
+                                           "authenticated"
+                                       ],
+                             "table":  "work_shifts",
+                             "using":  "(auth.uid() = user_id)",
+                             "command":  "ALL",
+                             "permissive":  "PERMISSIVE",
+                             "with_check":  "(auth.uid() = user_id)"
+                         }
+                     ],
+    "database_version":  "PostgreSQL 17.6 on aarch64-unknown-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit"
+}

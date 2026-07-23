@@ -93,7 +93,7 @@ export default function YearReport() {
       .select("*")
       .eq("user_id", uid)
       .order("date", { ascending: true });
-    if (!error && data) setShifts(data);
+    if (!error && data) setShifts(data as Shift[]);
     setIsLoading(false);
   };
 

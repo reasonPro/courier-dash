@@ -78,10 +78,10 @@ export default function GarageDashboard() {
     }
 
     const { data: rulesData } = await supabase.from("garage_rules").select("*").eq("user_id", uid).order("id", { ascending: true });
-    if (rulesData) setRules(rulesData);
+    if (rulesData) setRules(rulesData as GarageRule[]);
       
     const { data: historyData } = await supabase.from("garage_history").select("*").eq("user_id", uid).order("odometer", { ascending: false });
-    if (historyData) setHistory(historyData);
+    if (historyData) setHistory(historyData as GarageHistory[]);
     
     setIsLoading(false);
   };

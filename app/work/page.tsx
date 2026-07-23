@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../../context/LanguageContext";
+import { calculateWorkedHours } from "../../lib/work-hours";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -186,7 +187,7 @@ export default function WorkDashboard() {
       if (newData) data = newData;
     }
     if (data) {
-      setTaxSettings(data);
+      setTaxSettings(data as TaxSettings);
       setTaxForm({
         uber_type: data.uber_type || 'none', uber_val: data.uber_val || "",
         wolt_type: data.wolt_type || 'none', wolt_val: data.wolt_val || "",
@@ -244,7 +245,7 @@ export default function WorkDashboard() {
   const fetchShifts = async (uid: string) => {
     setIsLoading(true);
     const { data, error } = await supabase.from("work_shifts").select("*").eq("user_id", uid).order("date", { ascending: false });
-    if (!error && data) setShifts(data);
+    if (!error && data) setShifts(data as Shift[]);
     setIsLoading(false);
   };
 
@@ -267,22 +268,7 @@ export default function WorkDashboard() {
 
   const calculateHours = () => {
     if (!shiftStart || !shiftEnd) return;
-    const parseTime = (timeStr: string) => { const [h, m] = timeStr.split(':').map(Number); return h * 60 + m; };
-    let startMin = parseTime(shiftStart);
-    let endMin = parseTime(shiftEnd);
-    if (endMin < startMin) endMin += 24 * 60;
-    let totalWorkMin = endMin - startMin;
-
-    breaks.forEach(b => {
-      if (b.start && b.end) {
-        let bStart = parseTime(b.start);
-        let bEnd = parseTime(b.end);
-        if (bEnd < bStart) bEnd += 24 * 60; 
-        if (bStart < startMin && (bStart + 24 * 60) < endMin) { bStart += 24 * 60; bEnd += 24 * 60; }
-        totalWorkMin -= (bEnd - bStart);
-      }
-    });
-    setHours((totalWorkMin / 60).toFixed(2));
+    setHours(calculateWorkedHours(shiftStart, shiftEnd, breaks).toFixed(2));
     setShowCalc(false);
   };
 
