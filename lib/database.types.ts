@@ -140,6 +140,8 @@ export type Database = {
           bonuses: number | null
           bonuses_bolt: number | null
           bonuses_glovo: number | null
+          bonuses_other: number
+          bonuses_stuart: number
           bonuses_uber: number | null
           bonuses_wolt: number | null
           created_at: string
@@ -150,11 +152,18 @@ export type Database = {
           km: number
           orders_bolt: number | null
           orders_glovo: number | null
+          orders_other: number
+          orders_stuart: number
           orders_uber: number | null
           orders_wolt: number | null
+          other_income: number
+          other_platform_name: string | null
+          stuart: number
           tips: number | null
           tips_bolt: number | null
           tips_glovo: number | null
+          tips_other: number
+          tips_stuart: number
           tips_uber: number | null
           tips_wolt: number | null
           uber: number
@@ -166,6 +175,8 @@ export type Database = {
           bonuses?: number | null
           bonuses_bolt?: number | null
           bonuses_glovo?: number | null
+          bonuses_other?: number
+          bonuses_stuart?: number
           bonuses_uber?: number | null
           bonuses_wolt?: number | null
           created_at?: string
@@ -176,11 +187,18 @@ export type Database = {
           km?: number
           orders_bolt?: number | null
           orders_glovo?: number | null
+          orders_other?: number
+          orders_stuart?: number
           orders_uber?: number | null
           orders_wolt?: number | null
+          other_income?: number
+          other_platform_name?: string | null
+          stuart?: number
           tips?: number | null
           tips_bolt?: number | null
           tips_glovo?: number | null
+          tips_other?: number
+          tips_stuart?: number
           tips_uber?: number | null
           tips_wolt?: number | null
           uber?: number
@@ -192,6 +210,8 @@ export type Database = {
           bonuses?: number | null
           bonuses_bolt?: number | null
           bonuses_glovo?: number | null
+          bonuses_other?: number
+          bonuses_stuart?: number
           bonuses_uber?: number | null
           bonuses_wolt?: number | null
           created_at?: string
@@ -202,11 +222,18 @@ export type Database = {
           km?: number
           orders_bolt?: number | null
           orders_glovo?: number | null
+          orders_other?: number
+          orders_stuart?: number
           orders_uber?: number | null
           orders_wolt?: number | null
+          other_income?: number
+          other_platform_name?: string | null
+          stuart?: number
           tips?: number | null
           tips_bolt?: number | null
           tips_glovo?: number | null
+          tips_other?: number
+          tips_stuart?: number
           tips_uber?: number | null
           tips_wolt?: number | null
           uber?: number

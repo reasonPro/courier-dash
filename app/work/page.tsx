@@ -6,6 +6,32 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../../context/LanguageContext";
 import { calculateWorkedHours } from "../../lib/work-hours";
+import type { Tables } from "../../lib/database.types";
+import {
+  PLATFORM_KEYS,
+  PLATFORM_LABELS,
+  STANDARD_PLATFORM_KEYS,
+  TAX_PLATFORM_KEYS,
+  buildPlatformShiftPayload,
+  createEmptyPlatformValues,
+  getActivePlatformNames,
+  getEditingPlatformKeys,
+  getOtherPlatformNames,
+  getPlatformPreferenceKey,
+  getPlatformDisplayName,
+  getPlatformMetrics,
+  getShiftPlatformTotals,
+  isPlatformActive,
+  isTaxPlatformKey,
+  normalizeOtherPlatformName,
+  parsePlatformPreference,
+  serializePlatformPreference,
+  validatePlatformSelection,
+  type PlatformKey,
+  type PlatformMetrics,
+  type PlatformValues,
+  type TaxPlatformKey,
+} from "../../lib/work-platforms";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -34,14 +60,7 @@ ChartJS.register(
   Legend
 );
 
-type Shift = {
-  id: number; date: string; km: number; hours: number;
-  uber: number; wolt: number; bolt: number; glovo: number;
-  orders_uber: number; orders_wolt: number; orders_bolt: number; orders_glovo: number;
-  tips_uber: number; tips_wolt: number; tips_bolt: number; tips_glovo: number;
-  bonuses_uber: number; bonuses_wolt: number; bonuses_bolt: number; bonuses_glovo: number;
-  user_id: string;
-};
+type Shift = Tables<"work_shifts">;
 
 type TaxSettings = {
   uber_type: string; uber_val: number | string;
@@ -49,6 +68,66 @@ type TaxSettings = {
   bolt_type: string; bolt_val: number | string;
   glovo_type: string; glovo_val: number | string;
 };
+
+const PLATFORM_CHART_STYLES: Record<
+  PlatformKey,
+  { backgroundColor: string; borderColor: string }
+> = {
+  uber: {
+    backgroundColor: "rgba(75, 85, 99, 0.4)",
+    borderColor: "rgba(75, 85, 99, 1)",
+  },
+  wolt: {
+    backgroundColor: "rgba(0, 194, 232, 0.4)",
+    borderColor: "rgba(0, 194, 232, 1)",
+  },
+  bolt: {
+    backgroundColor: "rgba(34, 197, 94, 0.4)",
+    borderColor: "rgba(34, 197, 94, 1)",
+  },
+  glovo: {
+    backgroundColor: "rgba(234, 179, 8, 0.4)",
+    borderColor: "rgba(234, 179, 8, 1)",
+  },
+  stuart: {
+    backgroundColor: "rgba(239, 68, 68, 0.4)",
+    borderColor: "rgba(239, 68, 68, 1)",
+  },
+  other: {
+    backgroundColor: "rgba(249, 115, 22, 0.4)",
+    borderColor: "rgba(249, 115, 22, 1)",
+  },
+};
+
+const PLATFORM_CARD_ACCENTS: Record<PlatformKey, string> = {
+  uber: "border-gray-600/70",
+  wolt: "border-cyan-600/70",
+  bolt: "border-green-600/70",
+  glovo: "border-yellow-600/70",
+  stuart: "border-red-600/70",
+  other: "border-orange-600/70",
+};
+
+const OTHER_CHART_STYLES = [
+  {
+    backgroundColor: "rgba(249, 115, 22, 0.4)",
+    borderColor: "rgba(249, 115, 22, 1)",
+  },
+  {
+    backgroundColor: "rgba(236, 72, 153, 0.4)",
+    borderColor: "rgba(236, 72, 153, 1)",
+  },
+  {
+    backgroundColor: "rgba(139, 92, 246, 0.4)",
+    borderColor: "rgba(139, 92, 246, 1)",
+  },
+  {
+    backgroundColor: "rgba(20, 184, 166, 0.4)",
+    borderColor: "rgba(20, 184, 166, 1)",
+  },
+] as const;
+
+const FIRST_RUN_PLATFORMS: PlatformKey[] = ["uber"];
 
 export default function WorkDashboard() {
   const router = useRouter();
@@ -65,13 +144,16 @@ export default function WorkDashboard() {
   const [shiftEnd, setShiftEnd] = useState("");
   const [breaks, setBreaks] = useState<{start: string, end: string}[]>([]);
 
-  const [earnings, setEarnings] = useState({ uber: "", wolt: "", bolt: "", glovo: "" });
-  const [orders, setOrders] = useState({ uber: "", wolt: "", bolt: "", glovo: "" });
-  const [tips, setTips] = useState({ uber: "", wolt: "", bolt: "", glovo: "" });
-  const [bonuses, setBonuses] = useState({ uber: "", wolt: "", bolt: "", glovo: "" });
+  const [earnings, setEarnings] = useState<PlatformValues>(createEmptyPlatformValues);
+  const [orders, setOrders] = useState<PlatformValues>(createEmptyPlatformValues);
+  const [tips, setTips] = useState<PlatformValues>(createEmptyPlatformValues);
+  const [bonuses, setBonuses] = useState<PlatformValues>(createEmptyPlatformValues);
+  const [otherPlatformName, setOtherPlatformName] = useState("");
   const [showExtras, setShowExtras] = useState(false);
   
-  const [activePlatforms, setActivePlatforms] = useState(["uber", "wolt"]);
+  const [activePlatforms, setActivePlatforms] = useState<PlatformKey[]>(FIRST_RUN_PLATFORMS);
+  const [preferredPlatforms, setPreferredPlatforms] = useState<PlatformKey[]>(FIRST_RUN_PLATFORMS);
+  const [preferredOtherPlatformName, setPreferredOtherPlatformName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -138,7 +220,7 @@ export default function WorkDashboard() {
     if (!val) {
       if (key === 'km') setKm("");
       if (key === 'hours') { setHours(""); setShowCalc(false); }
-      if (key === 'orders') setOrders({ uber: "", wolt: "", bolt: "", glovo: "" });
+      if (key === 'orders') setOrders(createEmptyPlatformValues());
     }
   };
   // ===============================================
@@ -160,7 +242,17 @@ export default function WorkDashboard() {
       if (!session) {
         router.push("/");
       } else {
+        const savedPreference = parsePlatformPreference(
+          localStorage.getItem(getPlatformPreferenceKey(session.user.id)),
+        );
+        const initialPlatforms = savedPreference?.platforms ?? FIRST_RUN_PLATFORMS;
+        const initialOtherPlatformName = savedPreference?.otherPlatformName ?? "";
+
         setUserId(session.user.id);
+        setPreferredPlatforms([...initialPlatforms]);
+        setPreferredOtherPlatformName(initialOtherPlatformName);
+        setActivePlatforms([...initialPlatforms]);
+        setOtherPlatformName(initialOtherPlatformName);
         fetchShifts(session.user.id);
         checkNickname(session.user);
         fetchTaxSettings(session.user.id);
@@ -256,14 +348,53 @@ export default function WorkDashboard() {
     router.push("/");
   };
 
-  const handleEarningChange = (platform: string, value: string) => setEarnings((prev) => ({ ...prev, [platform]: value }));
-  const handleOrderChange = (platform: string, value: string) => setOrders((prev) => ({ ...prev, [platform]: value }));
-  const handleTipChange = (platform: string, value: string) => setTips((prev) => ({ ...prev, [platform]: value }));
-  const handleBonusChange = (platform: string, value: string) => setBonuses((prev) => ({ ...prev, [platform]: value }));
+  const handleEarningChange = (platform: PlatformKey, value: string) => setEarnings((prev) => ({ ...prev, [platform]: value }));
+  const handleOrderChange = (platform: PlatformKey, value: string) => setOrders((prev) => ({ ...prev, [platform]: value }));
+  const handleTipChange = (platform: PlatformKey, value: string) => setTips((prev) => ({ ...prev, [platform]: value }));
+  const handleBonusChange = (platform: PlatformKey, value: string) => setBonuses((prev) => ({ ...prev, [platform]: value }));
 
-  const removePlatform = (platform: string) => {
-    setActivePlatforms(activePlatforms.filter(p => p !== platform));
+  const persistPlatformPreference = (
+    platforms: PlatformKey[],
+    customPlatformName: string,
+  ) => {
+    if (!userId) return;
+    const cleanCustomPlatformName = platforms.includes("other")
+      ? normalizeOtherPlatformName(customPlatformName)
+      : "";
+
+    setPreferredPlatforms([...platforms]);
+    setPreferredOtherPlatformName(cleanCustomPlatformName);
+    localStorage.setItem(
+      getPlatformPreferenceKey(userId),
+      serializePlatformPreference(platforms, cleanCustomPlatformName),
+    );
+  };
+
+  const addPlatform = (platform: PlatformKey) => {
+    const nextPlatforms = [...activePlatforms, platform];
+    setActivePlatforms(nextPlatforms);
+    if (!editingId) {
+      persistPlatformPreference(nextPlatforms, otherPlatformName);
+    }
+  };
+
+  const removePlatform = (platform: PlatformKey) => {
+    const nextPlatforms = activePlatforms.filter(p => p !== platform);
+    const nextOtherPlatformName = platform === "other" ? "" : otherPlatformName;
+    setActivePlatforms(nextPlatforms);
     handleEarningChange(platform, ""); handleOrderChange(platform, ""); handleTipChange(platform, ""); handleBonusChange(platform, "");
+    if (platform === "other") setOtherPlatformName("");
+    if (!editingId) {
+      persistPlatformPreference(nextPlatforms, nextOtherPlatformName);
+    }
+  };
+
+  const handleOtherPlatformNameBlur = () => {
+    const cleanOtherPlatformName = normalizeOtherPlatformName(otherPlatformName);
+    setOtherPlatformName(cleanOtherPlatformName);
+    if (!editingId && activePlatforms.includes("other")) {
+      persistPlatformPreference(activePlatforms, cleanOtherPlatformName);
+    }
   };
 
   const calculateHours = () => {
@@ -275,26 +406,28 @@ export default function WorkDashboard() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId) return;
+    const selectionError = validatePlatformSelection(activePlatforms, otherPlatformName);
+    if (selectionError === "no_platforms") {
+      showToast(t.work.platformSelectionRequired, "error");
+      return;
+    }
+    if (selectionError === "other_name_required") {
+      showToast(t.work.otherPlatformNameRequired, "error");
+      return;
+    }
     setIsSubmitting(true);
 
+    const editingShift = editingId
+      ? shifts.find((shift) => shift.id === editingId)
+      : undefined;
     const shiftData = {
       date: date, km: parseFloat(km) || 0, hours: parseFloat(hours) || 0,
-      uber: activePlatforms.includes("uber") ? parseFloat(earnings.uber) || 0 : 0,
-      wolt: activePlatforms.includes("wolt") ? parseFloat(earnings.wolt) || 0 : 0,
-      bolt: activePlatforms.includes("bolt") ? parseFloat(earnings.bolt) || 0 : 0,
-      glovo: activePlatforms.includes("glovo") ? parseFloat(earnings.glovo) || 0 : 0,
-      orders_uber: activePlatforms.includes("uber") ? parseInt(orders.uber) || 0 : 0,
-      orders_wolt: activePlatforms.includes("wolt") ? parseInt(orders.wolt) || 0 : 0,
-      orders_bolt: activePlatforms.includes("bolt") ? parseInt(orders.bolt) || 0 : 0,
-      orders_glovo: activePlatforms.includes("glovo") ? parseInt(orders.glovo) || 0 : 0,
-      tips_uber: activePlatforms.includes("uber") ? parseFloat(tips.uber) || 0 : 0,
-      tips_wolt: activePlatforms.includes("wolt") ? parseFloat(tips.wolt) || 0 : 0,
-      tips_bolt: activePlatforms.includes("bolt") ? parseFloat(tips.bolt) || 0 : 0,
-      tips_glovo: activePlatforms.includes("glovo") ? parseFloat(tips.glovo) || 0 : 0,
-      bonuses_uber: activePlatforms.includes("uber") ? parseFloat(bonuses.uber) || 0 : 0,
-      bonuses_wolt: activePlatforms.includes("wolt") ? parseFloat(bonuses.wolt) || 0 : 0,
-      bonuses_bolt: activePlatforms.includes("bolt") ? parseFloat(bonuses.bolt) || 0 : 0,
-      bonuses_glovo: activePlatforms.includes("glovo") ? parseFloat(bonuses.glovo) || 0 : 0,
+      ...buildPlatformShiftPayload(
+        activePlatforms,
+        { earnings, orders, tips, bonuses },
+        otherPlatformName,
+        editingShift,
+      ),
       user_id: userId,
     };
 
@@ -323,20 +456,25 @@ export default function WorkDashboard() {
 
   const handleEdit = (shift: Shift) => {
     setEditingId(shift.id); setDate(shift.date); setKm(shift.km.toString()); setHours(shift.hours.toString());
-    setEarnings({ uber: shift.uber > 0 ? shift.uber.toString() : "", wolt: shift.wolt > 0 ? shift.wolt.toString() : "", bolt: shift.bolt > 0 ? shift.bolt.toString() : "", glovo: shift.glovo > 0 ? shift.glovo.toString() : "" });
-    setOrders({ uber: shift.orders_uber > 0 ? shift.orders_uber.toString() : "", wolt: shift.orders_wolt > 0 ? shift.orders_wolt.toString() : "", bolt: shift.orders_bolt > 0 ? shift.orders_bolt.toString() : "", glovo: shift.orders_glovo > 0 ? shift.orders_glovo.toString() : "" });
-    setTips({ uber: shift.tips_uber > 0 ? shift.tips_uber.toString() : "", wolt: shift.tips_wolt > 0 ? shift.tips_wolt.toString() : "", bolt: shift.tips_bolt > 0 ? shift.tips_bolt.toString() : "", glovo: shift.tips_glovo > 0 ? shift.tips_glovo.toString() : "" });
-    setBonuses({ uber: shift.bonuses_uber > 0 ? shift.bonuses_uber.toString() : "", wolt: shift.bonuses_wolt > 0 ? shift.bonuses_wolt.toString() : "", bolt: shift.bonuses_bolt > 0 ? shift.bonuses_bolt.toString() : "", glovo: shift.bonuses_glovo > 0 ? shift.bonuses_glovo.toString() : "" });
+    const formValues = (metric: keyof PlatformMetrics) =>
+      PLATFORM_KEYS.reduce((values, platform) => {
+        const value = getPlatformMetrics(shift, platform)[metric];
+        values[platform] = value !== 0 ? value.toString() : "";
+        return values;
+      }, createEmptyPlatformValues());
+    setEarnings(formValues("income"));
+    setOrders(formValues("orders"));
+    setTips(formValues("tips"));
+    setBonuses(formValues("bonuses"));
+    setOtherPlatformName(normalizeOtherPlatformName(shift.other_platform_name ?? ""));
 
-    const hasExtras = ((shift.tips_uber||0) + (shift.tips_wolt||0) + (shift.tips_bolt||0) + (shift.tips_glovo||0) + (shift.bonuses_uber||0) + (shift.bonuses_wolt||0) + (shift.bonuses_bolt||0) + (shift.bonuses_glovo||0)) > 0;
+    const hasExtras = PLATFORM_KEYS.some((platform) => {
+      const metrics = getPlatformMetrics(shift, platform);
+      return metrics.tips !== 0 || metrics.bonuses !== 0;
+    });
     setShowExtras(hasExtras);
 
-    const active = [];
-    if (shift.uber > 0 || shift.orders_uber > 0) active.push("uber");
-    if (shift.wolt > 0 || shift.orders_wolt > 0) active.push("wolt");
-    if (shift.bolt > 0 || shift.orders_bolt > 0) active.push("bolt");
-    if (shift.glovo > 0 || shift.orders_glovo > 0) active.push("glovo");
-    setActivePlatforms(active.length > 0 ? active : ["uber", "wolt"]);
+    setActivePlatforms(getEditingPlatformKeys(shift));
     setIsFormOpen(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -360,16 +498,17 @@ export default function WorkDashboard() {
   const resetForm = () => {
     setEditingId(null); setDate(new Date().toISOString().split("T")[0]); setKm(""); setHours("");
     setShiftStart(""); setShiftEnd(""); setBreaks([]); setShowCalc(false); setShowCalcInfo(false);
-    setEarnings({ uber: "", wolt: "", bolt: "", glovo: "" });
-    setOrders({ uber: "", wolt: "", bolt: "", glovo: "" });
-    setTips({ uber: "", wolt: "", bolt: "", glovo: "" });
-    setBonuses({ uber: "", wolt: "", bolt: "", glovo: "" });
-    setShowExtras(false); setActivePlatforms(["uber", "wolt"]); setIsFormOpen(false);
+    setEarnings(createEmptyPlatformValues());
+    setOrders(createEmptyPlatformValues());
+    setTips(createEmptyPlatformValues());
+    setBonuses(createEmptyPlatformValues());
+    setOtherPlatformName(preferredOtherPlatformName);
+    setShowExtras(false); setActivePlatforms([...preferredPlatforms]); setIsFormOpen(false);
   };
 
   const hasTaxesConfigured = () => {
     if (!taxSettings) return false;
-    return (["uber", "wolt", "bolt", "glovo"] as const).some(p => {
+    return TAX_PLATFORM_KEYS.some(p => {
        const type = taxSettings[`${p}_type` as keyof TaxSettings];
        const val = Number(taxSettings[`${p}_val` as keyof TaxSettings]) || 0;
        return type !== 'none' && val > 0;
@@ -388,8 +527,19 @@ export default function WorkDashboard() {
 
   if (!userId) return <div className="min-h-screen bg-[#121212] text-white flex items-center justify-center">{t.common.loading}</div>;
 
-  const availableToAdd = ["uber", "wolt", "bolt", "glovo"].filter(p => !activePlatforms.includes(p));
+  const getPlatformOptionLabel = (platform: PlatformKey) =>
+    platform === "other" ? t.work.otherPlatform : PLATFORM_LABELS[platform];
+  const availableToAdd = PLATFORM_KEYS.filter(p => !activePlatforms.includes(p));
   const filteredShifts = shifts.filter(shift => shift.date.startsWith(selectedMonth));
+  const getMetricTooltip = (shift: Shift, metric: keyof PlatformMetrics) =>
+    PLATFORM_KEYS
+      .filter((platform) => platform !== "other" || isPlatformActive(shift, platform))
+      .map((platform) => {
+        const value = getPlatformMetrics(shift, platform)[metric];
+        const formattedValue = metric === "orders" ? value.toString() : value.toFixed(2);
+        return `${getPlatformDisplayName(shift, platform, t.work.otherPlatform)}: ${formattedValue}`;
+      })
+      .join("\n");
 
   const getISOWeek = (dateStr: string) => {
     const d = new Date(dateStr); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 3 - (d.getDay() || 7));
@@ -408,7 +558,7 @@ export default function WorkDashboard() {
 
   filteredShifts.forEach(s => {
     const w = getISOWeek(s.date);
-    (["uber", "wolt", "bolt", "glovo"] as const).forEach(p => {
+    TAX_PLATFORM_KEYS.forEach(p => {
       let pGross = s[p];
       if (includeTips) pGross += (s[`tips_${p}` as keyof Shift] as number || 0);
       if (includeBonuses) pGross += (s[`bonuses_${p}` as keyof Shift] as number || 0);
@@ -425,7 +575,7 @@ export default function WorkDashboard() {
   let totalFixedTax = 0; 
   
   if (taxSettings) {
-    (["uber", "wolt", "bolt", "glovo"] as const).forEach(p => {
+    TAX_PLATFORM_KEYS.forEach(p => {
       const type = taxSettings[`${p}_type` as keyof TaxSettings];
       const val = Number(taxSettings[`${p}_val` as keyof TaxSettings]) || 0;
       
@@ -444,7 +594,7 @@ export default function WorkDashboard() {
 
   const fleetFixedRatio = totalFleetGross > 0 ? (totalFixedTax / totalFleetGross) : 0;
 
-  const getPlatNetto = (gross: number, p: "uber"|"wolt"|"bolt"|"glovo") => {
+  const getPlatNetto = (gross: number, p: TaxPlatformKey) => {
     if (gross <= 0) return 0;
     let net = gross - (gross * platPercents[p]);
     if (p !== "glovo") {
@@ -459,26 +609,25 @@ export default function WorkDashboard() {
 
   filteredShifts.forEach(shift => {
     let shiftVisualTotal = 0;
-    let dailyBase = shift.uber + shift.wolt + shift.bolt + shift.glovo;
-    const dailyTips = (shift.tips_uber || 0) + (shift.tips_wolt || 0) + (shift.tips_bolt || 0) + (shift.tips_glovo || 0);
-    const dailyBonuses = (shift.bonuses_uber || 0) + (shift.bonuses_wolt || 0) + (shift.bonuses_bolt || 0) + (shift.bonuses_glovo || 0);
+    const dailyTotals = getShiftPlatformTotals(shift);
     
-    (["uber", "wolt", "bolt", "glovo"] as const).forEach(p => {
-      let pGross = shift[p];
-      if (includeTips) pGross += (shift[`tips_${p}` as keyof Shift] as number || 0);
-      if (includeBonuses) pGross += (shift[`bonuses_${p}` as keyof Shift] as number || 0);
-      shiftVisualTotal += (isNetto && pGross > 0) ? getPlatNetto(pGross, p) : pGross;
+    PLATFORM_KEYS.forEach(p => {
+      const metrics = getPlatformMetrics(shift, p);
+      let pGross = metrics.income;
+      if (includeTips) pGross += metrics.tips;
+      if (includeBonuses) pGross += metrics.bonuses;
+      shiftVisualTotal += (isNetto && pGross > 0 && isTaxPlatformKey(p))
+        ? getPlatNetto(pGross, p)
+        : pGross;
     });
 
-    absTotalTips += dailyTips;
-    absTotalBaseAndBonuses += (dailyBase + dailyBonuses);
-
-    const dailyOrders = shift.orders_uber + shift.orders_wolt + shift.orders_bolt + shift.orders_glovo;
+    absTotalTips += dailyTotals.tips;
+    absTotalBaseAndBonuses += (dailyTotals.income + dailyTotals.bonuses);
 
     totalVisualEarned += shiftVisualTotal;
     totalHours += shift.hours;
     totalKm += shift.km;
-    totalOrders += dailyOrders;
+    totalOrders += dailyTotals.orders;
 
     if (shiftVisualTotal > maxEarned) { maxEarned = shiftVisualTotal; bestShiftDate = shift.date; }
   });
@@ -499,32 +648,53 @@ export default function WorkDashboard() {
 
   const chronologicalShifts = [...filteredShifts].reverse();
 
-  const getChartVal = (shift: Shift, p: "uber"|"wolt"|"bolt"|"glovo", type: "base"|"tips"|"bonuses") => {
-    let pGross = shift[p];
-    let pTips = shift[`tips_${p}` as keyof Shift] as number || 0;
-    let pBon = shift[`bonuses_${p}` as keyof Shift] as number || 0;
+  const getChartVal = (shift: Shift, p: PlatformKey, type: "base"|"tips"|"bonuses") => {
+    const metrics = getPlatformMetrics(shift, p);
+    let pGross = metrics.income;
+    let pTips = metrics.tips;
+    let pBon = metrics.bonuses;
     let totalGross = pGross + (includeTips ? pTips : 0) + (includeBonuses ? pBon : 0);
     
     let rawVal = type === "base" ? pGross : (type === "tips" ? pTips : pBon);
-    if (!isNetto || totalGross <= 0) return rawVal;
+    if (!isNetto || totalGross <= 0 || !isTaxPlatformKey(p)) return rawVal;
     
     const netto = getPlatNetto(totalGross, p);
     const ratio = netto / totalGross;
     return rawVal * ratio;
   };
 
-  const chartDatasets: any[] = [
-    { type: 'bar', label: 'Uber', data: chronologicalShifts.map(s => getChartVal(s, "uber", "base")), backgroundColor: "rgba(75, 85, 99, 0.4)", borderColor: "rgba(75, 85, 99, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 },
-    { type: 'bar', label: 'Wolt', data: chronologicalShifts.map(s => getChartVal(s, "wolt", "base")), backgroundColor: "rgba(0, 194, 232, 0.4)", borderColor: "rgba(0, 194, 232, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 },
-    { type: 'bar', label: 'Bolt', data: chronologicalShifts.map(s => getChartVal(s, "bolt", "base")), backgroundColor: "rgba(34, 197, 94, 0.4)", borderColor: "rgba(34, 197, 94, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 },
-    { type: 'bar', label: 'Glovo', data: chronologicalShifts.map(s => getChartVal(s, "glovo", "base")), backgroundColor: "rgba(234, 179, 8, 0.4)", borderColor: "rgba(234, 179, 8, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 }
-  ];
+  const chartDatasets: any[] = STANDARD_PLATFORM_KEYS.map((platform) => ({
+    type: "bar",
+    label: PLATFORM_LABELS[platform],
+    data: chronologicalShifts.map(s => getChartVal(s, platform, "base")),
+    ...PLATFORM_CHART_STYLES[platform],
+    borderWidth: 1,
+    stack: "Stack 0",
+    order: 2,
+  }));
+
+  getOtherPlatformNames(chronologicalShifts).forEach((platformName, index) => {
+    const chartStyle = OTHER_CHART_STYLES[index % OTHER_CHART_STYLES.length];
+    chartDatasets.push({
+      type: "bar",
+      label: platformName,
+      data: chronologicalShifts.map((shift) =>
+        normalizeOtherPlatformName(shift.other_platform_name ?? "") === platformName
+          ? getChartVal(shift, "other", "base")
+          : 0
+      ),
+      ...chartStyle,
+      borderWidth: 1,
+      stack: "Stack 0",
+      order: 2,
+    });
+  });
 
   if (includeTips) {
-    chartDatasets.push({ type: 'bar', label: t.work.tipsLabel, data: chronologicalShifts.map(s => getChartVal(s,"uber","tips") + getChartVal(s,"wolt","tips") + getChartVal(s,"bolt","tips") + getChartVal(s,"glovo","tips")), backgroundColor: "rgba(244, 63, 94, 0.4)", borderColor: "rgba(244, 63, 94, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 });
+    chartDatasets.push({ type: 'bar', label: t.work.tipsLabel, data: chronologicalShifts.map(s => PLATFORM_KEYS.reduce((sum, platform) => sum + getChartVal(s, platform, "tips"), 0)), backgroundColor: "rgba(244, 63, 94, 0.4)", borderColor: "rgba(244, 63, 94, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 });
   }
   if (includeBonuses) {
-    chartDatasets.push({ type: 'bar', label: t.work.bonusesLabel, data: chronologicalShifts.map(s => getChartVal(s,"uber","bonuses") + getChartVal(s,"wolt","bonuses") + getChartVal(s,"bolt","bonuses") + getChartVal(s,"glovo","bonuses")), backgroundColor: "rgba(168, 85, 247, 0.4)", borderColor: "rgba(168, 85, 247, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 });
+    chartDatasets.push({ type: 'bar', label: t.work.bonusesLabel, data: chronologicalShifts.map(s => PLATFORM_KEYS.reduce((sum, platform) => sum + getChartVal(s, platform, "bonuses"), 0)), backgroundColor: "rgba(168, 85, 247, 0.4)", borderColor: "rgba(168, 85, 247, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 });
   }
 
   chartDatasets.push(
@@ -532,9 +702,10 @@ export default function WorkDashboard() {
       type: 'line', label: t.work.tableRate,
       data: chronologicalShifts.map(s => {
         let sVisual = 0;
-        (["uber", "wolt", "bolt", "glovo"] as const).forEach(p => {
-          let pGross = s[p] + (includeTips ? (s[`tips_${p}` as keyof Shift] as number||0) : 0) + (includeBonuses ? (s[`bonuses_${p}` as keyof Shift] as number||0) : 0);
-          sVisual += (isNetto && pGross > 0) ? getPlatNetto(pGross, p) : pGross;
+        PLATFORM_KEYS.forEach(p => {
+          const metrics = getPlatformMetrics(s, p);
+          let pGross = metrics.income + (includeTips ? metrics.tips : 0) + (includeBonuses ? metrics.bonuses : 0);
+          sVisual += (isNetto && pGross > 0 && isTaxPlatformKey(p)) ? getPlatNetto(pGross, p) : pGross;
         });
         return s.hours > 0 ? Number((sVisual / s.hours).toFixed(2)) : 0;
       }),
@@ -771,7 +942,7 @@ export default function WorkDashboard() {
                 {availableToAdd.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {availableToAdd.map(platform => (
-                      <button key={platform} type="button" onClick={() => setActivePlatforms([...activePlatforms, platform])} className="text-xs bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-2 rounded-lg transition capitalize font-medium">+ {platform}</button>
+                      <button key={platform} type="button" onClick={() => addPlatform(platform)} className="text-xs bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-2 rounded-lg transition font-medium">+ {getPlatformOptionLabel(platform)}</button>
                     ))}
                   </div>
                 )}
@@ -779,31 +950,48 @@ export default function WorkDashboard() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                 {activePlatforms.map((platform) => (
-                  <div key={platform} className="relative bg-[#252530] p-3.5 rounded-xl border border-gray-700/50 shadow-inner">
+                  <div key={platform} className={`relative bg-[#252530] p-3.5 rounded-xl border shadow-inner ${PLATFORM_CARD_ACCENTS[platform]}`}>
                     <div className="flex justify-between items-center mb-2.5">
-                      <label className="text-sm font-bold text-gray-300 capitalize">{platform}</label>
-                      {activePlatforms.length > 1 && (
-                        <button type="button" onClick={() => removePlatform(platform)} className="text-gray-500 hover:text-red-500 text-sm">✕</button>
-                      )}
+                      <label className="text-sm font-bold text-gray-300">
+                        {platform === "other"
+                          ? normalizeOtherPlatformName(otherPlatformName) || t.work.otherPlatform
+                          : PLATFORM_LABELS[platform]}
+                      </label>
+                      <button type="button" onClick={() => removePlatform(platform)} className="text-gray-500 hover:text-red-500 text-sm">✕</button>
                     </div>
+                    {platform === "other" && (
+                      <div className="mb-3">
+                        <span className="block text-[10px] text-orange-300 uppercase tracking-wider mb-1">{t.work.otherPlatformName}</span>
+                        <input
+                          type="text"
+                          required
+                          maxLength={100}
+                          value={otherPlatformName}
+                          onChange={(e) => setOtherPlatformName(e.target.value)}
+                          onBlur={handleOtherPlatformNameBlur}
+                          placeholder={t.work.otherPlatformPlaceholder}
+                          className="w-full bg-[#1e1e24] border border-orange-700/70 rounded-lg p-2.5 text-white text-sm md:text-base font-bold focus:outline-none focus:border-orange-500 transition"
+                        />
+                      </div>
+                    )}
                     <div className={`grid gap-3 ${showExtras ? "grid-cols-2" : "grid-cols-2"}`}>
                       <div>
                         <span className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1">{t.work.incomePlatforms}</span>
-                        <input type="number" step="0.01" value={earnings[platform as keyof typeof earnings]} onChange={(e) => handleEarningChange(platform, e.target.value)} placeholder="0.00" className="w-full bg-[#1e1e24] border border-gray-700 rounded-lg p-2.5 text-white text-sm md:text-base font-bold focus:outline-none focus:border-green-500 transition appearance-none" />
+                        <input type="number" step="0.01" value={earnings[platform]} onChange={(e) => handleEarningChange(platform, e.target.value)} placeholder="0.00" className="w-full bg-[#1e1e24] border border-gray-700 rounded-lg p-2.5 text-white text-sm md:text-base font-bold focus:outline-none focus:border-green-500 transition appearance-none" />
                       </div>
                       <div className={!fieldSettings.orders ? "opacity-50" : ""}>
                         <span className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1">{t.work.ordersLabel}</span>
-                        <input type="number" step="1" required={fieldSettings.orders} disabled={!fieldSettings.orders} value={fieldSettings.orders ? orders[platform as keyof typeof orders] : ""} onChange={(e) => handleOrderChange(platform, e.target.value)} placeholder="0" className="w-full bg-[#1e1e24] border border-gray-700 rounded-lg p-2.5 text-white text-sm md:text-base font-bold focus:outline-none focus:border-blue-500 disabled:cursor-not-allowed transition appearance-none" />
+                        <input type="number" step="1" required={fieldSettings.orders} disabled={!fieldSettings.orders} value={fieldSettings.orders ? orders[platform] : ""} onChange={(e) => handleOrderChange(platform, e.target.value)} placeholder="0" className="w-full bg-[#1e1e24] border border-gray-700 rounded-lg p-2.5 text-white text-sm md:text-base font-bold focus:outline-none focus:border-blue-500 disabled:cursor-not-allowed transition appearance-none" />
                       </div>
                       {showExtras && (
                         <>
                           <div>
                             <span className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1">{t.work.tipsLabel}</span>
-                            <input type="number" step="0.01" value={tips[platform as keyof typeof tips]} onChange={(e) => handleTipChange(platform, e.target.value)} placeholder="0.00" className="w-full bg-[#1e1e24] border border-gray-700 rounded-lg p-2.5 text-rose-400 text-sm md:text-base font-bold focus:outline-none focus:border-rose-500 transition appearance-none" />
+                            <input type="number" step="0.01" value={tips[platform]} onChange={(e) => handleTipChange(platform, e.target.value)} placeholder="0.00" className="w-full bg-[#1e1e24] border border-gray-700 rounded-lg p-2.5 text-rose-400 text-sm md:text-base font-bold focus:outline-none focus:border-rose-500 transition appearance-none" />
                           </div>
                           <div>
                             <span className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1">{t.work.bonusesLabel}</span>
-                            <input type="number" step="0.01" value={bonuses[platform as keyof typeof bonuses]} onChange={(e) => handleBonusChange(platform, e.target.value)} placeholder="0.00" className="w-full bg-[#1e1e24] border border-gray-700 rounded-lg p-2.5 text-purple-400 text-sm md:text-base font-bold focus:outline-none focus:border-purple-500 transition appearance-none" />
+                            <input type="number" step="0.01" value={bonuses[platform]} onChange={(e) => handleBonusChange(platform, e.target.value)} placeholder="0.00" className="w-full bg-[#1e1e24] border border-gray-700 rounded-lg p-2.5 text-purple-400 text-sm md:text-base font-bold focus:outline-none focus:border-purple-500 transition appearance-none" />
                           </div>
                         </>
                       )}
@@ -1003,24 +1191,33 @@ export default function WorkDashboard() {
                 <tr><td colSpan={12} className="p-8 text-center text-gray-500">{t.work.noRecords}</td></tr>
               ) : (
                 filteredShifts.map((shift) => {
-                  const dailyBase = shift.uber + shift.wolt + shift.bolt + shift.glovo;
-                  const dailyTips = (shift.tips_uber||0) + (shift.tips_wolt||0) + (shift.tips_bolt||0) + (shift.tips_glovo||0);
-                  const dailyBonuses = (shift.bonuses_uber||0) + (shift.bonuses_wolt||0) + (shift.bonuses_bolt||0) + (shift.bonuses_glovo||0);
+                  const dailyTotals = getShiftPlatformTotals(shift);
+                  const dailyBase = dailyTotals.income;
+                  const dailyTips = dailyTotals.tips;
+                  const dailyBonuses = dailyTotals.bonuses;
                   const absoluteTotal = dailyBase + dailyTips + dailyBonuses; // ЗАВЖДИ ПОВНА СУМА
-                  const dailyOrders = shift.orders_uber + shift.orders_wolt + shift.orders_bolt + shift.orders_glovo;
+                  const dailyOrders = dailyTotals.orders;
+                  const platformNames = getActivePlatformNames(shift, t.work.otherPlatform);
                   
                   const dailyAvgHour = shift.hours > 0 ? (absoluteTotal / shift.hours).toFixed(2) : "—";
                   const dailyAvgKm = shift.km > 0 ? (absoluteTotal / shift.km).toFixed(2) : "—";
                   const dailyAvgOrder = dailyOrders > 0 ? (absoluteTotal / dailyOrders).toFixed(2) : "—";
 
-                  const baseTooltip = `Uber: ${shift.uber.toFixed(2)}\nWolt: ${shift.wolt.toFixed(2)}\nBolt: ${shift.bolt.toFixed(2)}\nGlovo: ${shift.glovo.toFixed(2)}`;
-                  const ordersTooltip = `Uber: ${shift.orders_uber}\nWolt: ${shift.orders_wolt}\nBolt: ${shift.orders_bolt}\nGlovo: ${shift.orders_glovo}`;
-                  const tipsTooltip = `Uber: ${(shift.tips_uber||0).toFixed(2)}\nWolt: ${(shift.tips_wolt||0).toFixed(2)}\nBolt: ${(shift.tips_bolt||0).toFixed(2)}\nGlovo: ${(shift.tips_glovo||0).toFixed(2)}`;
-                  const bonusesTooltip = `Uber: ${(shift.bonuses_uber||0).toFixed(2)}\nWolt: ${(shift.bonuses_wolt||0).toFixed(2)}\nBolt: ${(shift.bonuses_bolt||0).toFixed(2)}\nGlovo: ${(shift.bonuses_glovo||0).toFixed(2)}`;
+                  const baseTooltip = getMetricTooltip(shift, "income");
+                  const ordersTooltip = getMetricTooltip(shift, "orders");
+                  const tipsTooltip = getMetricTooltip(shift, "tips");
+                  const bonusesTooltip = getMetricTooltip(shift, "bonuses");
 
                   return (
                     <tr key={shift.id} className="hover:bg-[#2a2a35] transition">
-                      <td className="p-4 font-medium">{new Date(shift.date).toLocaleDateString("uk-UA")}</td>
+                      <td className="p-4 font-medium">
+                        <span className="block">{new Date(shift.date).toLocaleDateString("uk-UA")}</span>
+                        {platformNames.length > 0 && (
+                          <span className="mt-1 block max-w-44 whitespace-normal text-[10px] font-normal text-gray-500">
+                            {platformNames.join(" • ")}
+                          </span>
+                        )}
+                      </td>
                       <td className="p-4 text-blue-400 font-bold bg-blue-500/5 cursor-help" title={ordersTooltip}>{dailyOrders > 0 ? dailyOrders : "-"}</td>
                       <td className="p-4 font-bold text-green-400 bg-green-500/5">{absoluteTotal.toFixed(2)}</td>
                       <td className="p-4 text-gray-400 cursor-help" title={baseTooltip}>{dailyBase.toFixed(2)}</td>
@@ -1051,11 +1248,13 @@ export default function WorkDashboard() {
             <div className="text-center text-gray-500 py-8 bg-[#1e1e24] rounded-xl border border-gray-800">{t.work.noRecords}</div>
           ) : (
             filteredShifts.map((shift) => {
-              const dailyBase = shift.uber + shift.wolt + shift.bolt + shift.glovo;
-              const dailyTips = (shift.tips_uber||0) + (shift.tips_wolt||0) + (shift.tips_bolt||0) + (shift.tips_glovo||0);
-              const dailyBonuses = (shift.bonuses_uber||0) + (shift.bonuses_wolt||0) + (shift.bonuses_bolt||0) + (shift.bonuses_glovo||0);
+              const dailyTotals = getShiftPlatformTotals(shift);
+              const dailyBase = dailyTotals.income;
+              const dailyTips = dailyTotals.tips;
+              const dailyBonuses = dailyTotals.bonuses;
               const absoluteTotal = dailyBase + dailyTips + dailyBonuses; // ЗАВЖДИ ПОВНА СУМА
-              const dailyOrders = shift.orders_uber + shift.orders_wolt + shift.orders_bolt + shift.orders_glovo;
+              const dailyOrders = dailyTotals.orders;
+              const platformNames = getActivePlatformNames(shift, t.work.otherPlatform);
               
               const dailyAvgHour = shift.hours > 0 ? (absoluteTotal / shift.hours).toFixed(2) : "—";
               const dailyAvgKm = shift.km > 0 ? (absoluteTotal / shift.km).toFixed(2) : "—";
@@ -1066,12 +1265,18 @@ export default function WorkDashboard() {
               
               return (
                 <div key={shift.id} className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 shadow-sm flex flex-col gap-3">
-                  <div className="flex justify-between items-center border-b border-gray-700/50 pb-2.5">
+                   <div className="flex justify-between items-center border-b border-gray-700/50 pb-2.5">
                     <span className="font-bold text-white text-base capitalize">
                       {new Date(shift.date).toLocaleDateString(dateLocale, { weekday: 'short', day: 'numeric', month: 'short' })}
                     </span>
-                    <span className="font-black text-green-400 text-lg">{absoluteTotal.toFixed(2)} <span className="text-[10px] font-normal">{t.common.currency}</span></span>
-                  </div>
+                     <span className="font-black text-green-400 text-lg">{absoluteTotal.toFixed(2)} <span className="text-[10px] font-normal">{t.common.currency}</span></span>
+                   </div>
+                   {platformNames.length > 0 && (
+                     <div className="text-[10px] text-gray-500">
+                       <span className="font-semibold uppercase tracking-wider">{t.work.platformsLabel}: </span>
+                       {platformNames.join(" • ")}
+                     </div>
+                   )}
                   
                   <div className="grid grid-cols-2 gap-3 items-stretch">
                     <div className="flex flex-col gap-1 text-xs bg-[#17171d] p-2.5 rounded-lg border border-gray-800/60">

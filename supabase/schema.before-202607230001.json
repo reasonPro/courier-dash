@@ -1,5 +1,5 @@
 {
-    "captured_at":  "2026-07-23T19:54:57.186Z",
+    "captured_at":  "2026-07-23T19:53:19.013Z",
     "columns":  [
                     {
                         "data_type":  "bigint",
@@ -728,132 +728,6 @@
                         "table":  "work_shifts",
                         "udt_name":  "numeric",
                         "udt_schema":  "pg_catalog"
-                    },
-                    {
-                        "data_type":  "numeric",
-                        "default":  "0",
-                        "generated":  "NEVER",
-                        "generation_expression":  null,
-                        "identity":  false,
-                        "identity_generation":  null,
-                        "name":  "stuart",
-                        "nullable":  false,
-                        "position":  25,
-                        "table":  "work_shifts",
-                        "udt_name":  "numeric",
-                        "udt_schema":  "pg_catalog"
-                    },
-                    {
-                        "data_type":  "integer",
-                        "default":  "0",
-                        "generated":  "NEVER",
-                        "generation_expression":  null,
-                        "identity":  false,
-                        "identity_generation":  null,
-                        "name":  "orders_stuart",
-                        "nullable":  false,
-                        "position":  26,
-                        "table":  "work_shifts",
-                        "udt_name":  "int4",
-                        "udt_schema":  "pg_catalog"
-                    },
-                    {
-                        "data_type":  "numeric",
-                        "default":  "0",
-                        "generated":  "NEVER",
-                        "generation_expression":  null,
-                        "identity":  false,
-                        "identity_generation":  null,
-                        "name":  "tips_stuart",
-                        "nullable":  false,
-                        "position":  27,
-                        "table":  "work_shifts",
-                        "udt_name":  "numeric",
-                        "udt_schema":  "pg_catalog"
-                    },
-                    {
-                        "data_type":  "numeric",
-                        "default":  "0",
-                        "generated":  "NEVER",
-                        "generation_expression":  null,
-                        "identity":  false,
-                        "identity_generation":  null,
-                        "name":  "bonuses_stuart",
-                        "nullable":  false,
-                        "position":  28,
-                        "table":  "work_shifts",
-                        "udt_name":  "numeric",
-                        "udt_schema":  "pg_catalog"
-                    },
-                    {
-                        "data_type":  "numeric",
-                        "default":  "0",
-                        "generated":  "NEVER",
-                        "generation_expression":  null,
-                        "identity":  false,
-                        "identity_generation":  null,
-                        "name":  "other_income",
-                        "nullable":  false,
-                        "position":  29,
-                        "table":  "work_shifts",
-                        "udt_name":  "numeric",
-                        "udt_schema":  "pg_catalog"
-                    },
-                    {
-                        "data_type":  "integer",
-                        "default":  "0",
-                        "generated":  "NEVER",
-                        "generation_expression":  null,
-                        "identity":  false,
-                        "identity_generation":  null,
-                        "name":  "orders_other",
-                        "nullable":  false,
-                        "position":  30,
-                        "table":  "work_shifts",
-                        "udt_name":  "int4",
-                        "udt_schema":  "pg_catalog"
-                    },
-                    {
-                        "data_type":  "numeric",
-                        "default":  "0",
-                        "generated":  "NEVER",
-                        "generation_expression":  null,
-                        "identity":  false,
-                        "identity_generation":  null,
-                        "name":  "tips_other",
-                        "nullable":  false,
-                        "position":  31,
-                        "table":  "work_shifts",
-                        "udt_name":  "numeric",
-                        "udt_schema":  "pg_catalog"
-                    },
-                    {
-                        "data_type":  "numeric",
-                        "default":  "0",
-                        "generated":  "NEVER",
-                        "generation_expression":  null,
-                        "identity":  false,
-                        "identity_generation":  null,
-                        "name":  "bonuses_other",
-                        "nullable":  false,
-                        "position":  32,
-                        "table":  "work_shifts",
-                        "udt_name":  "numeric",
-                        "udt_schema":  "pg_catalog"
-                    },
-                    {
-                        "data_type":  "text",
-                        "default":  null,
-                        "generated":  "NEVER",
-                        "generation_expression":  null,
-                        "identity":  false,
-                        "identity_generation":  null,
-                        "name":  "other_platform_name",
-                        "nullable":  true,
-                        "position":  33,
-                        "table":  "work_shifts",
-                        "udt_name":  "text",
-                        "udt_schema":  "pg_catalog"
                     }
                 ],
     "constraints":  [
@@ -916,18 +790,6 @@
                             "name":  "tax_settings_user_id_key",
                             "table":  "tax_settings",
                             "type":  "unique"
-                        },
-                        {
-                            "definition":  "CHECK (other_platform_name IS NOT NULL OR other_income = 0::numeric AND orders_other = 0 AND tips_other = 0::numeric AND bonuses_other = 0::numeric)",
-                            "name":  "work_shifts_other_metrics_require_name",
-                            "table":  "work_shifts",
-                            "type":  "check"
-                        },
-                        {
-                            "definition":  "CHECK (other_platform_name IS NULL OR other_platform_name = btrim(other_platform_name) AND other_platform_name \u003c\u003e \u0027\u0027::text)",
-                            "name":  "work_shifts_other_platform_name_trimmed",
-                            "table":  "work_shifts",
-                            "type":  "check"
                         },
                         {
                             "definition":  "PRIMARY KEY (id)",
