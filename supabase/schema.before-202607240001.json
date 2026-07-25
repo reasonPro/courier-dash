@@ -1,5 +1,5 @@
 {
-    "captured_at":  "2026-07-24T20:15:58.3194678Z",
+    "captured_at":  "2026-07-23T19:54:57.186Z",
     "columns":  [
                     {
                         "data_type":  "bigint",
@@ -854,90 +854,6 @@
                         "table":  "work_shifts",
                         "udt_name":  "text",
                         "udt_schema":  "pg_catalog"
-                    },
-                    {
-                        "data_type":  "numeric",
-                        "default":  "0",
-                        "generated":  "NEVER",
-                        "generation_expression":  null,
-                        "identity":  false,
-                        "identity_generation":  null,
-                        "name":  "cash_tips_uber",
-                        "nullable":  false,
-                        "position":  34,
-                        "table":  "work_shifts",
-                        "udt_name":  "numeric",
-                        "udt_schema":  "pg_catalog"
-                    },
-                    {
-                        "data_type":  "numeric",
-                        "default":  "0",
-                        "generated":  "NEVER",
-                        "generation_expression":  null,
-                        "identity":  false,
-                        "identity_generation":  null,
-                        "name":  "cash_tips_wolt",
-                        "nullable":  false,
-                        "position":  35,
-                        "table":  "work_shifts",
-                        "udt_name":  "numeric",
-                        "udt_schema":  "pg_catalog"
-                    },
-                    {
-                        "data_type":  "numeric",
-                        "default":  "0",
-                        "generated":  "NEVER",
-                        "generation_expression":  null,
-                        "identity":  false,
-                        "identity_generation":  null,
-                        "name":  "cash_tips_bolt",
-                        "nullable":  false,
-                        "position":  36,
-                        "table":  "work_shifts",
-                        "udt_name":  "numeric",
-                        "udt_schema":  "pg_catalog"
-                    },
-                    {
-                        "data_type":  "numeric",
-                        "default":  "0",
-                        "generated":  "NEVER",
-                        "generation_expression":  null,
-                        "identity":  false,
-                        "identity_generation":  null,
-                        "name":  "cash_tips_glovo",
-                        "nullable":  false,
-                        "position":  37,
-                        "table":  "work_shifts",
-                        "udt_name":  "numeric",
-                        "udt_schema":  "pg_catalog"
-                    },
-                    {
-                        "data_type":  "numeric",
-                        "default":  "0",
-                        "generated":  "NEVER",
-                        "generation_expression":  null,
-                        "identity":  false,
-                        "identity_generation":  null,
-                        "name":  "cash_tips_stuart",
-                        "nullable":  false,
-                        "position":  38,
-                        "table":  "work_shifts",
-                        "udt_name":  "numeric",
-                        "udt_schema":  "pg_catalog"
-                    },
-                    {
-                        "data_type":  "numeric",
-                        "default":  "0",
-                        "generated":  "NEVER",
-                        "generation_expression":  null,
-                        "identity":  false,
-                        "identity_generation":  null,
-                        "name":  "cash_tips_other",
-                        "nullable":  false,
-                        "position":  39,
-                        "table":  "work_shifts",
-                        "udt_name":  "numeric",
-                        "udt_schema":  "pg_catalog"
                     }
                 ],
     "constraints":  [
@@ -1030,48 +946,6 @@
                             "name":  "work_shifts_user_id_fkey",
                             "table":  "work_shifts",
                             "type":  "foreign_key"
-                        },
-                        {
-                            "definition":  "CHECK (cash_tips_uber \u003e= 0::numeric)",
-                            "name":  "work_shifts_cash_tips_uber_nonnegative",
-                            "table":  "work_shifts",
-                            "type":  "check"
-                        },
-                        {
-                            "definition":  "CHECK (cash_tips_wolt \u003e= 0::numeric)",
-                            "name":  "work_shifts_cash_tips_wolt_nonnegative",
-                            "table":  "work_shifts",
-                            "type":  "check"
-                        },
-                        {
-                            "definition":  "CHECK (cash_tips_bolt \u003e= 0::numeric)",
-                            "name":  "work_shifts_cash_tips_bolt_nonnegative",
-                            "table":  "work_shifts",
-                            "type":  "check"
-                        },
-                        {
-                            "definition":  "CHECK (cash_tips_glovo \u003e= 0::numeric)",
-                            "name":  "work_shifts_cash_tips_glovo_nonnegative",
-                            "table":  "work_shifts",
-                            "type":  "check"
-                        },
-                        {
-                            "definition":  "CHECK (cash_tips_stuart \u003e= 0::numeric)",
-                            "name":  "work_shifts_cash_tips_stuart_nonnegative",
-                            "table":  "work_shifts",
-                            "type":  "check"
-                        },
-                        {
-                            "definition":  "CHECK (cash_tips_other \u003e= 0::numeric)",
-                            "name":  "work_shifts_cash_tips_other_nonnegative",
-                            "table":  "work_shifts",
-                            "type":  "check"
-                        },
-                        {
-                            "definition":  "CHECK (other_platform_name IS NOT NULL OR cash_tips_other = 0::numeric)",
-                            "name":  "work_shifts_other_cash_tips_require_name",
-                            "table":  "work_shifts",
-                            "type":  "check"
                         }
                     ],
     "database_version":  "17.6",

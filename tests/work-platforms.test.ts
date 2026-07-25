@@ -5,10 +5,13 @@ import {
   createEmptyPlatformValues,
   getActivePlatformNames,
   getEditingPlatformKeys,
+  getIncludedPlatformTips,
+  getInvalidCashTipPlatform,
   getOtherPlatformNames,
   getPlatformPreferenceKey,
   getPlatformMetrics,
   getShiftPlatformTotals,
+  isCashTipValueValid,
   isOtherPlatformNameValid,
   normalizeOtherPlatformName,
   parsePlatformPreference,
@@ -21,6 +24,7 @@ function createFormValues() {
     earnings: createEmptyPlatformValues(),
     orders: createEmptyPlatformValues(),
     tips: createEmptyPlatformValues(),
+    cashTips: createEmptyPlatformValues(),
     bonuses: createEmptyPlatformValues(),
   }
 }
@@ -46,7 +50,14 @@ describe("work platforms", () => {
         },
         "stuart",
       ),
-    ).toEqual({ income: 120, orders: 8, tips: 12, bonuses: 5 })
+    ).toEqual({
+      income: 120,
+      orders: 8,
+      appTips: 12,
+      cashTips: 0,
+      tips: 12,
+      bonuses: 5,
+    })
   })
 
   it("includes Stuart and a custom platform in shift totals", () => {
@@ -167,6 +178,7 @@ describe("work platforms", () => {
       stuart: 70,
       orders_stuart: 4,
       tips_stuart: 6,
+      cash_tips_stuart: 9,
     }
     const values = createFormValues()
     values.earnings.uber = "120"
@@ -181,6 +193,158 @@ describe("work platforms", () => {
       stuart: 70,
       orders_stuart: 4,
       tips_stuart: 6,
+      cash_tips_stuart: 9,
+    })
+  })
+
+  it("stores cash tips only for Uber", () => {
+    const values = createFormValues()
+    values.cashTips.uber = "15.50"
+
+    const payload = buildPlatformShiftPayload(["uber"], values, "")
+
+    expect(payload.cash_tips_uber).toBe(15.5)
+    expect(payload.tips_uber).toBe(0)
+    expect(getShiftPlatformTotals(payload).tips).toBe(15.5)
+  })
+
+  it("stores cash tips only for Glovo", () => {
+    const values = createFormValues()
+    values.cashTips.glovo = "7.25"
+
+    const payload = buildPlatformShiftPayload(["glovo"], values, "")
+
+    expect(payload.cash_tips_glovo).toBe(7.25)
+    expect(payload.cash_tips_uber).toBe(0)
+  })
+
+  it("keeps Stuart in-app and cash tips separate", () => {
+    const values = createFormValues()
+    values.tips.stuart = "8"
+    values.cashTips.stuart = "12"
+
+    const payload = buildPlatformShiftPayload(["stuart"], values, "")
+    const metrics = getPlatformMetrics(payload, "stuart")
+
+    expect(payload.tips_stuart).toBe(8)
+    expect(payload.cash_tips_stuart).toBe(12)
+    expect(metrics.tips).toBe(20)
+  })
+
+  it("stores cash tips for a named custom platform", () => {
+    const values = createFormValues()
+    values.cashTips.other = "18.40"
+
+    const payload = buildPlatformShiftPayload(
+      ["other"],
+      values,
+      "  Xpress Delivery  ",
+    )
+
+    expect(payload.other_platform_name).toBe("Xpress Delivery")
+    expect(payload.cash_tips_other).toBe(18.4)
+    expect(getActivePlatformNames(payload, "Other")).toEqual([
+      "Xpress Delivery",
+    ])
+  })
+
+  it("adds in-app and cash tips to total tips", () => {
+    const totals = getShiftPlatformTotals({
+      tips_uber: 5,
+      cash_tips_uber: 7,
+      tips_glovo: 3,
+      cash_tips_glovo: 4,
+    })
+
+    expect(totals.tips).toBe(19)
+  })
+
+  it("converts an empty cash tips field to zero", () => {
+    const values = createFormValues()
+
+    const payload = buildPlatformShiftPayload(["uber"], values, "")
+
+    expect(payload.cash_tips_uber).toBe(0)
+  })
+
+  it("rejects a negative cash tips value", () => {
+    const values = createFormValues()
+    values.cashTips.uber = "-1"
+
+    expect(isCashTipValueValid("-1")).toBe(false)
+    expect(getInvalidCashTipPlatform(["uber"], values.cashTips)).toBe("uber")
+    expect(
+      buildPlatformShiftPayload(["uber"], values, "").cash_tips_uber,
+    ).toBe(0)
+  })
+
+  it("zeros cash tips for inactive platforms in a new shift", () => {
+    const values = createFormValues()
+    values.cashTips.uber = "25"
+    values.cashTips.glovo = "6"
+
+    const payload = buildPlatformShiftPayload(["glovo"], values, "")
+
+    expect(payload.cash_tips_uber).toBe(0)
+    expect(payload.cash_tips_glovo).toBe(6)
+  })
+
+  it("reads an old shift without cash tips as zero", () => {
+    expect(
+      getPlatformMetrics(
+        {
+          tips_wolt: 10,
+        },
+        "wolt",
+      ),
+    ).toMatchObject({
+      appTips: 10,
+      cashTips: 0,
+      tips: 10,
+    })
+  })
+
+  it("preserves existing cash tips while editing another platform", () => {
+    const existingShift = {
+      uber: 100,
+      cash_tips_uber: 11,
+      glovo: 70,
+      cash_tips_glovo: 13,
+    }
+    const values = createFormValues()
+    values.earnings.uber = "120"
+    values.cashTips.uber = "15"
+
+    const payload = buildPlatformShiftPayload(
+      ["uber"],
+      values,
+      "",
+      existingShift,
+    )
+
+    expect(payload.cash_tips_uber).toBe(15)
+    expect(payload.glovo).toBe(70)
+    expect(payload.cash_tips_glovo).toBe(13)
+  })
+
+  it("includes or excludes both tip types with the tips toggle", () => {
+    const metrics = getPlatformMetrics(
+      {
+        tips_stuart: 6,
+        cash_tips_stuart: 9,
+      },
+      "stuart",
+    )
+
+    expect(getIncludedPlatformTips(metrics, true)).toEqual({
+      appTips: 6,
+      cashTips: 9,
+      totalTips: 15,
+    })
+    expect(getIncludedPlatformTips(metrics, false)).toEqual({
+      appTips: 0,
+      cashTips: 0,
+      totalTips: 0,
     })
   })
 

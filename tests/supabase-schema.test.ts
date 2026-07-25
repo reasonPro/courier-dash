@@ -58,4 +58,56 @@ describe("Supabase schema snapshot", () => {
       expectedTables,
     )
   })
+
+  it("stores non-negative cash tips separately for every platform", () => {
+    const expectedCashTipColumns = [
+      "cash_tips_bolt",
+      "cash_tips_glovo",
+      "cash_tips_other",
+      "cash_tips_stuart",
+      "cash_tips_uber",
+      "cash_tips_wolt",
+    ]
+    const cashTipColumns = schemaSnapshot.columns
+      .filter(
+        (column) =>
+          column.table === "work_shifts" &&
+          column.name.startsWith("cash_tips_"),
+      )
+      .sort((left, right) => left.name.localeCompare(right.name))
+
+    expect(cashTipColumns.map((column) => column.name)).toEqual(
+      expectedCashTipColumns,
+    )
+    cashTipColumns.forEach((column) => {
+      expect(column.data_type).toBe("numeric")
+      expect(column.nullable).toBe(false)
+      expect(column.default).toBe("0")
+    })
+
+    const cashTipConstraints = schemaSnapshot.constraints.filter(
+      (constraint) =>
+        constraint.table === "work_shifts" &&
+        constraint.name.includes("cash_tips"),
+    )
+
+    expectedCashTipColumns.forEach((columnName) => {
+      expect(
+        cashTipConstraints.some(
+          (constraint) =>
+            constraint.name ===
+              `work_shifts_${columnName}_nonnegative` &&
+            constraint.definition.includes(`${columnName} >= 0`),
+        ),
+      ).toBe(true)
+    })
+    expect(
+      cashTipConstraints.some(
+        (constraint) =>
+          constraint.name ===
+            "work_shifts_other_cash_tips_require_name" &&
+          constraint.definition.includes("other_platform_name IS NOT NULL"),
+      ),
+    ).toBe(true)
+  })
 })

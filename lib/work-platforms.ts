@@ -20,6 +20,7 @@ export type PlatformFormValues = {
   earnings: PlatformValues
   orders: PlatformValues
   tips: PlatformValues
+  cashTips: PlatformValues
   bonuses: PlatformValues
 }
 
@@ -52,6 +53,12 @@ export type PlatformShiftPayload = {
   tips_glovo: number
   tips_stuart: number
   tips_other: number
+  cash_tips_uber: number
+  cash_tips_wolt: number
+  cash_tips_bolt: number
+  cash_tips_glovo: number
+  cash_tips_stuart: number
+  cash_tips_other: number
   bonuses_uber: number
   bonuses_wolt: number
   bonuses_bolt: number
@@ -80,6 +87,12 @@ export type PlatformMetricSource = {
   tips_glovo?: number | null
   tips_stuart?: number | null
   tips_other?: number | null
+  cash_tips_uber?: number | null
+  cash_tips_wolt?: number | null
+  cash_tips_bolt?: number | null
+  cash_tips_glovo?: number | null
+  cash_tips_stuart?: number | null
+  cash_tips_other?: number | null
   bonuses_uber?: number | null
   bonuses_wolt?: number | null
   bonuses_bolt?: number | null
@@ -92,8 +105,16 @@ export type PlatformMetricSource = {
 export type PlatformMetrics = {
   income: number
   orders: number
+  appTips: number
+  cashTips: number
   tips: number
   bonuses: number
+}
+
+export type IncludedPlatformTips = {
+  appTips: number
+  cashTips: number
+  totalTips: number
 }
 
 export const EMPTY_PLATFORM_VALUES: PlatformValues = {
@@ -118,36 +139,42 @@ const PLATFORM_COLUMNS = {
     income: "uber",
     orders: "orders_uber",
     tips: "tips_uber",
+    cashTips: "cash_tips_uber",
     bonuses: "bonuses_uber",
   },
   wolt: {
     income: "wolt",
     orders: "orders_wolt",
     tips: "tips_wolt",
+    cashTips: "cash_tips_wolt",
     bonuses: "bonuses_wolt",
   },
   bolt: {
     income: "bolt",
     orders: "orders_bolt",
     tips: "tips_bolt",
+    cashTips: "cash_tips_bolt",
     bonuses: "bonuses_bolt",
   },
   glovo: {
     income: "glovo",
     orders: "orders_glovo",
     tips: "tips_glovo",
+    cashTips: "cash_tips_glovo",
     bonuses: "bonuses_glovo",
   },
   stuart: {
     income: "stuart",
     orders: "orders_stuart",
     tips: "tips_stuart",
+    cashTips: "cash_tips_stuart",
     bonuses: "bonuses_stuart",
   },
   other: {
     income: "other_income",
     orders: "orders_other",
     tips: "tips_other",
+    cashTips: "cash_tips_other",
     bonuses: "bonuses_other",
   },
 } as const
@@ -246,17 +273,58 @@ export function validatePlatformSelection(
   return null
 }
 
+export function isCashTipValueValid(value: string) {
+  const normalizedValue = value.trim()
+
+  if (normalizedValue === "") {
+    return true
+  }
+
+  const parsedValue = Number(normalizedValue)
+  return Number.isFinite(parsedValue) && parsedValue >= 0
+}
+
+export function getInvalidCashTipPlatform(
+  activePlatforms: PlatformKey[],
+  cashTips: PlatformValues,
+) {
+  return (
+    activePlatforms.find(
+      (platform) => !isCashTipValueValid(cashTips[platform]),
+    ) ?? null
+  )
+}
+
 export function getPlatformMetrics(
   source: PlatformMetricSource,
   platform: PlatformKey,
 ): PlatformMetrics {
   const columns = PLATFORM_COLUMNS[platform]
+  const appTips = numericValue(source[columns.tips])
+  const cashTips = numericValue(source[columns.cashTips])
 
   return {
     income: numericValue(source[columns.income]),
     orders: numericValue(source[columns.orders]),
-    tips: numericValue(source[columns.tips]),
+    appTips,
+    cashTips,
+    tips: appTips + cashTips,
     bonuses: numericValue(source[columns.bonuses]),
+  }
+}
+
+export function getIncludedPlatformTips(
+  metrics: Pick<PlatformMetrics, "appTips" | "cashTips">,
+  includeTips: boolean,
+): IncludedPlatformTips {
+  if (!includeTips) {
+    return { appTips: 0, cashTips: 0, totalTips: 0 }
+  }
+
+  return {
+    appTips: metrics.appTips,
+    cashTips: metrics.cashTips,
+    totalTips: metrics.appTips + metrics.cashTips,
   }
 }
 
@@ -330,6 +398,11 @@ function parsedNumber(value: string, integer = false) {
   return integer ? parseInt(value, 10) || 0 : parseFloat(value) || 0
 }
 
+function parsedNonNegativeNumber(value: string) {
+  const parsedValue = Number(value)
+  return Number.isFinite(parsedValue) && parsedValue >= 0 ? parsedValue : 0
+}
+
 export function buildPlatformShiftPayload(
   activePlatforms: PlatformKey[],
   formValues: PlatformFormValues,
@@ -355,6 +428,12 @@ export function buildPlatformShiftPayload(
     tips_glovo: 0,
     tips_stuart: 0,
     tips_other: 0,
+    cash_tips_uber: 0,
+    cash_tips_wolt: 0,
+    cash_tips_bolt: 0,
+    cash_tips_glovo: 0,
+    cash_tips_stuart: 0,
+    cash_tips_other: 0,
     bonuses_uber: 0,
     bonuses_wolt: 0,
     bonuses_bolt: 0,
@@ -368,12 +447,20 @@ export function buildPlatformShiftPayload(
     const isActive = activePlatforms.includes(platform)
     const existingMetrics = existingShift
       ? getPlatformMetrics(existingShift, platform)
-      : { income: 0, orders: 0, tips: 0, bonuses: 0 }
+      : {
+          income: 0,
+          orders: 0,
+          appTips: 0,
+          cashTips: 0,
+          tips: 0,
+          bonuses: 0,
+        }
     const metrics = isActive
       ? {
           income: parsedNumber(formValues.earnings[platform]),
           orders: parsedNumber(formValues.orders[platform], true),
-          tips: parsedNumber(formValues.tips[platform]),
+          appTips: parsedNumber(formValues.tips[platform]),
+          cashTips: parsedNonNegativeNumber(formValues.cashTips[platform]),
           bonuses: parsedNumber(formValues.bonuses[platform]),
         }
       : existingMetrics
@@ -381,7 +468,8 @@ export function buildPlatformShiftPayload(
     const columns = PLATFORM_COLUMNS[platform]
     payload[columns.income] = metrics.income
     payload[columns.orders] = metrics.orders
-    payload[columns.tips] = metrics.tips
+    payload[columns.tips] = metrics.appTips
+    payload[columns.cashTips] = metrics.cashTips
     payload[columns.bonuses] = metrics.bonuses
   })
 
