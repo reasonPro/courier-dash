@@ -323,7 +323,7 @@ export default function GarageDashboard() {
                 const kmsDrivenSinceChange = odoNum - rule.last_change_km;
                 
                 const kmsLeft = isTrackOnly ? 0 : rule.interval_km - kmsDrivenSinceChange;
-                let percentUsed = isTrackOnly ? 100 : Math.min(Math.max((kmsDrivenSinceChange / rule.interval_km) * 100, 0), 100);
+                const percentUsed = isTrackOnly ? 100 : Math.min(Math.max((kmsDrivenSinceChange / rule.interval_km) * 100, 0), 100);
                 
                 let barColor = "bg-green-500";
                 let textColor = "text-green-400";
