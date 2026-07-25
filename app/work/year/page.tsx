@@ -209,7 +209,7 @@ export default function YearReport() {
   let maxDayOrdersDate = "-", maxDayOrders = 0;
 
   yearShifts.forEach(shift => {
-    let dailyBase = shift.uber + shift.wolt + shift.bolt + shift.glovo;
+    const dailyBase = shift.uber + shift.wolt + shift.bolt + shift.glovo;
     const dailyTips = (shift.tips_uber || 0) + (shift.tips_wolt || 0) + (shift.tips_bolt || 0) + (shift.tips_glovo || 0);
     const dailyBonuses = (shift.bonuses_uber || 0) + (shift.bonuses_wolt || 0) + (shift.bonuses_bolt || 0) + (shift.bonuses_glovo || 0);
 

@@ -564,7 +564,6 @@ export default function WorkDashboard() {
   const avgPerKm = totalKm > 0 ? (totalVisualEarned / totalKm).toFixed(2) : "—";
   const avgPerOrder = totalOrders > 0 ? (totalVisualEarned / totalOrders).toFixed(2) : "—";
   
-  const avgKmPerDay = totalDays > 0 ? (totalKm / totalDays).toFixed(1) : "—";
   const avgHoursPerDay = totalDays > 0 ? (totalHours / totalDays).toFixed(1) : "—";
   const avgOrdersPerDay = totalDays > 0 ? (totalOrders / totalDays).toFixed(1) : "—";
   const avgEarnedPerDay = totalDays > 0 ? (totalVisualEarned / totalDays).toFixed(2) : "0.00";
@@ -577,11 +576,11 @@ export default function WorkDashboard() {
   const getChartVal = (shift: Shift, p: PlatformKey, type: "base"|"tips"|"bonuses") => {
     const metrics = getPlatformMetrics(shift, p);
     const includedTips = getIncludedPlatformTips(metrics, includeTips);
-    let pGross = metrics.income;
-    let pBon = metrics.bonuses;
-    let taxableGross = pGross + includedTips.appTips + (includeBonuses ? pBon : 0);
+    const pGross = metrics.income;
+    const pBon = metrics.bonuses;
+    const taxableGross = pGross + includedTips.appTips + (includeBonuses ? pBon : 0);
     
-    let rawVal = type === "base" ? pGross : (type === "tips" ? includedTips.totalTips : pBon);
+    const rawVal = type === "base" ? pGross : (type === "tips" ? includedTips.totalTips : pBon);
     if (!isNetto || !isTaxPlatformKey(p)) return rawVal;
     if (taxableGross <= 0) return type === "tips" ? includedTips.cashTips : rawVal;
     
