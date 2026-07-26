@@ -121,6 +121,7 @@ export default function WorkDashboard() {
   useEffect(() => {
     const savedFields = localStorage.getItem("courier_field_settings");
     if (savedFields) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Restore browser-only field settings after hydration while preserving the SSR default snapshot.
       try { setFieldSettings(JSON.parse(savedFields)); } catch {}
     }
   }, []);
