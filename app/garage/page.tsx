@@ -54,19 +54,6 @@ export default function GarageDashboard() {
   const [updateDate, setUpdateDate] = useState(new Date().toISOString().split("T")[0]);
   const [updateOdo, setUpdateOdo] = useState("");
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push("/login");
-      } else {
-        setUserId(session.user.id);
-        fetchData(session.user.id);
-      }
-    };
-    checkUser();
-  }, [router]);
-
   const fetchData = async (uid: string) => {
     setIsLoading(true);
     
@@ -85,6 +72,19 @@ export default function GarageDashboard() {
     
     setIsLoading(false);
   };
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push("/login");
+      } else {
+        setUserId(session.user.id);
+        fetchData(session.user.id);
+      }
+    };
+    checkUser();
+  }, [router]);
 
   const handleOdometerChange = (val: string) => {
     setCurrentOdometer(val);
