@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import type {
+  ChartData,
+  ChartDatasetCustomTypesPerDataset,
+} from "chart.js";
 import { supabase } from "../../../lib/supabase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -235,7 +239,10 @@ export default function YearReport() {
   // =========================================================
   // НАЛАШТУВАННЯ ГРАФІКІВ
   // =========================================================
-  const chartDatasets: any[] = [
+  const chartDatasets: ChartDatasetCustomTypesPerDataset<
+    "bar" | "line",
+    number[]
+  >[] = [
     { type: 'bar', label: 'Uber', data: monthsData.map(m => m.uber), backgroundColor: "rgba(75, 85, 99, 0.4)", borderColor: "rgba(75, 85, 99, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 },
     { type: 'bar', label: 'Wolt', data: monthsData.map(m => m.wolt), backgroundColor: "rgba(0, 194, 232, 0.4)", borderColor: "rgba(0, 194, 232, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 },
     { type: 'bar', label: 'Bolt', data: monthsData.map(m => m.bolt), backgroundColor: "rgba(34, 197, 94, 0.4)", borderColor: "rgba(34, 197, 94, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 },
@@ -402,7 +409,10 @@ export default function YearReport() {
             <div className="lg:col-span-2 bg-[#1e1e24] p-4 md:p-6 rounded-xl border border-gray-800 shadow-sm">
               <h3 className="text-sm font-medium text-gray-400 mb-4 uppercase tracking-wider">Динаміка доходу по місяцях</h3>
               <div className="w-full h-72 relative">
-                <Bar data={yearChartData as any} options={yearChartOptions as any} />
+                <Bar
+                  data={yearChartData as ChartData<"bar", number[], string>}
+                  options={yearChartOptions}
+                />
               </div>
             </div>
             <div className="bg-[#1e1e24] p-4 md:p-6 rounded-xl border border-gray-800 shadow-sm flex flex-col">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import type { ChartDatasetCustomTypesPerDataset } from "chart.js";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabase";
 import { useRouter } from "next/navigation";
@@ -592,7 +593,10 @@ export default function WorkDashboard() {
       : rawVal * ratio;
   };
 
-  const chartDatasets: any[] = STANDARD_PLATFORM_KEYS.map((platform) => ({
+  const chartDatasets: ChartDatasetCustomTypesPerDataset<
+    "bar" | "line",
+    number[]
+  >[] = STANDARD_PLATFORM_KEYS.map((platform) => ({
     type: "bar",
     label: PLATFORM_LABELS[platform],
     data: chronologicalShifts.map(s => getChartVal(s, platform, "base")),
