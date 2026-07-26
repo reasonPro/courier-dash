@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import type { User } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabase";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../../context/LanguageContext";
@@ -171,7 +172,7 @@ export default function WorkDashboard() {
     checkUser();
   }, [router]);
 
-  const checkNickname = async (sessionUser: any) => {
+  const checkNickname = async (sessionUser: User) => {
     const { data, error } = await supabase.from("profiles").select("nickname").eq("id", sessionUser.id).single();
     if (error || !data || !data.nickname) {
       const metaNickname = sessionUser.user_metadata?.nickname;
