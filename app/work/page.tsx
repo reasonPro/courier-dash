@@ -185,7 +185,8 @@ export default function WorkDashboard() {
   };
 
   const fetchTaxSettings = async (uid: string) => {
-    let { data, error } = await supabase.from("tax_settings").select("*").eq("user_id", uid).single();
+    const { data: fetchedData, error } = await supabase.from("tax_settings").select("*").eq("user_id", uid).single();
+    let data = fetchedData;
     if (error || !data) {
       const { data: newData } = await supabase.from("tax_settings").insert([{ user_id: uid }]).select().single();
       if (newData) data = newData;
