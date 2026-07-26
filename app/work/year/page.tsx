@@ -77,6 +77,17 @@ export default function YearReport() {
   const [showYearRecords, setShowYearRecords] = useState(false);
   const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
 
+  const fetchYearShifts = async (uid: string) => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from("work_shifts")
+      .select("*")
+      .eq("user_id", uid)
+      .order("date", { ascending: true });
+    if (!error && data) setShifts(data as Shift[]);
+    setIsLoading(false);
+  };
+
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -89,17 +100,6 @@ export default function YearReport() {
     };
     checkUser();
   }, [router]);
-
-  const fetchYearShifts = async (uid: string) => {
-    setIsLoading(true);
-    const { data, error } = await supabase
-      .from("work_shifts")
-      .select("*")
-      .eq("user_id", uid)
-      .order("date", { ascending: true });
-    if (!error && data) setShifts(data as Shift[]);
-    setIsLoading(false);
-  };
 
   if (!userId) return <div className="min-h-screen bg-[#121212] text-white flex items-center justify-center">{t.common.loading}</div>;
 
