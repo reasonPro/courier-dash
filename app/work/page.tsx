@@ -119,7 +119,7 @@ export default function WorkDashboard() {
   useEffect(() => {
     const savedFields = localStorage.getItem("courier_field_settings");
     if (savedFields) {
-      try { setFieldSettings(JSON.parse(savedFields)); } catch (e) {}
+      try { setFieldSettings(JSON.parse(savedFields)); } catch {}
     }
   }, []);
 
