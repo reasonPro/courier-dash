@@ -148,30 +148,12 @@ export default function WorkDashboard() {
     setToast({ message, type });
   };
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push("/");
-      } else {
-        const savedPreference = parsePlatformPreference(
-          localStorage.getItem(getPlatformPreferenceKey(session.user.id)),
-        );
-        const initialPlatforms = savedPreference?.platforms ?? FIRST_RUN_PLATFORMS;
-        const initialOtherPlatformName = savedPreference?.otherPlatformName ?? "";
-
-        setUserId(session.user.id);
-        setPreferredPlatforms([...initialPlatforms]);
-        setPreferredOtherPlatformName(initialOtherPlatformName);
-        setActivePlatforms([...initialPlatforms]);
-        setOtherPlatformName(initialOtherPlatformName);
-        fetchShifts(session.user.id);
-        checkNickname(session.user);
-        fetchTaxSettings(session.user.id);
-      }
-    };
-    checkUser();
-  }, [router]);
+  const fetchShifts = async (uid: string) => {
+    setIsLoading(true);
+    const { data, error } = await supabase.from("work_shifts").select("*").eq("user_id", uid).order("date", { ascending: false });
+    if (!error && data) setShifts(data as Shift[]);
+    setIsLoading(false);
+  };
 
   const checkNickname = async (sessionUser: User) => {
     const { data, error } = await supabase.from("profiles").select("nickname").eq("id", sessionUser.id).single();
@@ -201,6 +183,31 @@ export default function WorkDashboard() {
       });
     }
   };
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push("/");
+      } else {
+        const savedPreference = parsePlatformPreference(
+          localStorage.getItem(getPlatformPreferenceKey(session.user.id)),
+        );
+        const initialPlatforms = savedPreference?.platforms ?? FIRST_RUN_PLATFORMS;
+        const initialOtherPlatformName = savedPreference?.otherPlatformName ?? "";
+
+        setUserId(session.user.id);
+        setPreferredPlatforms([...initialPlatforms]);
+        setPreferredOtherPlatformName(initialOtherPlatformName);
+        setActivePlatforms([...initialPlatforms]);
+        setOtherPlatformName(initialOtherPlatformName);
+        fetchShifts(session.user.id);
+        checkNickname(session.user);
+        fetchTaxSettings(session.user.id);
+      }
+    };
+    checkUser();
+  }, [router]);
 
   const saveTaxSettings = async () => {
     if (!userId) return;
@@ -245,13 +252,6 @@ export default function WorkDashboard() {
     if (error) setNicknameError(error.message);
     else { setUserNickname(cleanNickname); setShowNicknameModal(false); }
     setIsSavingNickname(false);
-  };
-
-  const fetchShifts = async (uid: string) => {
-    setIsLoading(true);
-    const { data, error } = await supabase.from("work_shifts").select("*").eq("user_id", uid).order("date", { ascending: false });
-    if (!error && data) setShifts(data as Shift[]);
-    setIsLoading(false);
   };
 
   const handleLogout = async () => {
