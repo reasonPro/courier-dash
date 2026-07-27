@@ -77,6 +77,8 @@ export default function YearReport() {
   const [showYearRecords, setShowYearRecords] = useState(false);
   const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
 
+  const dateLocale = lang === "uk" ? "uk-UA" : lang === "pl" ? "pl-PL" : lang === "ru" ? "ru-RU" : "en-US";
+
   const fetchYearShifts = async (uid: string) => {
     setIsLoading(true);
     const { data, error } = await supabase
@@ -109,7 +111,7 @@ export default function YearReport() {
     const monthNum = String(i + 1).padStart(2, "0");
     return {
       monthNum,
-      name: new Date(2026, i, 1).toLocaleDateString(lang === "uk" ? "uk-UA" : lang === "pl" ? "pl-PL" : "en-US", { month: "long" }),
+      name: new Date(2026, i, 1).toLocaleDateString(dateLocale, { month: "long" }),
       uber: 0, wolt: 0, bolt: 0, glovo: 0,
       orders_uber: 0, orders_wolt: 0, orders_bolt: 0, orders_glovo: 0,
       tips_uber: 0, tips_wolt: 0, tips_bolt: 0, tips_glovo: 0,
@@ -233,7 +235,7 @@ export default function YearReport() {
 
   const formatDate = (dateStr: string) => {
     if (dateStr === "-") return "-";
-    return new Date(dateStr).toLocaleDateString("uk-UA", { day: 'numeric', month: 'short' });
+    return new Date(dateStr).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short' });
   };
 
   // =========================================================
@@ -250,14 +252,14 @@ export default function YearReport() {
   ];
 
   if (includeTips) {
-    chartDatasets.push({ type: 'bar', label: 'Чайові', data: monthsData.map(m => m.tips_uber + m.tips_wolt + m.tips_bolt + m.tips_glovo), backgroundColor: "rgba(244, 63, 94, 0.4)", borderColor: "rgba(244, 63, 94, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 });
+    chartDatasets.push({ type: 'bar', label: t.work.tipsLabel, data: monthsData.map(m => m.tips_uber + m.tips_wolt + m.tips_bolt + m.tips_glovo), backgroundColor: "rgba(244, 63, 94, 0.4)", borderColor: "rgba(244, 63, 94, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 });
   }
   if (includeBonuses) {
-    chartDatasets.push({ type: 'bar', label: 'Бонуси', data: monthsData.map(m => m.bonuses_uber + m.bonuses_wolt + m.bonuses_bolt + m.bonuses_glovo), backgroundColor: "rgba(168, 85, 247, 0.4)", borderColor: "rgba(168, 85, 247, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 });
+    chartDatasets.push({ type: 'bar', label: t.work.bonusesLabel, data: monthsData.map(m => m.bonuses_uber + m.bonuses_wolt + m.bonuses_bolt + m.bonuses_glovo), backgroundColor: "rgba(168, 85, 247, 0.4)", borderColor: "rgba(168, 85, 247, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 });
   }
 
   chartDatasets.push({
-    type: 'line', label: 'Зл/Год',
+    type: 'line', label: t.yearReport.ratePerHour,
     data: monthsData.map(m => {
       let total = m.uber + m.wolt + m.bolt + m.glovo;
       if (includeTips) total += (m.tips_uber + m.tips_wolt + m.tips_bolt + m.tips_glovo);
@@ -312,16 +314,16 @@ export default function YearReport() {
         <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-black">{t.work.yearReportBtn}</h1>
-            <p className="text-xs text-gray-500 mt-1">Аналітика за додатками, чайовими та бонусами</p>
+            <p className="text-xs text-gray-500 mt-1">{t.yearReport.subtitle}</p>
           </div>
           <Link href="/work" className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
-            🔙 Назад
+            🔙 {t.yearReport.back}
           </Link>
         </div>
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 bg-[#1e1e24] p-4 rounded-xl border border-gray-800">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-400">Рік:</span>
+            <span className="text-sm text-gray-400">{t.yearReport.yearLabel}</span>
             <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} className="bg-[#2a2a35] border border-gray-700 rounded-lg p-2 text-white font-bold focus:outline-none">
               {["2025", "2026", "2027"].map(y => <option key={y} value={y}>{y}</option>)}
             </select>
@@ -339,41 +341,41 @@ export default function YearReport() {
         {yearShifts.length > 0 && (
           <div className="mb-6">
             <button onClick={() => setShowYearRecords(!showYearRecords)} className="w-full bg-[#24242d] hover:bg-[#2c2c38] border border-gray-800 p-4 rounded-xl font-bold text-yellow-500 transition flex justify-between items-center text-sm md:text-base shadow-md">
-              <span className="flex items-center gap-2">👑 Кращі показники та рекорди {selectedYear} року</span>
-              <span className="text-xs bg-gray-800 px-3 py-1 rounded text-gray-400">{showYearRecords ? "Сховати ▲" : "Показати ▼"}</span>
+              <span className="flex items-center gap-2">{t.yearReport.recordsTitle.replace("{year}", selectedYear)}</span>
+              <span className="text-xs bg-gray-800 px-3 py-1 rounded text-gray-400">{showYearRecords ? t.yearReport.hideRecords : t.yearReport.showRecords}</span>
             </button>
             
             <div className={`transition-all duration-500 ease-in-out overflow-hidden ${showYearRecords ? "max-h-[1000px] opacity-100 mt-3" : "max-h-0 opacity-0"}`}>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 bg-gradient-to-b from-[#1e1e24] to-[#17171d] p-4 md:p-5 rounded-xl border border-yellow-600/30 shadow-inner">
                 <div className="bg-[#121212]/50 p-3.5 rounded-xl border border-gray-800/80">
-                  <span className="block text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-1">Кращий місяць року</span>
+                  <span className="block text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-1">{t.yearReport.bestMonth}</span>
                   <span className="text-sm font-black text-white capitalize block mb-0.5">{bestMonthName}</span>
                   <span className="text-base font-black text-green-400">{maxMonthIncome.toFixed(2)} <span className="text-[10px] font-normal">{t.common.currency}</span></span>
                 </div>
                 <div className="bg-[#121212]/50 p-3.5 rounded-xl border border-gray-800/80">
-                  <span className="block text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-1">Кращий день року</span>
+                  <span className="block text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-1">{t.yearReport.bestDay}</span>
                   <span className="text-sm font-black text-white block mb-0.5">{formatDate(bestDayDate)}</span>
                   <span className="text-base font-black text-green-400">{bestDayIncome.toFixed(2)} <span className="text-[10px] font-normal">{t.common.currency}</span></span>
                 </div>
                 <div className="bg-[#121212]/50 p-3.5 rounded-xl border border-gray-800/80">
-                  <span className="block text-[10px] uppercase font-bold text-rose-500 tracking-wider mb-1">Макс. чайових за день</span>
+                  <span className="block text-[10px] uppercase font-bold text-rose-500 tracking-wider mb-1">{t.yearReport.maxDailyTips}</span>
                   <span className="text-sm font-black text-white block mb-0.5">{formatDate(maxDayTipsDate)}</span>
                   <span className="text-base font-black text-rose-400">{maxDayTips.toFixed(2)} <span className="text-[10px] font-normal">{t.common.currency}</span></span>
                 </div>
                 <div className="bg-[#121212]/50 p-3.5 rounded-xl border border-gray-800/80">
-                  <span className="block text-[10px] uppercase font-bold text-cyan-500 tracking-wider mb-1">Макс. ставка за день</span>
+                  <span className="block text-[10px] uppercase font-bold text-cyan-500 tracking-wider mb-1">{t.yearReport.maxDailyRate}</span>
                   <span className="text-sm font-black text-white block mb-0.5">{formatDate(maxDayHourlyRateDate)}</span>
-                  <span className="text-base font-black text-cyan-400">{maxDayHourlyRate.toFixed(2)} <span className="text-[10px] font-normal">зл/год</span></span>
+                  <span className="text-base font-black text-cyan-400">{maxDayHourlyRate.toFixed(2)} <span className="text-[10px] font-normal">{t.yearReport.hourlyRateUnit}</span></span>
                 </div>
                 <div className="bg-[#121212]/50 p-3.5 rounded-xl border border-gray-800/80">
-                  <span className="block text-[10px] uppercase font-bold text-cyan-500 tracking-wider mb-1">Макс. ставка за місяць</span>
+                  <span className="block text-[10px] uppercase font-bold text-cyan-500 tracking-wider mb-1">{t.yearReport.maxMonthlyRate}</span>
                   <span className="text-sm font-black text-white capitalize block mb-0.5">{maxMonthHourlyRateName}</span>
-                  <span className="text-base font-black text-cyan-400">{maxMonthHourlyRate.toFixed(2)} <span className="text-[10px] font-normal">зл/год</span></span>
+                  <span className="text-base font-black text-cyan-400">{maxMonthHourlyRate.toFixed(2)} <span className="text-[10px] font-normal">{t.yearReport.hourlyRateUnit}</span></span>
                 </div>
                 <div className="bg-[#121212]/50 p-3.5 rounded-xl border border-gray-800/80">
-                  <span className="block text-[10px] uppercase font-bold text-blue-500 tracking-wider mb-1">Рекорд замовлень за день</span>
+                  <span className="block text-[10px] uppercase font-bold text-blue-500 tracking-wider mb-1">{t.yearReport.maxDailyOrders}</span>
                   <span className="text-sm font-black text-white block mb-0.5">{formatDate(maxDayOrdersDate)}</span>
-                  <span className="text-base font-black text-blue-400">{maxDayOrders} <span className="text-[10px] font-normal">зам.</span></span>
+                  <span className="text-base font-black text-blue-400">{maxDayOrders} <span className="text-[10px] font-normal">{t.yearReport.ordersShort}</span></span>
                 </div>
               </div>
             </div>
@@ -382,23 +384,23 @@ export default function YearReport() {
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
           <div className="col-span-2 md:col-span-1 bg-gradient-to-br from-[#1e1e24] to-[#252530] p-4 rounded-xl border border-gray-800 text-center shadow-md">
-            <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">Річний дохід</h3>
+            <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.yearReport.annualIncome}</h3>
             <p className="text-2xl md:text-3xl font-black text-green-400">{yearlyIncome.toFixed(2)} <span className="text-xs font-normal">{t.common.currency}</span></p>
           </div>
           <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
-            <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">Зл/Год (сер.)</h3>
+            <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.yearReport.avgHourlyRate}</h3>
             <p className="text-xl font-bold text-cyan-400">{yearlyAvgHour}</p>
           </div>
           <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
-            <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">Зл/Км (сер.)</h3>
+            <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.yearReport.avgPerKm}</h3>
             <p className="text-xl font-bold text-purple-400">{yearlyAvgKm}</p>
           </div>
           <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
-            <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">Зл/Зам (сер.)</h3>
+            <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.yearReport.avgPerOrder}</h3>
             <p className="text-xl font-bold text-yellow-400">{yearlyAvgOrder}</p>
           </div>
           <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
-            <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">% Чайових</h3>
+            <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.work.tipsPercent}</h3>
             <p className="text-xl font-bold text-rose-400">{globalTipsPercent}%</p>
           </div>
         </div>
@@ -407,7 +409,7 @@ export default function YearReport() {
         {yearShifts.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <div className="lg:col-span-2 bg-[#1e1e24] p-4 md:p-6 rounded-xl border border-gray-800 shadow-sm">
-              <h3 className="text-sm font-medium text-gray-400 mb-4 uppercase tracking-wider">Динаміка доходу по місяцях</h3>
+              <h3 className="text-sm font-medium text-gray-400 mb-4 uppercase tracking-wider">{t.yearReport.incomeTrend}</h3>
               <div className="w-full h-72 relative">
                 <Bar
                   data={yearChartData as ChartData<"bar", number[], string>}
@@ -416,7 +418,7 @@ export default function YearReport() {
               </div>
             </div>
             <div className="bg-[#1e1e24] p-4 md:p-6 rounded-xl border border-gray-800 shadow-sm flex flex-col">
-              <h3 className="text-sm font-medium text-gray-400 mb-4 uppercase tracking-wider">Частка додатків</h3>
+              <h3 className="text-sm font-medium text-gray-400 mb-4 uppercase tracking-wider">{t.yearReport.platformShare}</h3>
               <div className="flex-1 w-full h-64 relative flex items-center justify-center">
                 <Doughnut data={doughnutData} options={doughnutOptions} />
               </div>
@@ -428,14 +430,14 @@ export default function YearReport() {
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
               <tr className="bg-[#2a2a35] text-gray-400 text-[11px] uppercase tracking-wider border-b border-gray-800">
-                <th className="p-4 font-bold text-gray-300">Місяць</th>
-                <th className="p-4 font-bold text-green-400">Загальний дохід</th>
-                <th className="p-4">Замовлень</th>
-                <th className="p-4">Години</th>
-                <th className="p-4">Пробіг (км)</th>
-                <th className="p-4 text-cyan-400 border-l border-gray-800">Зл/Год</th>
-                <th className="p-4 text-purple-400">Зл/Км</th>
-                <th className="p-4 text-yellow-400">Зл/Зам</th>
+                <th className="p-4 font-bold text-gray-300">{t.yearReport.month}</th>
+                <th className="p-4 font-bold text-green-400">{t.yearReport.totalIncome}</th>
+                <th className="p-4">{t.yearReport.orders}</th>
+                <th className="p-4">{t.yearReport.hours}</th>
+                <th className="p-4">{t.yearReport.distance}</th>
+                <th className="p-4 text-cyan-400 border-l border-gray-800">{t.yearReport.ratePerHour}</th>
+                <th className="p-4 text-purple-400">{t.yearReport.ratePerKm}</th>
+                <th className="p-4 text-yellow-400">{t.yearReport.ratePerOrder}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800 text-sm">
@@ -460,7 +462,7 @@ export default function YearReport() {
                   const mAvgKm = m.km > 0 ? (monthVisualTotal / m.km).toFixed(2) : "0.00";
                   const mAvgOrder = monthOrders > 0 ? (monthVisualTotal / monthOrders).toFixed(2) : "0.00";
 
-                  const tooltipText = `Uber: ${(m.uber + (includeTips?m.tips_uber:0) + (includeBonuses?m.bonuses_uber:0)).toFixed(2)} зл\nWolt: ${(m.wolt + (includeTips?m.tips_wolt:0) + (includeBonuses?m.bonuses_wolt:0)).toFixed(2)} зл\nBolt: ${(m.bolt + (includeTips?m.tips_bolt:0) + (includeBonuses?m.bonuses_bolt:0)).toFixed(2)} зл\nGlovo: ${(m.glovo + (includeTips?m.tips_glovo:0) + (includeBonuses?m.bonuses_glovo:0)).toFixed(2)} зл`;
+                  const tooltipText = `Uber: ${(m.uber + (includeTips?m.tips_uber:0) + (includeBonuses?m.bonuses_uber:0)).toFixed(2)} ${t.common.currency}\nWolt: ${(m.wolt + (includeTips?m.tips_wolt:0) + (includeBonuses?m.bonuses_wolt:0)).toFixed(2)} ${t.common.currency}\nBolt: ${(m.bolt + (includeTips?m.tips_bolt:0) + (includeBonuses?m.bonuses_bolt:0)).toFixed(2)} ${t.common.currency}\nGlovo: ${(m.glovo + (includeTips?m.tips_glovo:0) + (includeBonuses?m.bonuses_glovo:0)).toFixed(2)} ${t.common.currency}`;
 
                   return (
                     <tr key={m.monthNum} className="hover:bg-[#2a2a35] transition cursor-help" title={tooltipText}>
@@ -505,23 +507,23 @@ export default function YearReport() {
                   <button onClick={() => setExpandedMonth(isExpanded ? null : m.monthNum)} className="w-full p-4 flex justify-between items-center text-left bg-[#252530]/40 hover:bg-[#252530] transition">
                     <div>
                       <span className="font-bold text-white capitalize text-base">{m.name}</span>
-                      <span className="text-[10px] text-gray-500 block">Робочих днів: {m.daysCount}</span>
+                      <span className="text-[10px] text-gray-500 block">{t.yearReport.workingDays.replace("{count}", String(m.daysCount))}</span>
                     </div>
                     <div className="text-right flex items-center gap-3">
-                      <span className="font-black text-green-400 text-base">{monthVisualTotal.toFixed(2)} зл</span>
+                      <span className="font-black text-green-400 text-base">{monthVisualTotal.toFixed(2)} {t.common.currency}</span>
                       <span className="text-gray-500 text-xs">{isExpanded ? "▲" : "▼"}</span>
                     </div>
                   </button>
 
                   <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isExpanded ? "max-h-[500px] border-t border-gray-800 p-4 bg-[#17171d]" : "max-h-0"}`}>
                     <div className="grid grid-cols-2 gap-3 mb-4 text-xs">
-                      <div className="bg-[#2a2a35]/40 p-2 rounded-lg"><span>Годин:</span> <strong className="text-white float-right">{m.hours.toFixed(1)}</strong></div>
-                      <div className="bg-[#2a2a35]/40 p-2 rounded-lg"><span>Пробіг:</span> <strong className="text-purple-400 float-right">{m.km.toFixed(1)} км</strong></div>
-                      <div className="bg-[#2a2a35]/40 p-2 rounded-lg"><span>Замовлень:</span> <strong className="text-blue-400 float-right">{monthOrders}</strong></div>
-                      <div className="bg-[#2a2a35]/40 p-2 rounded-lg"><span>Зл/Год:</span> <strong className="text-cyan-400 float-right">{(monthVisualTotal/m.hours).toFixed(2)}</strong></div>
+                      <div className="bg-[#2a2a35]/40 p-2 rounded-lg"><span>{t.yearReport.hours}:</span> <strong className="text-white float-right">{m.hours.toFixed(1)}</strong></div>
+                      <div className="bg-[#2a2a35]/40 p-2 rounded-lg"><span>{t.work.totalKm}:</span> <strong className="text-purple-400 float-right">{m.km.toFixed(1)} {t.common.km}</strong></div>
+                      <div className="bg-[#2a2a35]/40 p-2 rounded-lg"><span>{t.yearReport.orders}:</span> <strong className="text-blue-400 float-right">{monthOrders}</strong></div>
+                      <div className="bg-[#2a2a35]/40 p-2 rounded-lg"><span>{t.yearReport.ratePerHour}:</span> <strong className="text-cyan-400 float-right">{(monthVisualTotal/m.hours).toFixed(2)}</strong></div>
                     </div>
 
-                    <span className="text-[9px] uppercase font-bold tracking-wider text-gray-500 block mb-2">Розбивка по додатках</span>
+                    <span className="text-[9px] uppercase font-bold tracking-wider text-gray-500 block mb-2">{t.yearReport.platformBreakdown}</span>
                     <div className="space-y-1.5 text-xs">
                       {[
                         { id: "uber", label: "Uber", base: m.uber, tips: m.tips_uber, bon: m.bonuses_uber, orders: m.orders_uber },
@@ -538,9 +540,12 @@ export default function YearReport() {
                           <div key={p.id} className="bg-[#22222a] p-2.5 rounded-lg border border-gray-800 flex justify-between items-center">
                             <span className="font-bold text-gray-300">{p.label}</span>
                             <div className="text-right">
-                              <span className="font-bold text-white block">{platTotal.toFixed(2)} зл</span>
+                              <span className="font-bold text-white block">{platTotal.toFixed(2)} {t.common.currency}</span>
                               <span className="text-[9px] text-gray-500">
-                                Ставка: {p.base.toFixed(2)} | Чай: {p.tips.toFixed(2)} | Бон: {p.bon.toFixed(2)}
+                                {t.yearReport.platformDetails
+                                  .replace("{base}", p.base.toFixed(2))
+                                  .replace("{tips}", p.tips.toFixed(2))
+                                  .replace("{bonuses}", p.bon.toFixed(2))}
                               </span>
                             </div>
                           </div>
@@ -555,7 +560,7 @@ export default function YearReport() {
         </div>
 
         <div className="border-t border-gray-800 pt-6">
-          <h2 className="text-sm font-bold mb-4 text-gray-400 uppercase tracking-wider">Річні підсумки по кожному додатку</h2>
+          <h2 className="text-sm font-bold mb-4 text-gray-400 uppercase tracking-wider">{t.yearReport.platformSummary}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             {[
               { id: "uber", name: "Uber", color: "border-gray-600 bg-gray-900/10" },
@@ -577,16 +582,16 @@ export default function YearReport() {
                     <h3 className="font-black text-lg text-white">{p.name}</h3>
                     {data.tips > 0 && (
                       <span className="text-[10px] font-bold text-rose-400 bg-rose-500/10 px-2 py-1 rounded-md border border-rose-500/20">
-                        {tipsPercent}% чаю
+                        {t.yearReport.tipsShare.replace("{percent}", tipsPercent)}
                       </span>
                     )}
                   </div>
-                  <div className="text-2xl font-black text-green-400 mb-1 z-10">{total.toFixed(2)} <span className="text-xs font-normal">зл</span></div>
+                  <div className="text-2xl font-black text-green-400 mb-1 z-10">{total.toFixed(2)} <span className="text-xs font-normal">{t.common.currency}</span></div>
                   <div className="text-xs space-y-1 text-gray-400 border-t border-gray-800/60 pt-2 z-10">
-                    <div className="flex justify-between"><span>Суха ставка:</span><strong className="text-white">{data.base.toFixed(2)} зл</strong></div>
-                    <div className="flex justify-between text-rose-400"><span>Всього чаю:</span><strong>{data.tips.toFixed(2)} зл</strong></div>
-                    <div className="flex justify-between text-purple-400"><span>Всього бонусів:</span><strong>{data.bonuses.toFixed(2)} зл</strong></div>
-                    <div className="flex justify-between text-blue-400 border-t border-gray-800/40 mt-1 pt-1"><span>Замовлень:</span><strong>{data.orders} зам</strong></div>
+                    <div className="flex justify-between"><span>{t.yearReport.baseRate}</span><strong className="text-white">{data.base.toFixed(2)} {t.common.currency}</strong></div>
+                    <div className="flex justify-between text-rose-400"><span>{t.yearReport.totalTips}</span><strong>{data.tips.toFixed(2)} {t.common.currency}</strong></div>
+                    <div className="flex justify-between text-purple-400"><span>{t.yearReport.totalBonuses}</span><strong>{data.bonuses.toFixed(2)} {t.common.currency}</strong></div>
+                    <div className="flex justify-between text-blue-400 border-t border-gray-800/40 mt-1 pt-1"><span>{t.yearReport.orders}:</span><strong>{data.orders} {t.yearReport.ordersShort}</strong></div>
                   </div>
                 </div>
               );
