@@ -20,6 +20,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     const savedLang = localStorage.getItem("courier_dash_lang") as LangType;
     
     if (savedLang && (savedLang === "pl" || savedLang === "uk" || savedLang === "en" || savedLang === "ru")) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Restore browser-only language after hydration while preserving the Polish SSR snapshot.
       setLang(savedLang);
     } else {
       // 2. Якщо ні, визначаємо мову його телефону/браузера
