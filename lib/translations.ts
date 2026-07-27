@@ -35,6 +35,17 @@ export const translations = {
       hourlyRateUnit: "zł/godz", ordersShort: "zam.", annualIncome: "Roczny przychód", avgHourlyRate: "Zł/godz (śr.)", avgPerKm: "Zł/km (śr.)", avgPerOrder: "Zł/zam. (śr.)",
       incomeTrend: "Dynamika przychodu według miesięcy", platformShare: "Udział platform", month: "Miesiąc", totalIncome: "Łączny przychód", orders: "Zamówienia", hours: "Godziny", distance: "Przebieg (km)", ratePerHour: "Zł/godz", ratePerKm: "Zł/km", ratePerOrder: "Zł/zam.",
       workingDays: "Dni pracy: {count}", platformBreakdown: "Podział według platform", platformDetails: "Podstawa: {base} | Napiwki: {tips} | Bonusy: {bonuses}", platformSummary: "Roczne podsumowanie według platform", tipsShare: "{percent}% napiwków", baseRate: "Podstawa:", totalTips: "Łączne napiwki:", totalBonuses: "Łączne bonusy:"
+    },
+    garage: {
+      errorPrefix: "Błąd: ", deleteConfirmation: "Usunąć część? Historia jej wymian pozostanie w statystykach.", checkingAccess: "Sprawdzanie dostępu...", backToWork: "Praca", title: "🏍️ Garaż",
+      odometerTitle: "Przebieg pojazdu", odometerHint: "Aktualizuj tę wartość na podstawie licznika pojazdu.", addPart: "+ Dodaj część", addRepair: "🛠 Dodaj naprawę",
+      hasReplacementInterval: "Ma określony przebieg ({unit}) do wymiany", name: "Nazwa", resourceLabel: "Interwał wymiany ({unit})", lastReplacementMileage: "Przebieg przy ostatniej wymianie", saveToGarage: "Zapisz w garażu",
+      repairName: "Co zostało naprawione?", date: "Data", mileage: "Przebieg", mileageLabel: "Przebieg ({unit})", costLabel: "Koszt ({currency})", addToExpenses: "Dodaj do statystyk wydatków",
+      partsStatus: "🛠 Stan części", emptyGarage: "Garaż jest pusty.", statusOk: "W porządku", statusTracking: "Monitorowanie", statusReplace: "WYMIANA!", statusPrepare: "Przygotuj się",
+      unlimited: "Bez limitu", resourceValue: "Interwał: {value} {unit}", covered: "Przejechano", remaining: "Pozostało", untilWear: "Do zużycia", drivenValue: "Przejechano: {value}", lastReplacementValue: "Ostatnia: {value}", actualIntervals: "Rzeczywiste interwały:", recordReplacement: "Zarejestruj wymianę",
+      statsHistory: "💰 Statystyki i historia", totalSpent: "Łączne wydatki", monthlyAverage: "Średnio", perMonth: "{currency}/mies.", serviceHistory: "Historia serwisowa", allRecords: "Wszystkie wpisy",
+      type: "Typ", workPerformed: "Wykonana praca", distanceCoveredLabel: "Przejechano ({unit})", cost: "Koszt", emptyHistory: "Brak wpisów.", routineType: "Serwis", repairType: "Naprawa", selectedTotal: "Suma dla wybranych:",
+      replacementTitle: "Wymiana: {name}", replacementDescription: "Wprowadź dane bieżącej wymiany.", replacementDate: "Data wymiany"
     }
   },
   uk: {
@@ -71,6 +82,17 @@ export const translations = {
       hourlyRateUnit: "зл/год", ordersShort: "зам.", annualIncome: "Річний дохід", avgHourlyRate: "Зл/год (сер.)", avgPerKm: "Зл/км (сер.)", avgPerOrder: "Зл/зам. (сер.)",
       incomeTrend: "Динаміка доходу за місяцями", platformShare: "Частка платформ", month: "Місяць", totalIncome: "Загальний дохід", orders: "Замовлення", hours: "Години", distance: "Пробіг (км)", ratePerHour: "Зл/год", ratePerKm: "Зл/км", ratePerOrder: "Зл/зам.",
       workingDays: "Робочих днів: {count}", platformBreakdown: "Розбивка за платформами", platformDetails: "Ставка: {base} | Чайові: {tips} | Бонуси: {bonuses}", platformSummary: "Річні підсумки за кожною платформою", tipsShare: "{percent}% чайових", baseRate: "Суха ставка:", totalTips: "Усього чайових:", totalBonuses: "Усього бонусів:"
+    },
+    garage: {
+      errorPrefix: "Помилка: ", deleteConfirmation: "Видалити деталь? Історія її замін залишиться у статистиці.", checkingAccess: "Перевірка доступу...", backToWork: "Робота", title: "🏍️ Гараж",
+      odometerTitle: "Одометр ТЗ", odometerHint: "Оновлюй цю цифру з приладової панелі.", addPart: "+ Додати деталь", addRepair: "🛠 Внести ремонт",
+      hasReplacementInterval: "Має чіткий ресурс ({unit}) до заміни", name: "Назва", resourceLabel: "Ресурс ({unit})", lastReplacementMileage: "Пробіг останньої заміни", saveToGarage: "Зберегти в гараж",
+      repairName: "Що ремонтувалося?", date: "Дата", mileage: "Пробіг", mileageLabel: "Пробіг ({unit})", costLabel: "Вартість ({currency})", addToExpenses: "Додати до статистики витрат",
+      partsStatus: "🛠 Стан деталей", emptyGarage: "Гараж порожній.", statusOk: "У нормі", statusTracking: "Спостереження", statusReplace: "ЗАМІНА!", statusPrepare: "Готуйся",
+      unlimited: "Безлімітна", resourceValue: "Ресурс: {value} {unit}", covered: "Пройдено", remaining: "Залишилось", untilWear: "Працює до зносу", drivenValue: "Пройшло: {value}", lastReplacementValue: "Минула: {value}", actualIntervals: "Фактичні інтервали:", recordReplacement: "Внести заміну",
+      statsHistory: "💰 Статистика та історія", totalSpent: "Усього витрачено", monthlyAverage: "У середньому", perMonth: "{currency}/міс", serviceHistory: "Історія обслуговування", allRecords: "Усі записи",
+      type: "Тип", workPerformed: "Що робилось", distanceCoveredLabel: "Пройшло ({unit})", cost: "Вартість", emptyHistory: "Записів немає.", routineType: "ТО", repairType: "Ремонт", selectedTotal: "Підсумок за вибраним:",
+      replacementTitle: "Заміна: {name}", replacementDescription: "Внеси дані про поточну заміну.", replacementDate: "Дата заміни"
     }
   },
   en: {
@@ -107,6 +129,17 @@ export const translations = {
       hourlyRateUnit: "PLN/hr", ordersShort: "orders", annualIncome: "Annual income", avgHourlyRate: "PLN/hr (avg.)", avgPerKm: "PLN/km (avg.)", avgPerOrder: "PLN/order (avg.)",
       incomeTrend: "Monthly income trend", platformShare: "Platform share", month: "Month", totalIncome: "Total income", orders: "Orders", hours: "Hours", distance: "Distance (km)", ratePerHour: "PLN/hr", ratePerKm: "PLN/km", ratePerOrder: "PLN/order",
       workingDays: "Working days: {count}", platformBreakdown: "Breakdown by platform", platformDetails: "Base: {base} | Tips: {tips} | Bonuses: {bonuses}", platformSummary: "Annual totals by platform", tipsShare: "{percent}% tips", baseRate: "Base:", totalTips: "Total tips:", totalBonuses: "Total bonuses:"
+    },
+    garage: {
+      errorPrefix: "Error: ", deleteConfirmation: "Delete this part? Its replacement history will remain in the statistics.", checkingAccess: "Checking access...", backToWork: "Work", title: "🏍️ Garage",
+      odometerTitle: "Vehicle odometer", odometerHint: "Update this value from the vehicle dashboard.", addPart: "+ Add part", addRepair: "🛠 Add repair",
+      hasReplacementInterval: "Has a defined replacement interval ({unit})", name: "Name", resourceLabel: "Replacement interval ({unit})", lastReplacementMileage: "Mileage at last replacement", saveToGarage: "Save to garage",
+      repairName: "What was repaired?", date: "Date", mileage: "Mileage", mileageLabel: "Mileage ({unit})", costLabel: "Cost ({currency})", addToExpenses: "Add to expense statistics",
+      partsStatus: "🛠 Parts status", emptyGarage: "The garage is empty.", statusOk: "OK", statusTracking: "Monitoring", statusReplace: "REPLACE!", statusPrepare: "Prepare",
+      unlimited: "Unlimited", resourceValue: "Interval: {value} {unit}", covered: "Covered", remaining: "Remaining", untilWear: "Runs until worn", drivenValue: "Covered: {value}", lastReplacementValue: "Last: {value}", actualIntervals: "Actual intervals:", recordReplacement: "Record replacement",
+      statsHistory: "💰 Statistics and history", totalSpent: "Total spent", monthlyAverage: "Monthly average", perMonth: "{currency}/mo", serviceHistory: "Service history", allRecords: "All records",
+      type: "Type", workPerformed: "Work performed", distanceCoveredLabel: "Distance covered ({unit})", cost: "Cost", emptyHistory: "No records.", routineType: "Service", repairType: "Repair", selectedTotal: "Selected total:",
+      replacementTitle: "Replacement: {name}", replacementDescription: "Enter the details of this replacement.", replacementDate: "Replacement date"
     }
   },
   ru: {
@@ -143,6 +176,17 @@ export const translations = {
       hourlyRateUnit: "зл/час", ordersShort: "зак.", annualIncome: "Годовой доход", avgHourlyRate: "Зл/час (ср.)", avgPerKm: "Зл/км (ср.)", avgPerOrder: "Зл/зак. (ср.)",
       incomeTrend: "Динамика дохода по месяцам", platformShare: "Доля платформ", month: "Месяц", totalIncome: "Общий доход", orders: "Заказы", hours: "Часы", distance: "Пробег (км)", ratePerHour: "Зл/час", ratePerKm: "Зл/км", ratePerOrder: "Зл/зак.",
       workingDays: "Рабочих дней: {count}", platformBreakdown: "Разбивка по платформам", platformDetails: "Ставка: {base} | Чаевые: {tips} | Бонусы: {bonuses}", platformSummary: "Годовые итоги по каждой платформе", tipsShare: "{percent}% чаевых", baseRate: "Ставка:", totalTips: "Всего чаевых:", totalBonuses: "Всего бонусов:"
+    },
+    garage: {
+      errorPrefix: "Ошибка: ", deleteConfirmation: "Удалить деталь? История её замен останется в статистике.", checkingAccess: "Проверка доступа...", backToWork: "Работа", title: "🏍️ Гараж",
+      odometerTitle: "Одометр ТС", odometerHint: "Обновляй это значение с приборной панели.", addPart: "+ Добавить деталь", addRepair: "🛠 Внести ремонт",
+      hasReplacementInterval: "Имеет точный ресурс ({unit}) до замены", name: "Название", resourceLabel: "Ресурс ({unit})", lastReplacementMileage: "Пробег последней замены", saveToGarage: "Сохранить в гараж",
+      repairName: "Что ремонтировалось?", date: "Дата", mileage: "Пробег", mileageLabel: "Пробег ({unit})", costLabel: "Стоимость ({currency})", addToExpenses: "Добавить в статистику расходов",
+      partsStatus: "🛠 Состояние деталей", emptyGarage: "Гараж пуст.", statusOk: "В норме", statusTracking: "Наблюдение", statusReplace: "ЗАМЕНА!", statusPrepare: "Готовься",
+      unlimited: "Без лимита", resourceValue: "Ресурс: {value} {unit}", covered: "Пройдено", remaining: "Осталось", untilWear: "Работает до износа", drivenValue: "Пройдено: {value}", lastReplacementValue: "Последняя: {value}", actualIntervals: "Фактические интервалы:", recordReplacement: "Внести замену",
+      statsHistory: "💰 Статистика и история", totalSpent: "Всего потрачено", monthlyAverage: "В среднем", perMonth: "{currency}/мес", serviceHistory: "История обслуживания", allRecords: "Все записи",
+      type: "Тип", workPerformed: "Что сделано", distanceCoveredLabel: "Пройдено ({unit})", cost: "Стоимость", emptyHistory: "Записей нет.", routineType: "ТО", repairType: "Ремонт", selectedTotal: "Итого по выбранному:",
+      replacementTitle: "Замена: {name}", replacementDescription: "Внеси данные о текущей замене.", replacementDate: "Дата замены"
     }
   }
 };
