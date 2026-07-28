@@ -130,13 +130,28 @@ export default function LandingPage() {
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-purple-600/20 rounded-full blur-[100px] pointer-events-none"></div>
 
-      <nav className="relative z-10 flex justify-between items-center p-6 md:px-12 border-b border-gray-800/50 bg-[#0a0a0e]/80 backdrop-blur-md">
-        <div className="text-xl font-black tracking-tight">
+      <nav className="relative z-10 flex items-center justify-between gap-2 border-b border-gray-800/50 bg-[#0a0a0e]/80 p-3 backdrop-blur-md sm:p-6 md:px-12">
+        <div className="shrink-0 text-lg font-black tracking-tight sm:text-xl">
           {t.landing.navLogo}<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Dash</span>
         </div>
         
-        <div className="flex items-center gap-4">
-          <div className="flex bg-[#1e1e24] p-1 rounded-full border border-gray-700 text-xs font-bold">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-4">
+          <div className="relative shrink-0 sm:hidden">
+            <select
+              aria-label="Language"
+              value={lang}
+              onChange={(e) => setLanguage(e.target.value as typeof lang)}
+              className="h-11 w-14 cursor-pointer appearance-none rounded-full border border-gray-700 bg-[#1e1e24] py-2 pl-2 pr-5 text-center text-xs font-bold uppercase text-white outline-none transition-colors focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30"
+            >
+              <option value="pl">PL</option>
+              <option value="uk">UK</option>
+              <option value="en">EN</option>
+              <option value="ru">RU</option>
+            </select>
+            <span aria-hidden="true" className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">▼</span>
+          </div>
+
+          <div className="hidden bg-[#1e1e24] p-1 rounded-full border border-gray-700 text-xs font-bold sm:flex">
             {(["pl", "uk", "en", "ru"] as const).map((l) => (
               <button
                 key={l}
@@ -150,7 +165,7 @@ export default function LandingPage() {
             ))}
           </div>
 
-          <button onClick={() => openModal("login")} className="text-sm font-bold bg-[#1e1e24] hover:bg-[#2a2a35] border border-gray-700 px-5 py-2.5 rounded-full transition-all">
+          <button onClick={() => openModal("login")} className="min-h-11 shrink-0 whitespace-nowrap rounded-full border border-gray-700 bg-[#1e1e24] px-3 py-2.5 text-xs font-bold transition-all hover:bg-[#2a2a35] sm:min-h-0 sm:px-5 sm:text-sm">
             {t.landing.navBtn}
           </button>
         </div>
