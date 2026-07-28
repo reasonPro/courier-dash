@@ -155,7 +155,7 @@ Scope:
 - перевірено PL, UK, EN і RU на ширинах 320, 360, 390 і 430 px;
 - auth logic, modal і Hero не змінювалися.
 
-## 1.2. NEXT — Annual Report correctness fix до версії 2.0
+## 1.2. COMPLETED — Annual Report correctness fix до версії 2.0
 
 Це окрема рання задача, а не Annual Report 2.0.
 
@@ -177,9 +177,18 @@ Scope:
 
 Мета — не залишати чинним користувачам неповні річні результати до появи Annual Report 2.0.
 
+Результат:
+
+- Stuart і Other додано до чинних річних розрахунків;
+- cash tips враховано в річних підсумках;
+- `orders_stuart` і `orders_other` враховано в загальній кількості замовлень;
+- додано захист від ділення на нуль;
+- чинний дизайн Annual Report і локалізацію PL, UK, EN і RU збережено;
+- Supabase, migrations і generated database types не змінювалися.
+
 # PHASE 2 — авторизація й email flows
 
-## 2.1. PLANNED — єдина політика auth routes
+## 2.1. NEXT — єдина політика auth routes
 
 Потрібно:
 
@@ -983,4 +992,4 @@ Annual Report повинен підтримувати:
 
 ## NEXT
 
-**Annual Report correctness fix.**
+**Єдина політика auth routes.**

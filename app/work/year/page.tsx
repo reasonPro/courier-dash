@@ -9,6 +9,13 @@ import { supabase } from "../../../lib/supabase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../../../context/LanguageContext";
+import type { PlatformKey } from "../../../lib/work-platforms";
+import {
+  aggregateAnnualShifts,
+  getAnnualPlatformIncome,
+  safeAverage,
+  type AnnualReportShift,
+} from "./annual-report-calculations";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -39,35 +46,11 @@ ChartJS.register(
   Legend
 );
 
-type Shift = {
-  id: number;
-  date: string;
-  km: number;
-  hours: number;
-  uber: number;
-  wolt: number;
-  bolt: number;
-  glovo: number;
-  orders_uber: number;
-  orders_wolt: number;
-  orders_bolt: number;
-  orders_glovo: number;
-  tips_uber: number;
-  tips_wolt: number;
-  tips_bolt: number;
-  tips_glovo: number;
-  bonuses_uber: number;
-  bonuses_wolt: number;
-  bonuses_bolt: number;
-  bonuses_glovo: number;
-  user_id: string;
-};
-
 export default function YearReport() {
   const router = useRouter();
   const { lang, t } = useLanguage();
   const [userId, setUserId] = useState<string | null>(null);
-  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [shifts, setShifts] = useState<AnnualReportShift[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   
@@ -86,7 +69,7 @@ export default function YearReport() {
       .select("*")
       .eq("user_id", uid)
       .order("date", { ascending: true });
-    if (!error && data) setShifts(data as Shift[]);
+    if (!error && data) setShifts(data);
     setIsLoading(false);
   };
 
@@ -107,88 +90,49 @@ export default function YearReport() {
 
   const yearShifts = shifts.filter(s => s.date.startsWith(selectedYear));
 
+  const platformDefinitions: {
+    id: PlatformKey;
+    name: string;
+    chartBackground: string;
+    chartBorder: string;
+    cardColor: string;
+  }[] = [
+    { id: "uber", name: "Uber", chartBackground: "rgba(75, 85, 99, 0.4)", chartBorder: "rgba(75, 85, 99, 1)", cardColor: "border-gray-600 bg-gray-900/10" },
+    { id: "wolt", name: "Wolt", chartBackground: "rgba(0, 194, 232, 0.4)", chartBorder: "rgba(0, 194, 232, 1)", cardColor: "border-cyan-600 bg-cyan-900/10" },
+    { id: "bolt", name: "Bolt", chartBackground: "rgba(34, 197, 94, 0.4)", chartBorder: "rgba(34, 197, 94, 1)", cardColor: "border-green-600 bg-green-900/10" },
+    { id: "glovo", name: "Glovo", chartBackground: "rgba(234, 179, 8, 0.4)", chartBorder: "rgba(234, 179, 8, 1)", cardColor: "border-yellow-600 bg-yellow-900/10" },
+    { id: "stuart", name: "Stuart", chartBackground: "rgba(249, 115, 22, 0.4)", chartBorder: "rgba(249, 115, 22, 1)", cardColor: "border-orange-600 bg-orange-900/10" },
+    { id: "other", name: t.work.otherPlatform, chartBackground: "rgba(99, 102, 241, 0.4)", chartBorder: "rgba(99, 102, 241, 1)", cardColor: "border-indigo-600 bg-indigo-900/10" },
+  ];
+
   const monthsData = Array.from({ length: 12 }, (_, i) => {
     const monthNum = String(i + 1).padStart(2, "0");
+    const monthShifts = yearShifts.filter(
+      (shift) => shift.date.split("-")[1] === monthNum,
+    );
+
     return {
       monthNum,
       name: new Date(2026, i, 1).toLocaleDateString(dateLocale, { month: "long" }),
-      uber: 0, wolt: 0, bolt: 0, glovo: 0,
-      orders_uber: 0, orders_wolt: 0, orders_bolt: 0, orders_glovo: 0,
-      tips_uber: 0, tips_wolt: 0, tips_bolt: 0, tips_glovo: 0,
-      bonuses_uber: 0, bonuses_wolt: 0, bonuses_bolt: 0, bonuses_glovo: 0,
-      km: 0, hours: 0, daysCount: 0
+      ...aggregateAnnualShifts(monthShifts, includeTips, includeBonuses),
     };
   });
 
-  yearShifts.forEach(shift => {
-    const monthIndex = parseInt(shift.date.split("-")[1]) - 1;
-    if (monthIndex >= 0 && monthIndex < 12) {
-      const m = monthsData[monthIndex];
-      m.daysCount += 1;
-      m.hours += shift.hours;
-      m.km += shift.km;
-      
-      m.uber += shift.uber;
-      m.wolt += shift.wolt;
-      m.bolt += shift.bolt;
-      m.glovo += shift.glovo;
+  const yearlyTotals = aggregateAnnualShifts(
+    yearShifts,
+    includeTips,
+    includeBonuses,
+  );
+  const platformTotals = yearlyTotals.platforms;
+  const absoluteYearlyTotal =
+    yearlyTotals.baseIncome + yearlyTotals.tips + yearlyTotals.bonuses;
 
-      m.orders_uber += shift.orders_uber || 0;
-      m.orders_wolt += shift.orders_wolt || 0;
-      m.orders_bolt += shift.orders_bolt || 0;
-      m.orders_glovo += shift.orders_glovo || 0;
-
-      m.tips_uber += shift.tips_uber || 0;
-      m.tips_wolt += shift.tips_wolt || 0;
-      m.tips_bolt += shift.tips_bolt || 0;
-      m.tips_glovo += shift.tips_glovo || 0;
-
-      m.bonuses_uber += shift.bonuses_uber || 0;
-      m.bonuses_wolt += shift.bonuses_wolt || 0;
-      m.bonuses_bolt += shift.bonuses_bolt || 0;
-      m.bonuses_glovo += shift.bonuses_glovo || 0;
-    }
-  });
-
-  let yearlyIncome = 0, yearlyHours = 0, yearlyKm = 0, yearlyOrders = 0;
-  let absoluteYearlyTips = 0, absoluteYearlyTotal = 0;
-
-  const platformTotals = {
-    uber: { base: 0, orders: 0, tips: 0, bonuses: 0 },
-    wolt: { base: 0, orders: 0, tips: 0, bonuses: 0 },
-    bolt: { base: 0, orders: 0, tips: 0, bonuses: 0 },
-    glovo: { base: 0, orders: 0, tips: 0, bonuses: 0 },
-  };
-
-  monthsData.forEach(m => {
-    const platforms = ["uber", "wolt", "bolt", "glovo"] as const;
-    platforms.forEach(p => {
-      platformTotals[p].base += m[p];
-      platformTotals[p].orders += m[`orders_${p}`];
-      platformTotals[p].tips += m[`tips_${p}`];
-      platformTotals[p].bonuses += m[`bonuses_${p}`];
-
-      let platTotal = m[p];
-      if (includeTips) platTotal += m[`tips_${p}`];
-      if (includeBonuses) platTotal += m[`bonuses_${p}`];
-      yearlyIncome += platTotal;
-    });
-
-    yearlyHours += m.hours;
-    yearlyKm += m.km;
-    yearlyOrders += (m.orders_uber + m.orders_wolt + m.orders_bolt + m.orders_glovo);
-    
-    // Для розрахунку відсотка чаю беремо завжди абсолютні повні суми
-    const mTips = m.tips_uber + m.tips_wolt + m.tips_bolt + m.tips_glovo;
-    const mBaseAndBonuses = m.uber + m.wolt + m.bolt + m.glovo + m.bonuses_uber + m.bonuses_wolt + m.bonuses_bolt + m.bonuses_glovo;
-    absoluteYearlyTips += mTips;
-    absoluteYearlyTotal += (mTips + mBaseAndBonuses);
-  });
-
-  const yearlyAvgHour = yearlyHours > 0 ? (yearlyIncome / yearlyHours).toFixed(2) : "0.00";
-  const yearlyAvgKm = yearlyKm > 0 ? (yearlyIncome / yearlyKm).toFixed(2) : "0.00";
-  const yearlyAvgOrder = yearlyOrders > 0 ? (yearlyIncome / yearlyOrders).toFixed(2) : "0.00";
-  const globalTipsPercent = absoluteYearlyTotal > 0 ? ((absoluteYearlyTips / absoluteYearlyTotal) * 100).toFixed(1) : "0.0";
+  const yearlyAvgHour = safeAverage(yearlyTotals.income, yearlyTotals.hours).toFixed(2);
+  const yearlyAvgKm = safeAverage(yearlyTotals.income, yearlyTotals.km).toFixed(2);
+  const yearlyAvgOrder = safeAverage(yearlyTotals.income, yearlyTotals.orders).toFixed(2);
+  const globalTipsPercent = (
+    safeAverage(yearlyTotals.tips, absoluteYearlyTotal) * 100
+  ).toFixed(1);
 
   // =========================================================
   // РЕКОРДИ ТА КРАЩІ ПОКАЗНИКИ
@@ -198,13 +142,11 @@ export default function YearReport() {
 
   monthsData.forEach(m => {
     if (m.daysCount > 0) {
-      let mTotal = m.uber + m.wolt + m.bolt + m.glovo;
-      if (includeTips) mTotal += (m.tips_uber + m.tips_wolt + m.tips_bolt + m.tips_glovo);
-      if (includeBonuses) mTotal += (m.bonuses_uber + m.bonuses_wolt + m.bonuses_bolt + m.bonuses_glovo);
+      const mTotal = m.income;
 
       if (mTotal > maxMonthIncome) { maxMonthIncome = mTotal; bestMonthName = m.name; }
 
-      const mRate = m.hours > 0 ? mTotal / m.hours : 0;
+      const mRate = safeAverage(mTotal, m.hours);
       if (mRate > maxMonthHourlyRate) { maxMonthHourlyRate = mRate; maxMonthHourlyRateName = m.name; }
     }
   });
@@ -215,21 +157,21 @@ export default function YearReport() {
   let maxDayOrdersDate = "-", maxDayOrders = 0;
 
   yearShifts.forEach(shift => {
-    const dailyBase = shift.uber + shift.wolt + shift.bolt + shift.glovo;
-    const dailyTips = (shift.tips_uber || 0) + (shift.tips_wolt || 0) + (shift.tips_bolt || 0) + (shift.tips_glovo || 0);
-    const dailyBonuses = (shift.bonuses_uber || 0) + (shift.bonuses_wolt || 0) + (shift.bonuses_bolt || 0) + (shift.bonuses_glovo || 0);
-
-    let dailyTotal = dailyBase;
-    if (includeTips) dailyTotal += dailyTips;
-    if (includeBonuses) dailyTotal += dailyBonuses;
+    const dailyTotals = aggregateAnnualShifts(
+      [shift],
+      includeTips,
+      includeBonuses,
+    );
+    const dailyTotal = dailyTotals.income;
+    const dailyTips = dailyTotals.tips;
 
     if (dailyTotal > bestDayIncome) { bestDayIncome = dailyTotal; bestDayDate = shift.date; }
     if (dailyTips > maxDayTips) { maxDayTips = dailyTips; maxDayTipsDate = shift.date; }
     
-    const dailyRate = shift.hours > 0 ? dailyTotal / shift.hours : 0;
+    const dailyRate = safeAverage(dailyTotal, dailyTotals.hours);
     if (dailyRate > maxDayHourlyRate) { maxDayHourlyRate = dailyRate; maxDayHourlyRateDate = shift.date; }
 
-    const dailyOrders = shift.orders_uber + shift.orders_wolt + shift.orders_bolt + shift.orders_glovo;
+    const dailyOrders = dailyTotals.orders;
     if (dailyOrders > maxDayOrders) { maxDayOrders = dailyOrders; maxDayOrdersDate = shift.date; }
   });
 
@@ -244,28 +186,27 @@ export default function YearReport() {
   const chartDatasets: ChartDatasetCustomTypesPerDataset<
     "bar" | "line",
     number[]
-  >[] = [
-    { type: 'bar', label: 'Uber', data: monthsData.map(m => m.uber), backgroundColor: "rgba(75, 85, 99, 0.4)", borderColor: "rgba(75, 85, 99, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 },
-    { type: 'bar', label: 'Wolt', data: monthsData.map(m => m.wolt), backgroundColor: "rgba(0, 194, 232, 0.4)", borderColor: "rgba(0, 194, 232, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 },
-    { type: 'bar', label: 'Bolt', data: monthsData.map(m => m.bolt), backgroundColor: "rgba(34, 197, 94, 0.4)", borderColor: "rgba(34, 197, 94, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 },
-    { type: 'bar', label: 'Glovo', data: monthsData.map(m => m.glovo), backgroundColor: "rgba(234, 179, 8, 0.4)", borderColor: "rgba(234, 179, 8, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 }
-  ];
+  >[] = platformDefinitions.map((platform) => ({
+    type: "bar" as const,
+    label: platform.name,
+    data: monthsData.map((month) => month.platforms[platform.id].income),
+    backgroundColor: platform.chartBackground,
+    borderColor: platform.chartBorder,
+    borderWidth: 1,
+    stack: "Stack 0",
+    order: 2,
+  }));
 
   if (includeTips) {
-    chartDatasets.push({ type: 'bar', label: t.work.tipsLabel, data: monthsData.map(m => m.tips_uber + m.tips_wolt + m.tips_bolt + m.tips_glovo), backgroundColor: "rgba(244, 63, 94, 0.4)", borderColor: "rgba(244, 63, 94, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 });
+    chartDatasets.push({ type: 'bar', label: t.work.tipsLabel, data: monthsData.map(m => m.tips), backgroundColor: "rgba(244, 63, 94, 0.4)", borderColor: "rgba(244, 63, 94, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 });
   }
   if (includeBonuses) {
-    chartDatasets.push({ type: 'bar', label: t.work.bonusesLabel, data: monthsData.map(m => m.bonuses_uber + m.bonuses_wolt + m.bonuses_bolt + m.bonuses_glovo), backgroundColor: "rgba(168, 85, 247, 0.4)", borderColor: "rgba(168, 85, 247, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 });
+    chartDatasets.push({ type: 'bar', label: t.work.bonusesLabel, data: monthsData.map(m => m.bonuses), backgroundColor: "rgba(168, 85, 247, 0.4)", borderColor: "rgba(168, 85, 247, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 });
   }
 
   chartDatasets.push({
     type: 'line', label: t.yearReport.ratePerHour,
-    data: monthsData.map(m => {
-      let total = m.uber + m.wolt + m.bolt + m.glovo;
-      if (includeTips) total += (m.tips_uber + m.tips_wolt + m.tips_bolt + m.tips_glovo);
-      if (includeBonuses) total += (m.bonuses_uber + m.bonuses_wolt + m.bonuses_bolt + m.bonuses_glovo);
-      return m.hours > 0 ? Number((total / m.hours).toFixed(2)) : 0;
-    }),
+    data: monthsData.map(m => Number(safeAverage(m.income, m.hours).toFixed(2))),
     borderColor: "#00e5ff", backgroundColor: "#00e5ff", borderWidth: 3, pointRadius: 4, tension: 0.3, yAxisID: 'y1', order: 1
   });
 
@@ -284,19 +225,19 @@ export default function YearReport() {
     plugins: { legend: { labels: { color: '#a0a0a0', boxWidth: 12 } } }
   };
 
-  // Дані для кругової діаграми
-  const getPlatValue = (p: keyof typeof platformTotals) => {
-    let val = platformTotals[p].base;
-    if (includeTips) val += platformTotals[p].tips;
-    if (includeBonuses) val += platformTotals[p].bonuses;
-    return val;
-  };
-
   const doughnutData = {
-    labels: ['Uber', 'Wolt', 'Bolt', 'Glovo'],
+    labels: platformDefinitions.map((platform) => platform.name),
     datasets: [{
-      data: [getPlatValue('uber'), getPlatValue('wolt'), getPlatValue('bolt'), getPlatValue('glovo')],
-      backgroundColor: ['rgba(75, 85, 99, 0.8)', 'rgba(0, 194, 232, 0.8)', 'rgba(34, 197, 94, 0.8)', 'rgba(234, 179, 8, 0.8)'],
+      data: platformDefinitions.map((platform) =>
+        getAnnualPlatformIncome(
+          platformTotals[platform.id],
+          includeTips,
+          includeBonuses,
+        ),
+      ),
+      backgroundColor: platformDefinitions.map((platform) =>
+        platform.chartBackground.replace("0.4", "0.8"),
+      ),
       borderColor: '#1e1e24',
       borderWidth: 2,
     }]
@@ -385,7 +326,7 @@ export default function YearReport() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
           <div className="col-span-2 md:col-span-1 bg-gradient-to-br from-[#1e1e24] to-[#252530] p-4 rounded-xl border border-gray-800 text-center shadow-md">
             <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.yearReport.annualIncome}</h3>
-            <p className="text-2xl md:text-3xl font-black text-green-400">{yearlyIncome.toFixed(2)} <span className="text-xs font-normal">{t.common.currency}</span></p>
+            <p className="text-2xl md:text-3xl font-black text-green-400">{yearlyTotals.income.toFixed(2)} <span className="text-xs font-normal">{t.common.currency}</span></p>
           </div>
           <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
             <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.yearReport.avgHourlyRate}</h3>
@@ -449,26 +390,25 @@ export default function YearReport() {
                 monthsData.map((m) => {
                   if (m.daysCount === 0) return null;
 
-                  const monthBase = m.uber + m.wolt + m.bolt + m.glovo;
-                  const monthTips = m.tips_uber + m.tips_wolt + m.tips_bolt + m.tips_glovo;
-                  const monthBonuses = m.bonuses_uber + m.bonuses_wolt + m.bonuses_bolt + m.bonuses_glovo;
-                  const monthOrders = m.orders_uber + m.orders_wolt + m.orders_bolt + m.orders_glovo;
-
-                  let monthVisualTotal = monthBase;
-                  if (includeTips) monthVisualTotal += monthTips;
-                  if (includeBonuses) monthVisualTotal += monthBonuses;
-
-                  const mAvgHour = m.hours > 0 ? (monthVisualTotal / m.hours).toFixed(2) : "0.00";
-                  const mAvgKm = m.km > 0 ? (monthVisualTotal / m.km).toFixed(2) : "0.00";
-                  const mAvgOrder = monthOrders > 0 ? (monthVisualTotal / monthOrders).toFixed(2) : "0.00";
-
-                  const tooltipText = `Uber: ${(m.uber + (includeTips?m.tips_uber:0) + (includeBonuses?m.bonuses_uber:0)).toFixed(2)} ${t.common.currency}\nWolt: ${(m.wolt + (includeTips?m.tips_wolt:0) + (includeBonuses?m.bonuses_wolt:0)).toFixed(2)} ${t.common.currency}\nBolt: ${(m.bolt + (includeTips?m.tips_bolt:0) + (includeBonuses?m.bonuses_bolt:0)).toFixed(2)} ${t.common.currency}\nGlovo: ${(m.glovo + (includeTips?m.tips_glovo:0) + (includeBonuses?m.bonuses_glovo:0)).toFixed(2)} ${t.common.currency}`;
+                  const mAvgHour = safeAverage(m.income, m.hours).toFixed(2);
+                  const mAvgKm = safeAverage(m.income, m.km).toFixed(2);
+                  const mAvgOrder = safeAverage(m.income, m.orders).toFixed(2);
+                  const tooltipText = platformDefinitions
+                    .map((platform) => {
+                      const platformIncome = getAnnualPlatformIncome(
+                        m.platforms[platform.id],
+                        includeTips,
+                        includeBonuses,
+                      );
+                      return `${platform.name}: ${platformIncome.toFixed(2)} ${t.common.currency}`;
+                    })
+                    .join("\n");
 
                   return (
                     <tr key={m.monthNum} className="hover:bg-[#2a2a35] transition cursor-help" title={tooltipText}>
                       <td className="p-4 font-bold capitalize">{m.name}</td>
-                      <td className="p-4 font-black text-green-400">{monthVisualTotal.toFixed(2)}</td>
-                      <td className="p-4 text-blue-400 font-bold">{monthOrders}</td>
+                      <td className="p-4 font-black text-green-400">{m.income.toFixed(2)}</td>
+                      <td className="p-4 text-blue-400 font-bold">{m.orders}</td>
                       <td className="p-4">{m.hours.toFixed(1)}</td>
                       <td className="p-4 text-gray-400">{m.km.toFixed(1)}</td>
                       <td className="p-4 text-cyan-400 font-bold border-l border-gray-800">{mAvgHour}</td>
@@ -491,15 +431,6 @@ export default function YearReport() {
             monthsData.map((m) => {
               if (m.daysCount === 0) return null;
 
-              const monthBase = m.uber + m.wolt + m.bolt + m.glovo;
-              const monthTips = m.tips_uber + m.tips_wolt + m.tips_bolt + m.tips_glovo;
-              const monthBonuses = m.bonuses_uber + m.bonuses_wolt + m.bonuses_bolt + m.bonuses_glovo;
-              const monthOrders = m.orders_uber + m.orders_wolt + m.orders_bolt + m.orders_glovo;
-
-              let monthVisualTotal = monthBase;
-              if (includeTips) monthVisualTotal += monthTips;
-              if (includeBonuses) monthVisualTotal += monthBonuses;
-
               const isExpanded = expandedMonth === m.monthNum;
 
               return (
@@ -510,7 +441,7 @@ export default function YearReport() {
                       <span className="text-[10px] text-gray-500 block">{t.yearReport.workingDays.replace("{count}", String(m.daysCount))}</span>
                     </div>
                     <div className="text-right flex items-center gap-3">
-                      <span className="font-black text-green-400 text-base">{monthVisualTotal.toFixed(2)} {t.common.currency}</span>
+                      <span className="font-black text-green-400 text-base">{m.income.toFixed(2)} {t.common.currency}</span>
                       <span className="text-gray-500 text-xs">{isExpanded ? "▲" : "▼"}</span>
                     </div>
                   </button>
@@ -519,33 +450,31 @@ export default function YearReport() {
                     <div className="grid grid-cols-2 gap-3 mb-4 text-xs">
                       <div className="bg-[#2a2a35]/40 p-2 rounded-lg"><span>{t.yearReport.hours}:</span> <strong className="text-white float-right">{m.hours.toFixed(1)}</strong></div>
                       <div className="bg-[#2a2a35]/40 p-2 rounded-lg"><span>{t.work.totalKm}:</span> <strong className="text-purple-400 float-right">{m.km.toFixed(1)} {t.common.km}</strong></div>
-                      <div className="bg-[#2a2a35]/40 p-2 rounded-lg"><span>{t.yearReport.orders}:</span> <strong className="text-blue-400 float-right">{monthOrders}</strong></div>
-                      <div className="bg-[#2a2a35]/40 p-2 rounded-lg"><span>{t.yearReport.ratePerHour}:</span> <strong className="text-cyan-400 float-right">{(monthVisualTotal/m.hours).toFixed(2)}</strong></div>
+                      <div className="bg-[#2a2a35]/40 p-2 rounded-lg"><span>{t.yearReport.orders}:</span> <strong className="text-blue-400 float-right">{m.orders}</strong></div>
+                      <div className="bg-[#2a2a35]/40 p-2 rounded-lg"><span>{t.yearReport.ratePerHour}:</span> <strong className="text-cyan-400 float-right">{safeAverage(m.income, m.hours).toFixed(2)}</strong></div>
                     </div>
 
                     <span className="text-[9px] uppercase font-bold tracking-wider text-gray-500 block mb-2">{t.yearReport.platformBreakdown}</span>
                     <div className="space-y-1.5 text-xs">
-                      {[
-                        { id: "uber", label: "Uber", base: m.uber, tips: m.tips_uber, bon: m.bonuses_uber, orders: m.orders_uber },
-                        { id: "wolt", label: "Wolt", base: m.wolt, tips: m.tips_wolt, bon: m.bonuses_wolt, orders: m.orders_wolt },
-                        { id: "bolt", label: "Bolt", base: m.bolt, tips: m.tips_bolt, bon: m.bonuses_bolt, orders: m.orders_bolt },
-                        { id: "glovo", label: "Glovo", base: m.glovo, tips: m.tips_glovo, bon: m.bonuses_glovo, orders: m.orders_glovo }
-                      ].map(p => {
-                        let platTotal = p.base;
-                        if (includeTips) platTotal += p.tips;
-                        if (includeBonuses) platTotal += p.bon;
-                        if (platTotal === 0 && p.orders === 0) return null;
+                      {platformDefinitions.map((platform) => {
+                        const metrics = m.platforms[platform.id];
+                        const platformIncome = getAnnualPlatformIncome(
+                          metrics,
+                          includeTips,
+                          includeBonuses,
+                        );
+                        if (platformIncome === 0 && metrics.orders === 0) return null;
 
                         return (
-                          <div key={p.id} className="bg-[#22222a] p-2.5 rounded-lg border border-gray-800 flex justify-between items-center">
-                            <span className="font-bold text-gray-300">{p.label}</span>
+                          <div key={platform.id} className="bg-[#22222a] p-2.5 rounded-lg border border-gray-800 flex justify-between items-center">
+                            <span className="font-bold text-gray-300">{platform.name}</span>
                             <div className="text-right">
-                              <span className="font-bold text-white block">{platTotal.toFixed(2)} {t.common.currency}</span>
+                              <span className="font-bold text-white block">{platformIncome.toFixed(2)} {t.common.currency}</span>
                               <span className="text-[9px] text-gray-500">
                                 {t.yearReport.platformDetails
-                                  .replace("{base}", p.base.toFixed(2))
-                                  .replace("{tips}", p.tips.toFixed(2))
-                                  .replace("{bonuses}", p.bon.toFixed(2))}
+                                  .replace("{base}", metrics.income.toFixed(2))
+                                  .replace("{tips}", metrics.tips.toFixed(2))
+                                  .replace("{bonuses}", metrics.bonuses.toFixed(2))}
                               </span>
                             </div>
                           </div>
@@ -562,24 +491,22 @@ export default function YearReport() {
         <div className="border-t border-gray-800 pt-6">
           <h2 className="text-sm font-bold mb-4 text-gray-400 uppercase tracking-wider">{t.yearReport.platformSummary}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            {[
-              { id: "uber", name: "Uber", color: "border-gray-600 bg-gray-900/10" },
-              { id: "wolt", name: "Wolt", color: "border-cyan-600 bg-cyan-900/10" },
-              { id: "bolt", name: "Bolt", color: "border-green-600 bg-green-900/10" },
-              { id: "glovo", name: "Glovo", color: "border-yellow-600 bg-yellow-900/10" }
-            ].map(p => {
-              const data = platformTotals[p.id as keyof typeof platformTotals];
-              let total = data.base;
-              if (includeTips) total += data.tips;
-              if (includeBonuses) total += data.bonuses;
-
-              const absTotalForPercent = data.base + data.tips + data.bonuses;
-              const tipsPercent = absTotalForPercent > 0 ? ((data.tips / absTotalForPercent) * 100).toFixed(1) : "0.0";
+            {platformDefinitions.map((platform) => {
+              const data = platformTotals[platform.id];
+              const total = getAnnualPlatformIncome(
+                data,
+                includeTips,
+                includeBonuses,
+              );
+              const absTotalForPercent = data.income + data.tips + data.bonuses;
+              const tipsPercent = (
+                safeAverage(data.tips, absTotalForPercent) * 100
+              ).toFixed(1);
 
               return (
-                <div key={p.id} className={`p-4 rounded-xl border ${p.color} shadow-sm flex flex-col gap-2 relative overflow-hidden`}>
+                <div key={platform.id} className={`p-4 rounded-xl border ${platform.cardColor} shadow-sm flex flex-col gap-2 relative overflow-hidden`}>
                   <div className="flex justify-between items-start z-10">
-                    <h3 className="font-black text-lg text-white">{p.name}</h3>
+                    <h3 className="font-black text-lg text-white">{platform.name}</h3>
                     {data.tips > 0 && (
                       <span className="text-[10px] font-bold text-rose-400 bg-rose-500/10 px-2 py-1 rounded-md border border-rose-500/20">
                         {t.yearReport.tipsShare.replace("{percent}", tipsPercent)}
@@ -588,7 +515,7 @@ export default function YearReport() {
                   </div>
                   <div className="text-2xl font-black text-green-400 mb-1 z-10">{total.toFixed(2)} <span className="text-xs font-normal">{t.common.currency}</span></div>
                   <div className="text-xs space-y-1 text-gray-400 border-t border-gray-800/60 pt-2 z-10">
-                    <div className="flex justify-between"><span>{t.yearReport.baseRate}</span><strong className="text-white">{data.base.toFixed(2)} {t.common.currency}</strong></div>
+                    <div className="flex justify-between"><span>{t.yearReport.baseRate}</span><strong className="text-white">{data.income.toFixed(2)} {t.common.currency}</strong></div>
                     <div className="flex justify-between text-rose-400"><span>{t.yearReport.totalTips}</span><strong>{data.tips.toFixed(2)} {t.common.currency}</strong></div>
                     <div className="flex justify-between text-purple-400"><span>{t.yearReport.totalBonuses}</span><strong>{data.bonuses.toFixed(2)} {t.common.currency}</strong></div>
                     <div className="flex justify-between text-blue-400 border-t border-gray-800/40 mt-1 pt-1"><span>{t.yearReport.orders}:</span><strong>{data.orders} {t.yearReport.ordersShort}</strong></div>
