@@ -121,7 +121,7 @@ Roadmap sync:
 
 # PHASE 1 — термінові точкові виправлення
 
-## 1.1. NEXT — Mobile auth header fix
+## 1.1. COMPLETED — Mobile auth header fix
 
 Мета:
 
@@ -147,7 +147,15 @@ Scope:
 - desktop;
 - browser console.
 
-## 1.2. PLANNED — Annual Report correctness fix до версії 2.0
+Результат:
+
+- виправлено responsive layout мобільної шапки;
+- перемикач мов на mobile замінено на компактний dropdown;
+- кнопка входу залишається в межах viewport і не переноситься;
+- перевірено PL, UK, EN і RU на ширинах 320, 360, 390 і 430 px;
+- auth logic, modal і Hero не змінювалися.
+
+## 1.2. NEXT — Annual Report correctness fix до версії 2.0
 
 Це окрема рання задача, а не Annual Report 2.0.
 
@@ -975,10 +983,4 @@ Annual Report повинен підтримувати:
 
 ## NEXT
 
-**Mobile auth header fix.**
-
-Після неї:
-
 **Annual Report correctness fix.**
-
-У межах цього документаційного оновлення реалізація цих задач не починається.
