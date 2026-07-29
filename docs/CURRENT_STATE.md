@@ -21,7 +21,7 @@ PHASE 2.3 — підтвердження email для нових користу�
 
 ## Реалізована функціональність
 
-- Public Landing Page, login/register і password recovery flows.
+- Public Landing Page із головним login/register modal та password recovery entry; додаткова сторінка <code>/login</code> також веде на recovery flow.
 - Єдина client-side route policy для public, login-specific і protected routes.
 - Work shift CRUD з Uber, Wolt, Bolt, Glovo, Stuart і named Other.
 - Окремі platform fields для income, orders, online tips, cash tips і bonuses.
@@ -39,7 +39,7 @@ Planned expenses, rentals, Annual Report 2.0, exports і leaderboard не нал
 | --- | --- |
 | <code>/</code> | Public landing; authenticated user переходить на <code>/work</code>. |
 | <code>/login</code> | Login-specific; authenticated user переходить на <code>/work</code>. |
-| <code>/forgot-password</code> | Public form запиту neutral recovery email response. |
+| <code>/forgot-password</code> | Public form запиту neutral recovery email response; доступна з login modal на <code>/</code> і з окремої сторінки <code>/login</code>. |
 | <code>/reset-password</code> | Recovery-only form; відкривається після події <code>PASSWORD_RECOVERY</code>, а invalid/expired link має окремий стан. |
 | <code>/work</code> | Protected Work dashboard. |
 | <code>/work/year</code> | Protected current Annual Report. |

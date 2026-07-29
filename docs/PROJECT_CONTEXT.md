@@ -53,7 +53,7 @@ Stack підтверджено файлом <code>package.json</code>:
 
 ### Landing/Auth
 
-<code>app/page.tsx</code> містить public landing, login і registration flow із nickname. <code>app/login/page.tsx</code> містить альтернативну login/register сторінку.
+<code>app/page.tsx</code> містить public landing, головний login/registration modal із nickname та основну точку входу у password recovery. <code>app/login/page.tsx</code> містить альтернативну login/register сторінку з такою самою recovery entry. Обидва посилання ведуть на <code>/forgot-password</code>.
 
 ### Work
 
