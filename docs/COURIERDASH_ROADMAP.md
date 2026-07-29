@@ -202,21 +202,21 @@ Scope:
 - Supabase schema, migrations і generated types не змінювалися;
 - дизайн і локалізація збережені.
 
-## 2.2. NEXT — відновлення пароля
+## 2.2. COMPLETED — відновлення пароля
 
-Потрібно:
+Завершено:
 
-- форма запиту відновлення;
-- надсилання recovery email;
-- перехід за посиланням;
-- recovery session;
-- встановлення нового пароля;
-- успішні стани;
-- invalid і expired link states;
-- local і production redirect URLs;
-- локалізація PL, UK, EN і RU.
+- додано окремі routes <code>/forgot-password</code> і <code>/reset-password</code>;
+- recovery email запитується через <code>resetPasswordForEmail()</code> з neutral response;
+- reset form відкривається лише після події <code>PASSWORD_RECOVERY</code>;
+- звичайна auth session не приймається як recovery proof;
+- новий пароль перевіряється за чинним minimum 6 символів і встановлюється через <code>updateUser()</code>;
+- після успішної зміни виконується sign-out і перехід на login із success state;
+- invalid і expired links мають окремий стан із можливістю запросити нове посилання;
+- тексти додано для PL, UK, EN і RU;
+- local redirect формується з поточного browser origin; production redirect allow-list і email delivery мають статус <code>REMOTE STATE: UNKNOWN</code>.
 
-## 2.3. PLANNED — підтвердження email для нових користувачів
+## 2.3. NEXT — підтвердження email для нових користувачів
 
 Потрібно:
 
@@ -996,4 +996,4 @@ Annual Report повинен підтримувати:
 
 ## NEXT
 
-**Відновлення пароля.**
+**Підтвердження email для нових користувачів.**

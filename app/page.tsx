@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { useRouter } from "next/navigation";
@@ -286,6 +287,16 @@ export default function LandingPage() {
                   placeholder="••••••••"
                   className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500"
                 />
+                {modalMode === "login" && (
+                  <div className="mt-2 text-right">
+                    <Link
+                      href="/forgot-password"
+                      className="text-sm text-blue-400 transition hover:text-blue-300"
+                    >
+                      {t.passwordRecovery.forgotLink}
+                    </Link>
+                  </div>
+                )}
               </div>
 
               {/* ПОЛЕ: Підтвердження пароля (Тільки для реєстрації) */}

@@ -1,11 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "../../lib/supabase";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+
+import { useLanguage } from "../../context/LanguageContext";
 import { AUTH_ROUTES, checkAuthRoute } from "../../lib/auth-route-policy";
+import { hasPasswordResetSuccess } from "../../lib/password-recovery";
+import { supabase } from "../../lib/supabase";
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#121212]" />}>
+      <LoginPageContent />
+    </Suspense>
+  );
+}
+
+function LoginPageContent() {
+  const { t } = useLanguage();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,6 +26,8 @@ export default function LoginPage() {
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const passwordResetSucceeded = hasPasswordResetSuccess(searchParams);
 
   useEffect(() => {
     let isActive = true;
@@ -85,6 +100,15 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleAuth} className="space-y-5">
+          {passwordResetSucceeded && (
+            <div
+              className="bg-green-500/10 border border-green-500/50 text-green-300 text-sm p-3 rounded-lg text-center"
+              role="status"
+            >
+              {t.passwordRecovery.resetSuccess}
+            </div>
+          )}
+
           {errorMsg && (
             <div className="bg-red-500/10 border border-red-500/50 text-red-500 text-sm p-3 rounded-lg text-center">
               {errorMsg}
@@ -113,6 +137,16 @@ export default function LoginPage() {
               className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500 transition"
               placeholder="••••••••"
             />
+            {isLogin && (
+              <div className="mt-2 text-right">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-blue-400 hover:text-blue-300 transition"
+                >
+                  {t.passwordRecovery.forgotLink}
+                </Link>
+              </div>
+            )}
           </div>
 
           <button 

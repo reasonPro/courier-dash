@@ -88,10 +88,15 @@ Application client використовує:
 - <code>signInWithPassword()</code>;
 - <code>signUp()</code>;
 - <code>signOut()</code>.
+- <code>resetPasswordForEmail()</code>;
+- <code>onAuthStateChange()</code> для <code>PASSWORD_RECOVERY</code> у reset route;
+- <code>updateUser()</code> для нового пароля.
 
 Client створюється з <code>NEXT_PUBLIC_SUPABASE_URL</code> і <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>. Значення environment variables не документуються.
 
-Password recovery, OAuth, <code>onAuthStateChange</code> і server-side session flow у local application code не знайдені. Local <code>config.toml</code> містить development Auth defaults, але production Auth settings, confirmation policy, redirect URLs, SMTP і email delivery мають status <code>REMOTE STATE: UNKNOWN</code>.
+Password recovery реалізовано локально через <code>/forgot-password</code> і <code>/reset-password</code>. Recovery request має neutral response, reset form потребує події <code>PASSWORD_RECOVERY</code>, а після <code>updateUser()</code> виконується <code>signOut()</code>. OAuth і server-side session flow у local application code не знайдені. Local <code>config.toml</code> містить development Auth defaults і minimum password length 6, але production Auth settings, confirmation policy, redirect allow-list, SMTP і email delivery мають status <code>REMOTE STATE: UNKNOWN</code>.
+
+Параметр <code>redirectTo</code> формується як <code>${window.location.origin}/reset-password</code> без hardcoded production domain. Власник має вручну перевірити Auth Site URL, Redirect URLs для localhost, production і Vercel Preview, доставку recovery email, template link та expiration behavior. Remote Dashboard у цій задачі не перевірявся і не змінювався; branded email належить до окремої задачі.
 
 ## RPC
 
