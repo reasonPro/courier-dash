@@ -246,6 +246,18 @@ body {
 
 .landing-skip-link:focus { transform: translateY(0); }
 
+@keyframes landing-preloader-spin {
+  to { transform: rotate(360deg); }
+}
+
+.landing-preloader-spinner {
+  background: conic-gradient(from -45deg, #22d3ee 0deg, #34d399 72deg, rgba(148, 163, 184, 0.14) 72deg 360deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
+  animation: landing-preloader-spin 1.5s linear infinite;
+  will-change: transform;
+}
+
 @media (max-width: 639px) {
   .landing-section { padding-top: 3.75rem; padding-bottom: 3.75rem; }
   .night-route-background { opacity: 0.78; }
@@ -286,4 +298,5 @@ body {
   .night-route-trail { stroke-dasharray: none; stroke-opacity: 0.3; }
   .night-speed-mark { opacity: 0.18; }
   .landing-reveal { opacity: 1; transform: none; }
+  .landing-preloader-spinner { animation: none !important; transform: rotate(0); }
 }

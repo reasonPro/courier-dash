@@ -5,8 +5,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../context/LanguageContext";
-import { AUTH_ROUTES, checkAuthRoute } from "../lib/auth-route-policy";
+import { AUTH_ROUTES } from "../lib/auth-route-policy";
+import { startLandingSessionCheck } from "../lib/landing-session-check";
 import { LandingPageContent } from "./components/landing/LandingPageContent";
+import { LandingPreloader } from "./components/landing/LandingPreloader";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -27,27 +29,11 @@ export default function LandingPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    let isActive = true;
-
-    const checkActiveSession = async () => {
-      const { redirectTo } = await checkAuthRoute("public", () =>
-        supabase.auth.getSession(),
-      );
-
-      if (!isActive) return;
-
-      if (redirectTo) {
-        router.replace(redirectTo);
-      } else {
-        setIsCheckingSession(false);
-      }
-    };
-
-    checkActiveSession();
-
-    return () => {
-      isActive = false;
-    };
+    return startLandingSessionCheck({
+      loadSession: () => supabase.auth.getSession(),
+      onPublic: () => setIsCheckingSession(false),
+      onRedirect: (redirectTo) => router.replace(redirectTo),
+    });
   }, [router]);
 
   const openModal = (mode: "login" | "register") => {
@@ -130,7 +116,7 @@ export default function LandingPage() {
   };
 
   if (isCheckingSession) {
-    return <div className="flex min-h-screen items-center justify-center bg-[#07080d] font-medium text-white">{t.common.loading}</div>;
+    return <LandingPreloader label={t.common.loading} />;
   }
 
   return (
