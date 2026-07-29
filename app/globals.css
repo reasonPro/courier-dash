@@ -181,7 +181,6 @@ body {
 .landing-primary-button:focus-visible,
 .landing-secondary-button:focus-visible { box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.34); }
 
-.night-hero-dashboard { animation: night-dashboard-float 8s ease-in-out infinite; }
 .night-float-card { animation: night-card-float 5.6s ease-in-out infinite; }
 .night-float-card-b { animation-delay: -2.4s; }
 

@@ -28,7 +28,7 @@ export function LandingHero({ copy, lang, onRegister }: LandingHeroProps) {
           <p className="mx-auto mt-4 max-w-lg text-xs leading-5 text-slate-500 lg:mx-0">{copy.hero.note}</p>
         </div>
 
-        <div className="night-hero-dashboard relative mx-auto w-full min-w-0 max-w-3xl lg:translate-x-5 lg:rotate-[1.4deg]">
+        <div className="night-hero-dashboard relative mx-auto w-full min-w-0 max-w-3xl lg:translate-x-5">
           <div aria-hidden="true" className="night-float-card night-float-card-a absolute -left-1 top-8 z-20 hidden max-w-40 rounded-2xl border border-emerald-300/20 bg-[#09110f]/82 px-3 py-2 text-[10px] font-bold text-emerald-200 shadow-xl backdrop-blur-xl sm:block lg:-left-8">{copy.hero.floatingIncome}</div>
           <div aria-hidden="true" className="night-float-card night-float-card-b absolute -right-1 bottom-8 z-20 hidden max-w-40 rounded-2xl border border-fuchsia-300/20 bg-[#110912]/82 px-3 py-2 text-[10px] font-bold text-fuchsia-100 shadow-xl backdrop-blur-xl sm:block lg:-right-5">{copy.hero.floatingEfficiency}</div>
           <DashboardMockup copy={copy} lang={lang} />
