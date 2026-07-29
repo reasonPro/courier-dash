@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../context/LanguageContext";
+import { AUTH_ROUTES, checkAuthRoute } from "../lib/auth-route-policy";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -24,15 +25,27 @@ export default function LandingPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    let isActive = true;
+
     const checkActiveSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        router.push("/work");
+      const { redirectTo } = await checkAuthRoute("public", () =>
+        supabase.auth.getSession(),
+      );
+
+      if (!isActive) return;
+
+      if (redirectTo) {
+        router.replace(redirectTo);
       } else {
         setIsCheckingSession(false);
       }
     };
+
     checkActiveSession();
+
+    return () => {
+      isActive = false;
+    };
   }, [router]);
 
   const openModal = (mode: "login" | "register") => {
@@ -62,7 +75,7 @@ export default function LandingPage() {
         setErrorMsg(error.message);
       } else {
         closeModal();
-        router.push("/work");
+        router.replace(AUTH_ROUTES.dashboard);
       }
     } else {
       // ПЕРЕВІРКА 1: Паролі збігаються?
@@ -107,7 +120,7 @@ export default function LandingPage() {
         } else {
           // Якщо авторизувало одразу - примусово зберігаємо нік в базу
           await supabase.from("profiles").upsert({ id: data.user!.id, nickname: cleanNickname });
-          router.push("/work");
+          router.replace(AUTH_ROUTES.dashboard);
         }
       }
     }
