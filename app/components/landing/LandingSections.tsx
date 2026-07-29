@@ -1,36 +1,53 @@
-import type { LandingV1Copy } from "../../../lib/landing-translations";
+import type { LandingV2Copy } from "../../../lib/landing-translations";
 import { ScrollReveal } from "./LandingMotion";
 
-function SectionIntro({ eyebrow, title, description }: { eyebrow: string; title: string; description?: string }) {
+function SectionIntro({ eyebrow, title, description, align = "center" }: { eyebrow: string; title: string; description?: string; align?: "center" | "left" }) {
   return (
-    <div className="mx-auto max-w-3xl text-center">
+    <div className={align === "center" ? "mx-auto max-w-3xl text-center" : "max-w-2xl"}>
       <p className="landing-eyebrow">{eyebrow}</p>
-      <h2 className="mt-4 text-balance text-3xl font-black tracking-[-0.035em] text-white sm:text-4xl lg:text-5xl">{title}</h2>
-      {description ? <p className="mx-auto mt-5 max-w-2xl text-pretty leading-7 text-slate-400">{description}</p> : null}
+      <h2 className="mt-3 text-balance text-3xl font-black tracking-[-0.04em] text-white sm:text-4xl lg:text-[2.8rem]">{title}</h2>
+      {description ? <p className={`mt-4 text-pretty leading-7 text-slate-400 ${align === "center" ? "mx-auto max-w-2xl" : ""}`}>{description}</p> : null}
     </div>
   );
 }
 
 const featureIcons = [
-  <path key="wallet" d="M4 7.5h14a2 2 0 0 1 2 2v8H6a2 2 0 0 1-2-2v-10a2 2 0 0 1 2-2h10" />,
-  <path key="speed" d="M4 18a8 8 0 1 1 16 0M12 18l4-6M7 15h.01M17 9h.01M12 7h.01" />,
-  <path key="chart" d="M5 19V9m7 10V5m7 14v-7M3 19h18" />,
+  <path key="money" d="M4 7h16v10H4zM8 12h.01M16 12h.01M12 9.5v5" />,
+  <path key="speed" d="M4 18a8 8 0 1 1 16 0M12 18l4-6M7 15h.01M17 9h.01" />,
+  <path key="route" d="M5 5h4v4H5zM15 15h4v4h-4zM9 7c6 0 0 10 6 10" />,
+  <path key="year" d="M5 19V9m5 10V5m5 14v-7m5 7V8M3 19h19" />,
+  <path key="garage" d="M4 11 6 6h12l2 5v7h-2v-2H6v2H4zm2 0h12M8 13h.01M16 13h.01" />,
 ];
 
-export function FeaturesSection({ copy }: { copy: LandingV1Copy }) {
+export function ValueStrip({ copy }: { copy: LandingV2Copy }) {
+  return (
+    <section aria-label={copy.features.eyebrow} className="relative z-20 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto grid max-w-5xl grid-cols-2 overflow-hidden rounded-2xl border border-white/[0.075] bg-[#090c13]/72 shadow-[0_20px_70px_rgba(0,0,0,0.28)] backdrop-blur-xl sm:grid-cols-4">
+        {copy.valueItems.map((item, index) => (
+          <div key={item} className="flex min-h-16 items-center gap-2 border-white/[0.065] px-3 py-3 text-xs font-semibold text-slate-300 max-sm:nth-[odd]:border-r sm:border-r sm:last:border-r-0">
+            <span className="font-black text-cyan-300/80">0{index + 1}</span><span>{item}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function BentoFeaturesSection({ copy }: { copy: LandingV2Copy }) {
   return (
     <section id="features" className="landing-section px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <ScrollReveal><SectionIntro eyebrow={copy.features.eyebrow} title={copy.features.title} description={copy.features.description} /></ScrollReveal>
-        <div className="mt-12 grid gap-4 md:grid-cols-3">
+        <div className="mt-9 grid auto-rows-[minmax(12rem,auto)] gap-3 md:grid-cols-6">
           {copy.features.cards.map((card, index) => (
-            <ScrollReveal key={card.title} delay={index * 90} className="h-full">
-              <article className="landing-glass-card group h-full p-6 sm:p-7">
-                <span className="grid size-11 place-items-center rounded-2xl border border-white/10 bg-gradient-to-br from-sky-400/15 via-violet-500/10 to-fuchsia-500/15 text-sky-200 transition duration-300 group-hover:-translate-y-1 group-hover:border-sky-300/30">
-                  <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{featureIcons[index]}</svg>
-                </span>
-                <h3 className="mt-7 text-xl font-bold tracking-tight text-white">{card.title}</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-400">{card.description}</p>
+            <ScrollReveal key={card.title} delay={index * 60} className={`h-full ${index < 2 ? "md:col-span-3" : "md:col-span-2"}`}>
+              <article className={`night-bento-card group h-full p-5 sm:p-6 ${index === 0 ? "night-bento-card-cyan" : index === 1 ? "night-bento-card-violet" : index === 2 ? "night-bento-card-pink" : index === 3 ? "night-bento-card-emerald" : "night-bento-card-amber"}`}>
+                <div className="flex h-full flex-col justify-between gap-7">
+                  <span className="grid size-10 place-items-center rounded-2xl border border-white/10 bg-white/[0.045] text-cyan-100">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">{featureIcons[index]}</svg>
+                  </span>
+                  <div><p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-600">0{index + 1}</p><h3 className="text-xl font-black tracking-[-0.025em] text-white">{card.title}</h3><p className="mt-2.5 text-sm leading-6 text-slate-400">{card.description}</p></div>
+                </div>
               </article>
             </ScrollReveal>
           ))}
@@ -40,68 +57,32 @@ export function FeaturesSection({ copy }: { copy: LandingV1Copy }) {
   );
 }
 
-export function HowItWorksSection({ copy }: { copy: LandingV1Copy }) {
-  return (
-    <section id="how-it-works" className="landing-section relative px-4 sm:px-6 lg:px-8">
-      <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 h-52 w-3/4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/8 blur-[110px]" />
-      <div className="relative mx-auto max-w-6xl">
-        <ScrollReveal><SectionIntro eyebrow={copy.how.eyebrow} title={copy.how.title} /></ScrollReveal>
-        <div className="relative mt-12 grid gap-4 md:grid-cols-3">
-          <div aria-hidden="true" className="absolute left-[16%] right-[16%] top-7 hidden h-px bg-gradient-to-r from-transparent via-violet-400/40 to-transparent md:block" />
-          {copy.how.steps.map((step, index) => (
-            <ScrollReveal key={step.title} delay={index * 100}>
-              <article className="relative rounded-3xl border border-white/9 bg-[#0d111b]/80 p-6 text-center backdrop-blur-xl">
-                <span className="relative mx-auto grid size-14 place-items-center rounded-2xl border border-violet-300/20 bg-violet-400/10 text-lg font-black text-violet-200 shadow-[0_0_35px_rgba(139,92,246,0.12)]">0{index + 1}</span>
-                <h3 className="mt-6 text-lg font-bold text-white">{step.title}</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-400">{step.description}</p>
-              </article>
-            </ScrollReveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
+const platformNames = ["Glovo", "Uber Eats", "Wolt", "Bolt Food", "Stuart"];
 
-export function PlatformsSection({ copy }: { copy: LandingV1Copy }) {
-  const platforms = ["Glovo", "Uber Eats", "Wolt", "Bolt Food", "Stuart", copy.platforms.other];
+export function HowPlatformsSection({ copy }: { copy: LandingV2Copy }) {
   return (
-    <section id="platforms" className="px-4 py-20 sm:px-6 lg:px-8">
-      <ScrollReveal className="mx-auto max-w-6xl rounded-[2rem] border border-white/10 bg-white/[0.025] px-5 py-10 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:px-10">
-        <p className="landing-eyebrow">{copy.platforms.eyebrow}</p>
-        <h2 className="mt-4 text-3xl font-black tracking-tight text-white sm:text-4xl">{copy.platforms.title}</h2>
-        <p className="mx-auto mt-4 max-w-2xl leading-7 text-slate-400">{copy.platforms.description}</p>
-        <div className="mt-8 flex flex-wrap justify-center gap-2.5">
-          {platforms.map((platform, index) => (
-            <span key={platform} className="flex items-center gap-2 rounded-full border border-white/10 bg-[#0a0d15] px-4 py-2.5 text-sm font-semibold text-slate-200">
-              <i className={`size-2 rounded-full ${["bg-amber-400", "bg-white", "bg-cyan-400", "bg-lime-400", "bg-violet-400", "bg-slate-500"][index]}`} />
-              {platform}
-            </span>
-          ))}
+    <section id="how-it-works" className="landing-section px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="grid gap-9 lg:grid-cols-[0.85fr_1.15fr] lg:items-end">
+          <ScrollReveal><SectionIntro align="left" eyebrow={copy.how.eyebrow} title={copy.how.title} description={copy.how.description} /></ScrollReveal>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {copy.how.steps.map((step, index) => (
+              <ScrollReveal key={step.title} delay={index * 70} className="h-full">
+                <article className="night-step-card h-full rounded-2xl border border-white/[0.075] bg-white/[0.025] p-4 backdrop-blur-sm"><span className="text-xs font-black text-cyan-300">0{index + 1}</span><h3 className="mt-5 font-black text-white">{step.title}</h3><p className="mt-2 text-sm leading-6 text-slate-500">{step.description}</p></article>
+              </ScrollReveal>
+            ))}
+          </div>
         </div>
-      </ScrollReveal>
-    </section>
-  );
-}
 
-export function BenefitsSection({ copy }: { copy: LandingV1Copy }) {
-  return (
-    <section className="landing-section px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
-        <ScrollReveal>
-          <p className="landing-eyebrow">{copy.benefits.eyebrow}</p>
-          <h2 className="mt-4 text-balance text-4xl font-black tracking-[-0.04em] text-white">{copy.benefits.title}</h2>
+        <ScrollReveal className="mt-7">
+          <div className="rounded-[1.6rem] border border-white/[0.08] bg-[#090c14]/72 p-5 backdrop-blur-xl sm:p-6">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="max-w-2xl"><h3 className="text-xl font-black text-white">{copy.platforms.title}</h3><p className="mt-2 text-sm leading-6 text-slate-400">{copy.platforms.description}</p></div>
+              <div className="flex flex-wrap gap-2">{[...platformNames, copy.platforms.other].map((platform) => <span key={platform} className="rounded-xl border border-white/[0.075] bg-white/[0.035] px-3 py-2 text-[11px] font-bold text-slate-300">{platform}</span>)}</div>
+            </div>
+            <p className="mt-5 border-t border-white/[0.065] pt-4 text-[11px] leading-5 text-slate-600">{copy.platforms.manualNote}</p>
+          </div>
         </ScrollReveal>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {copy.benefits.items.map((item, index) => (
-            <ScrollReveal key={item} delay={(index % 2) * 70}>
-              <div className="flex min-h-full gap-3 rounded-2xl border border-white/8 bg-white/[0.025] p-4 text-sm leading-6 text-slate-300">
-                <span aria-hidden="true" className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-emerald-400/10 text-xs text-emerald-300">✓</span>
-                {item}
-              </div>
-            </ScrollReveal>
-          ))}
-        </div>
       </div>
     </section>
   );

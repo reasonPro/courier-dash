@@ -4,11 +4,12 @@ import { useEffect, useRef } from "react";
 
 import type { LangType } from "../../../lib/translations";
 import { landingTranslations } from "../../../lib/landing-translations";
-import { BenefitsSection, FeaturesSection, HowItWorksSection, PlatformsSection } from "./LandingSections";
 import { FaqSection } from "./FaqSection";
 import { FinalCta, LandingFooter } from "./LandingFooter";
 import { LandingHeader } from "./LandingHeader";
 import { LandingHero } from "./LandingHero";
+import { BentoFeaturesSection, HowPlatformsSection, ValueStrip } from "./LandingSections";
+import { NightRouteBackground } from "./NightRouteBackground";
 import { ProductShowcase } from "./ProductShowcase";
 
 type LandingPageContentProps = {
@@ -24,18 +25,23 @@ export function LandingPageContent({ lang, onLanguageChange, onRegister, onSignI
 
   useEffect(() => {
     const root = rootRef.current;
-    if (!root || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (!root || reducedMotion.matches) return;
 
     let frame = 0;
-    const updateParallax = () => {
-      root.style.setProperty("--landing-scroll", `${window.scrollY}px`);
+    const updateLayers = () => {
+      const scroll = window.scrollY;
+      root.style.setProperty("--night-slow-y", `${scroll * 0.035}px`);
+      root.style.setProperty("--night-map-y", `${scroll * -0.055}px`);
+      root.style.setProperty("--night-map-x", `${Math.sin(scroll / 560) * 12}px`);
+      root.style.setProperty("--night-fast-y", `${scroll * -0.11}px`);
       frame = 0;
     };
     const onScroll = () => {
-      if (!frame) frame = requestAnimationFrame(updateParallax);
+      if (!frame) frame = requestAnimationFrame(updateLayers);
     };
 
-    updateParallax();
+    updateLayers();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
@@ -44,16 +50,16 @@ export function LandingPageContent({ lang, onLanguageChange, onRegister, onSignI
   }, []);
 
   return (
-    <div ref={rootRef} className="landing-root min-h-screen overflow-clip bg-[#07080d] text-white">
+    <div ref={rootRef} className="night-root min-h-screen overflow-clip bg-[#06070b] text-white">
       <a href="#landing-main" className="landing-skip-link">{copy.skipToContent}</a>
+      <NightRouteBackground />
       <LandingHeader copy={copy} lang={lang} onLanguageChange={onLanguageChange} onSignIn={onSignIn} />
-      <main id="landing-main">
+      <main id="landing-main" className="relative z-10">
         <LandingHero copy={copy} lang={lang} onRegister={onRegister} />
-        <FeaturesSection copy={copy} />
+        <ValueStrip copy={copy} />
+        <BentoFeaturesSection copy={copy} />
         <ProductShowcase copy={copy} lang={lang} />
-        <HowItWorksSection copy={copy} />
-        <PlatformsSection copy={copy} />
-        <BenefitsSection copy={copy} />
+        <HowPlatformsSection copy={copy} />
         <FaqSection copy={copy} />
         <FinalCta copy={copy} onRegister={onRegister} onSignIn={onSignIn} />
       </main>

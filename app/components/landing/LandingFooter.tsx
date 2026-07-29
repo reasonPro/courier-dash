@@ -1,49 +1,27 @@
-import type { LandingV1Copy } from "../../../lib/landing-translations";
+import type { LandingV2Copy } from "../../../lib/landing-translations";
+import { ScrollReveal } from "./LandingMotion";
 
-type LandingFooterProps = {
-  copy: LandingV1Copy;
-  onRegister: () => void;
-  onSignIn: () => void;
-};
-
-export function FinalCta({ copy, onRegister, onSignIn }: LandingFooterProps) {
+export function FinalCta({ copy, onRegister, onSignIn }: { copy: LandingV2Copy; onRegister: () => void; onSignIn: () => void }) {
   return (
-    <section className="px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
-      <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[2rem] border border-white/12 bg-gradient-to-br from-sky-500/10 via-violet-500/10 to-fuchsia-500/10 px-6 py-14 text-center shadow-[0_40px_120px_rgba(0,0,0,0.35)] sm:px-12 sm:py-20">
-        <div aria-hidden="true" className="absolute inset-0 landing-grid-mask opacity-30" />
-        <div aria-hidden="true" className="absolute left-1/2 top-0 h-40 w-2/3 -translate-x-1/2 rounded-full bg-violet-500/20 blur-[100px]" />
-        <div className="relative">
-          <h2 className="mx-auto max-w-4xl text-balance text-4xl font-black tracking-[-0.045em] text-white sm:text-5xl lg:text-6xl">{copy.cta.title}</h2>
-          <p className="mx-auto mt-5 max-w-2xl text-pretty leading-7 text-slate-300">{copy.cta.description}</p>
-          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <button type="button" onClick={onRegister} className="landing-primary-button min-h-12 px-7">{copy.cta.primary}<span aria-hidden="true">→</span></button>
-            <button type="button" onClick={onSignIn} className="landing-secondary-button min-h-12 px-7">{copy.cta.secondary}</button>
-          </div>
+    <section className="px-4 pb-16 pt-5 sm:px-6 sm:pb-20 lg:px-8">
+      <ScrollReveal className="mx-auto max-w-7xl">
+        <div className="night-cta relative overflow-hidden rounded-[2rem] border border-cyan-300/12 bg-[#0a0d16]/82 px-5 py-12 text-center shadow-[0_32px_100px_rgba(0,0,0,0.4)] backdrop-blur-xl sm:px-8 sm:py-14">
+          <div aria-hidden="true" className="absolute inset-x-[12%] -top-24 h-48 rounded-full bg-violet-500/18 blur-[80px]" />
+          <div className="relative mx-auto max-w-3xl"><p className="landing-eyebrow">CourierDash</p><h2 className="mt-4 text-balance text-3xl font-black tracking-[-0.045em] sm:text-4xl lg:text-5xl">{copy.cta.title}</h2><p className="mx-auto mt-4 max-w-xl text-pretty leading-7 text-slate-400">{copy.cta.description}</p><div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row"><button type="button" onClick={onRegister} className="landing-primary-button min-h-12 px-6">{copy.cta.primary}<span aria-hidden="true">→</span></button><button type="button" onClick={onSignIn} className="landing-secondary-button min-h-12 px-6">{copy.cta.secondary}</button></div></div>
         </div>
-      </div>
+      </ScrollReveal>
     </section>
   );
 }
 
-export function LandingFooter({ copy }: { copy: LandingV1Copy }) {
+export function LandingFooter({ copy }: { copy: LandingV2Copy }) {
   return (
-    <footer className="border-t border-white/8 px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-7xl flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
-        <div className="max-w-sm">
-          <p className="text-xl font-black tracking-tight text-white">Courier<span className="landing-gradient-text">Dash</span></p>
-          <p className="mt-3 text-sm leading-6 text-slate-500">{copy.footer.description}</p>
-        </div>
-        <nav aria-label={copy.footer.ariaLabel} className="flex flex-wrap gap-x-5 gap-y-3 text-sm text-slate-400">
-          <a href="#product" className="transition hover:text-white">{copy.footer.product}</a>
-          <a href="#features" className="transition hover:text-white">{copy.footer.features}</a>
-          <a href="#how-it-works" className="transition hover:text-white">{copy.footer.howItWorks}</a>
-          <a href="#faq" className="transition hover:text-white">{copy.footer.faq}</a>
-        </nav>
+    <footer className="relative z-10 border-t border-white/[0.065] px-4 py-7 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="max-w-md"><a href="#top" className="text-lg font-black tracking-[-0.04em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300">Courier<span className="night-gradient-text">Dash</span></a><p className="mt-1.5 text-xs leading-5 text-slate-600">{copy.footer.description}</p></div>
+        <nav aria-label={copy.footer.ariaLabel} className="flex flex-wrap gap-x-4 gap-y-2 text-xs font-semibold text-slate-500"><a className="hover:text-white" href="#product">{copy.footer.product}</a><a className="hover:text-white" href="#features">{copy.footer.features}</a><a className="hover:text-white" href="#how-it-works">{copy.footer.howItWorks}</a><a className="hover:text-white" href="#faq">{copy.footer.faq}</a></nav>
       </div>
-      <div className="mx-auto mt-8 flex max-w-7xl flex-col gap-2 border-t border-white/6 pt-6 text-xs text-slate-600 sm:flex-row sm:justify-between">
-        <p>© {new Date().getFullYear()} CourierDash.</p>
-        <p>{copy.footer.rights}</p>
-      </div>
+      <div className="mx-auto mt-5 flex max-w-7xl items-center justify-between border-t border-white/[0.05] pt-4 text-[10px] text-slate-700"><span>© {new Date().getFullYear()} CourierDash</span><span>{copy.footer.rights}</span></div>
     </footer>
   );
 }

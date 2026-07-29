@@ -1,369 +1,280 @@
 import type { LangType } from "./translations";
 
-const en = {
-  skipToContent: "Skip to main content",
+type FeatureCard = {
+  title: string;
+  description: string;
+};
+
+type ProductTab = FeatureCard & {
+  label: string;
+};
+
+export type LandingV2Copy = {
+  skipToContent: string;
   nav: {
-    ariaLabel: "Landing navigation",
-    features: "Features",
-    product: "Product",
-    howItWorks: "How it works",
-    faq: "FAQ",
-    signIn: "Sign in",
-    language: "Language",
-  },
+    ariaLabel: string;
+    features: string;
+    product: string;
+    howItWorks: string;
+    faq: string;
+    signIn: string;
+    language: string;
+  };
   hero: {
-    badge: "Built for delivery couriers",
-    title: "Know what you earn.",
-    titleAccent: "Improve every shift.",
-    description:
-      "Track earnings, hours, orders, distance and performance across every delivery platform in one focused workspace.",
-    primary: "Get started",
-    secondary: "See how it works",
-    platformsNote:
-      "Record shifts from Glovo, Uber Eats, Wolt, Bolt Food, Stuart and other platforms — manually, on your terms.",
-  },
+    badge: string;
+    title: string;
+    titleAccent: string;
+    description: string;
+    primary: string;
+    secondary: string;
+    note: string;
+    floatingIncome: string;
+    floatingEfficiency: string;
+  };
   demo: {
-    label: "Demo dashboard",
-    ariaLabel: "CourierDash demo dashboard with sample courier performance data",
-    period: "This month",
-    income: "Total income",
-    hours: "Hours",
-    orders: "Orders",
-    hourlyRate: "Per hour",
-    distance: "Distance",
-    trend: "Shift performance",
-    currency: "PLN",
-    hourUnit: "h",
-    kmUnit: "km",
-  },
+    label: string;
+    ariaLabel: string;
+    period: string;
+    income: string;
+    hours: string;
+    orders: string;
+    hourlyRate: string;
+    distance: string;
+    currency: string;
+    hourUnit: string;
+    kmUnit: string;
+    shiftTrend: string;
+    platformMix: string;
+    onlineTips: string;
+    cashTips: string;
+    bonuses: string;
+    active: string;
+  };
+  valueItems: string[];
   features: {
-    eyebrow: "Everything in view",
-    title: "The numbers behind every shift",
-    description:
-      "A clear workflow for couriers who work across one or several delivery platforms.",
-    cards: [
-      {
-        title: "Track every earning",
-        description:
-          "Keep platform income, in-app tips, cash tips and bonuses together without losing the platform breakdown.",
-      },
-      {
-        title: "Measure performance",
-        description:
-          "See working hours, orders, distance and earnings per hour so each shift has useful context.",
-      },
-      {
-        title: "See the bigger picture",
-        description:
-          "Review monthly statistics, Annual Report summaries, platform breakdowns and personal records.",
-      },
-    ],
-  },
+    eyebrow: string;
+    title: string;
+    description: string;
+    cards: FeatureCard[];
+  };
   product: {
-    eyebrow: "Inside CourierDash",
-    title: "One command center for your courier work",
-    description:
-      "Move from daily entries to long-term context without switching between separate spreadsheets.",
-    stories: [
-      {
-        title: "Work Dashboard",
-        description:
-          "Add shifts manually and review income, hours, orders, distance, tips and bonuses in one monthly view.",
-        tag: "Daily control",
-      },
-      {
-        title: "Platform breakdown",
-        description:
-          "Keep Glovo, Uber Eats, Wolt, Bolt Food, Stuart and your own platform entries clearly separated.",
-        tag: "Multiple platforms",
-      },
-      {
-        title: "Annual Report",
-        description:
-          "Understand yearly totals, month-by-month performance, platform shares and your strongest results.",
-        tag: "Yearly context",
-      },
-      {
-        title: "Garage",
-        description:
-          "Track odometer readings, service intervals, repairs and maintenance history for your vehicle.",
-        tag: "Vehicle care",
-      },
-    ],
+    eyebrow: string;
+    title: string;
+    description: string;
+    tabListLabel: string;
+    tabs: ProductTab[];
     previewLabels: {
-      work: "Monthly overview",
-      platforms: "Platform mix",
-      annual: "Annual trend",
-      garage: "Vehicle status",
-      active: "Active view",
-      odometer: "Odometer",
-      serviceInterval: "Service interval",
-      driveBelt: "Drive belt",
-      brakePads: "Brake pads",
-      engineOil: "Engine oil",
-    },
-  },
+      work: string;
+      platforms: string;
+      annual: string;
+      garage: string;
+      annualTrend: string;
+      odometer: string;
+      serviceInterval: string;
+      driveBelt: string;
+      brakePads: string;
+      engineOil: string;
+    };
+  };
   how: {
-    eyebrow: "How it works",
-    title: "From a completed shift to a useful insight",
-    steps: [
-      {
-        title: "Create your account",
-        description: "Set up your courier workspace and choose the language you prefer.",
-      },
-      {
-        title: "Add shifts manually",
-        description:
-          "Enter the platforms, income, hours, orders, distance, tips and bonuses that apply.",
-      },
-      {
-        title: "Understand your statistics",
-        description:
-          "Compare results over time and see which shifts and platforms work best for you.",
-      },
-    ],
-  },
+    eyebrow: string;
+    title: string;
+    description: string;
+    steps: FeatureCard[];
+  };
   platforms: {
-    eyebrow: "Flexible by design",
-    title: "Your platforms, together",
-    description:
-      "CourierDash keeps your manually entered results organized without implying a connection to platform accounts.",
-    other: "Other",
-  },
-  benefits: {
-    eyebrow: "Built for clarity",
-    title: "Less guessing after the shift",
-    items: [
-      "Income from every active platform in one place",
-      "A clear way to compare platform results",
-      "Working time and earnings per hour in context",
-      "Monthly and yearly statistics without fragmented files",
-      "A continuous history instead of a new spreadsheet every period",
-      "A responsive workspace available in your mobile browser",
-    ],
-  },
+    title: string;
+    description: string;
+    manualNote: string;
+    other: string;
+  };
   faq: {
-    eyebrow: "FAQ",
-    title: "Questions before your first shift entry",
-    items: [
-      {
-        question: "What is CourierDash?",
-        answer:
-          "CourierDash is a web dashboard for delivery couriers who want to record work and understand earnings, time, orders, distance and performance.",
-      },
-      {
-        question: "Which platforms can I track?",
-        answer:
-          "You can record Glovo, Uber Eats, Wolt, Bolt Food, Stuart and an additional platform with your own name.",
-      },
-      {
-        question: "Do I need to connect my platform accounts?",
-        answer:
-          "No. You add shift information manually, so CourierDash does not need access to your delivery-platform accounts.",
-      },
-      {
-        question: "What data do I add?",
-        answer:
-          "A shift can include date, working hours, distance, platform income, orders, in-app and cash tips, and bonuses.",
-      },
-      {
-        question: "Can I work with several platforms?",
-        answer:
-          "Yes. You choose the active platforms for your workflow and can update that selection when your work changes.",
-      },
-      {
-        question: "Does CourierDash work on a phone?",
-        answer:
-          "Yes. CourierDash is a responsive web app that works in a mobile browser. A native mobile app is not being claimed here.",
-      },
-    ],
-  },
+    eyebrow: string;
+    title: string;
+    items: Array<{ question: string; answer: string }>;
+  };
   cta: {
-    title: "Stop guessing. Start understanding your work.",
-    description:
-      "Build a reliable picture of every shift, every platform and every month.",
-    primary: "Create account",
-    secondary: "Sign in",
-  },
+    title: string;
+    description: string;
+    primary: string;
+    secondary: string;
+  };
   footer: {
-    ariaLabel: "Footer navigation",
-    description:
-      "A focused dashboard for delivery couriers who want clearer work statistics.",
-    product: "Product",
-    features: "Features",
-    howItWorks: "How it works",
-    faq: "FAQ",
-    rights: "Built for delivery couriers.",
-  },
-} as const;
+    ariaLabel: string;
+    description: string;
+    product: string;
+    features: string;
+    howItWorks: string;
+    faq: string;
+    rights: string;
+  };
+};
 
-type WidenCopy<Value> = Value extends string
-  ? string
-  : Value extends readonly (infer Item)[]
-    ? readonly WidenCopy<Item>[]
-    : Value extends object
-      ? { [Key in keyof Value]: WidenCopy<Value[Key]> }
-      : Value;
-
-export type LandingV1Copy = WidenCopy<typeof en>;
-
-export const landingTranslations = {
-  en,
+export const landingTranslations: Record<LangType, LandingV2Copy> = {
   pl: {
-    skipToContent: "Przejdź do głównej treści",
-    nav: { ariaLabel: "Nawigacja strony głównej", features: "Funkcje", product: "Produkt", howItWorks: "Jak to działa", faq: "FAQ", signIn: "Zaloguj się", language: "Język" },
+    skipToContent: "Przejdź do treści",
+    nav: { ariaLabel: "Nawigacja główna", features: "Możliwości", product: "Produkt", howItWorks: "Jak to działa", faq: "FAQ", signIn: "Zaloguj się", language: "Język" },
     hero: {
-      badge: "Stworzone dla kurierów dostawczych",
-      title: "Wiedz, ile zarabiasz.",
-      titleAccent: "Ulepszaj każdą zmianę.",
-      description: "Śledź zarobki, godziny, zamówienia, dystans i efektywność ze wszystkich platform dostawczych w jednym przejrzystym miejscu.",
-      primary: "Rozpocznij",
-      secondary: "Zobacz, jak to działa",
-      platformsNote: "Zapisuj zmiany z Glovo, Uber Eats, Wolt, Bolt Food, Stuart i innych platform — ręcznie i na własnych zasadach.",
+      badge: "Twoja zmiana. Twoje liczby. Twoja przewaga.",
+      title: "Zamień każdą dostawę w",
+      titleAccent: "wyraźny postęp.",
+      description: "CourierDash porządkuje przychody, czas, zamówienia i kilometry z każdej platformy — w jednym czytelnym pulpicie dla kuriera.",
+      primary: "Zacznij teraz",
+      secondary: "Zobacz pulpit",
+      note: "Ręczne wprowadzanie danych. Bez łączenia kont platform kurierskich.",
+      floatingIncome: "+12,4% w tym miesiącu",
+      floatingEfficiency: "63,79 PLN / godz.",
     },
-    demo: { label: "Dashboard demonstracyjny", ariaLabel: "Demonstracyjny dashboard CourierDash z przykładowymi wynikami kuriera", period: "Ten miesiąc", income: "Łączny przychód", hours: "Godziny", orders: "Zamówienia", hourlyRate: "Na godzinę", distance: "Dystans", trend: "Efektywność zmian", currency: "PLN", hourUnit: "godz.", kmUnit: "km" },
+    demo: { label: "Dane demonstracyjne", ariaLabel: "Podgląd pulpitu CourierDash", period: "Lipiec 2026", income: "Przychód", hours: "Godziny", orders: "Zamówienia", hourlyRate: "Na godzinę", distance: "Dystans", currency: "PLN", hourUnit: "godz.", kmUnit: "km", shiftTrend: "Rytm zmian", platformMix: "Podział platform", onlineTips: "Napiwki online", cashTips: "Napiwki gotówką", bonuses: "Bonusy", active: "Aktywny widok" },
+    valueItems: ["Wszystkie platformy", "Przychód na godzinę", "Napiwki i bonusy", "Miesiąc i cały rok"],
     features: {
-      eyebrow: "Wszystko w zasięgu wzroku", title: "Liczby stojące za każdą zmianą", description: "Przejrzysty sposób pracy dla kurierów korzystających z jednej lub wielu platform.",
+      eyebrow: "Jedna trasa do lepszych decyzji",
+      title: "Wszystko, czego potrzebujesz po zmianie",
+      description: "Pięć prostych widoków łączy codzienne liczby z długoterminowym obrazem pracy.",
       cards: [
-        { title: "Zapisuj każdy zarobek", description: "Trzymaj przychód z platform, napiwki online i gotówkowe oraz bonusy razem, zachowując podział na platformy." },
-        { title: "Mierz efektywność", description: "Sprawdzaj czas pracy, zamówienia, dystans i zarobek na godzinę, aby każda zmiana miała właściwy kontekst." },
-        { title: "Zobacz szerszy obraz", description: "Analizuj statystyki miesięczne, podsumowania Annual Report, podział platform i własne rekordy." },
+        { title: "Pełny przychód", description: "Platformy, napiwki online i gotówką oraz bonusy pozostają osobno widoczne, ale sumują się w jednym miejscu." },
+        { title: "Realna efektywność", description: "Porównuj przychód na godzinę, liczbę zamówień i dystans — nie tylko końcową kwotę." },
+        { title: "Elastyczne platformy", description: "Wybieraj aktywne aplikacje, dodawaj własną platformę i zachowuj swój układ pracy." },
+        { title: "Raport roczny", description: "Zobacz miesiące, udziały platform i najlepsze wyniki bez przenoszenia danych do osobnych arkuszy." },
+        { title: "Garage", description: "Kontroluj przebieg, interwały serwisowe i historię napraw pojazdu używanego do pracy." },
       ],
     },
     product: {
-      eyebrow: "Wewnątrz CourierDash", title: "Jedno centrum dowodzenia dla pracy kuriera", description: "Przechodź od codziennych wpisów do długoterminowego obrazu bez oddzielnych arkuszy.",
-      stories: [
-        { title: "Dashboard pracy", description: "Dodawaj zmiany ręcznie i przeglądaj przychód, godziny, zamówienia, dystans, napiwki i bonusy w widoku miesiąca.", tag: "Codzienna kontrola" },
-        { title: "Podział na platformy", description: "Zachowaj osobne wyniki Glovo, Uber Eats, Wolt, Bolt Food, Stuart i własnych platform.", tag: "Wiele platform" },
-        { title: "Annual Report", description: "Poznaj roczne sumy, wyniki miesiąc po miesiącu, udział platform i najmocniejsze rezultaty.", tag: "Kontekst roczny" },
-        { title: "Garaż", description: "Śledź licznik, interwały serwisowe, naprawy i historię obsługi swojego pojazdu.", tag: "Dbanie o pojazd" },
+      eyebrow: "Pulpit w ruchu", title: "Jeden produkt, cztery perspektywy", description: "Przełącz widok i zobacz, jak CourierDash prowadzi od pojedynczej zmiany do pełnego obrazu roku.", tabListLabel: "Widoki produktu",
+      tabs: [
+        { label: "Praca", title: "Miesiąc pod kontrolą", description: "Zmiany, przychody, czas, zamówienia, dystans, napiwki i bonusy w jednym rytmie." },
+        { label: "Platformy", title: "Wynik każdej platformy", description: "Porównuj udział Glovo, Uber Eats, Wolt, Bolt Food, Stuart i własnych platform." },
+        { label: "Raport roczny", title: "Szerszy kontekst", description: "Obserwuj dynamikę miesięcy, rekordy i udział platform w całym roku." },
+        { label: "Garage", title: "Pojazd też pracuje", description: "Śledź przebieg, zużycie zasobów i historię obsługi bez dodatkowych notatek." },
       ],
-      previewLabels: { work: "Podsumowanie miesiąca", platforms: "Udział platform", annual: "Trend roczny", garage: "Stan pojazdu", active: "Aktywny widok", odometer: "Licznik", serviceInterval: "Interwał serwisowy", driveBelt: "Pasek napędowy", brakePads: "Klocki hamulcowe", engineOil: "Olej silnikowy" },
+      previewLabels: { work: "Przegląd miesiąca", platforms: "Udział platform", annual: "Raport roczny", garage: "Stan pojazdu", annualTrend: "Dynamika roku", odometer: "Przebieg", serviceInterval: "Interwał serwisowy", driveBelt: "Pasek napędowy", brakePads: "Klocki hamulcowe", engineOil: "Olej silnikowy" },
     },
     how: {
-      eyebrow: "Jak to działa", title: "Od zakończonej zmiany do użytecznej informacji",
+      eyebrow: "Prosty proces", title: "Od zakończonej zmiany do jasnego wniosku", description: "CourierDash nie pobiera danych z platform. To Ty zapisujesz wynik, a pulpit porządkuje go w czytelny kontekst.",
       steps: [
-        { title: "Utwórz konto", description: "Skonfiguruj przestrzeń kuriera i wybierz preferowany język." },
-        { title: "Dodawaj zmiany ręcznie", description: "Wpisuj właściwe platformy, przychód, godziny, zamówienia, dystans, napiwki i bonusy." },
-        { title: "Rozumiej statystyki", description: "Porównuj wyniki w czasie i sprawdzaj, które zmiany oraz platformy działają dla Ciebie najlepiej." },
+        { title: "Utwórz konto", description: "Wybierz język i przygotuj własną przestrzeń do śledzenia pracy." },
+        { title: "Dodaj zmianę", description: "Wpisz ręcznie platformy, przychód, czas, zamówienia, dystans, napiwki i bonusy." },
+        { title: "Porównuj wyniki", description: "Analizuj miesiące, platformy i wydajność, zachowując ciągłość historii." },
       ],
     },
-    platforms: { eyebrow: "Elastyczność w standardzie", title: "Twoje platformy razem", description: "CourierDash porządkuje wyniki wpisywane ręcznie i nie sugeruje połączenia z kontami platform.", other: "Inna" },
-    benefits: { eyebrow: "Stworzone dla przejrzystości", title: "Mniej zgadywania po zmianie", items: ["Przychód z każdej aktywnej platformy w jednym miejscu", "Przejrzyste porównanie wyników platform", "Czas pracy i zarobek na godzinę w kontekście", "Statystyki miesięczne i roczne bez rozproszonych plików", "Ciągła historia zamiast nowego arkusza na każdy okres", "Responsywne środowisko dostępne w przeglądarce telefonu"] },
-    faq: {
-      eyebrow: "FAQ", title: "Pytania przed pierwszym wpisem zmiany",
-      items: [
-        { question: "Czym jest CourierDash?", answer: "CourierDash to webowy dashboard dla kurierów dostawczych, którzy chcą zapisywać pracę i rozumieć zarobki, czas, zamówienia, dystans oraz efektywność." },
-        { question: "Które platformy mogę śledzić?", answer: "Możesz zapisywać Glovo, Uber Eats, Wolt, Bolt Food, Stuart oraz dodatkową platformę z własną nazwą." },
-        { question: "Czy muszę łączyć konta platform?", answer: "Nie. Informacje o zmianach dodajesz ręcznie, więc CourierDash nie potrzebuje dostępu do Twoich kont na platformach dostawczych." },
-        { question: "Jakie dane dodaję?", answer: "Zmiana może zawierać datę, czas pracy, dystans, przychód z platform, zamówienia, napiwki online i gotówkowe oraz bonusy." },
-        { question: "Czy mogę pracować z kilkoma platformami?", answer: "Tak. Wybierasz aktywne platformy i możesz zmieniać ten wybór wraz ze zmianą sposobu pracy." },
-        { question: "Czy CourierDash działa na telefonie?", answer: "Tak. CourierDash to responsywna aplikacja webowa działająca w przeglądarce telefonu. Nie deklarujemy tu natywnej aplikacji mobilnej." },
-      ],
-    },
-    cta: { title: "Przestań zgadywać. Zacznij rozumieć swoją pracę.", description: "Zbuduj wiarygodny obraz każdej zmiany, każdej platformy i każdego miesiąca.", primary: "Utwórz konto", secondary: "Zaloguj się" },
-    footer: { ariaLabel: "Nawigacja w stopce", description: "Przejrzysty dashboard dla kurierów, którzy chcą lepiej rozumieć swoje wyniki.", product: "Produkt", features: "Funkcje", howItWorks: "Jak to działa", faq: "FAQ", rights: "Stworzone dla kurierów dostawczych." },
+    platforms: { title: "Pracuj po swojemu", description: "Glovo, Uber Eats, Wolt, Bolt Food, Stuart oraz platforma z własną nazwą mogą działać obok siebie.", manualNote: "CourierDash nie jest połączony ani stowarzyszony z platformami dostawczymi. Dane dodajesz ręcznie.", other: "Inna" },
+    faq: { eyebrow: "FAQ", title: "Najczęstsze pytania przed pierwszą zmianą", items: [
+      { question: "Czym jest CourierDash?", answer: "To responsywny pulpit internetowy dla kurierów dostawczych, którzy chcą zapisywać pracę i rozumieć przychód, czas, zamówienia, dystans oraz efektywność." },
+      { question: "Jakie platformy mogę śledzić?", answer: "Glovo, Uber Eats, Wolt, Bolt Food, Stuart oraz dodatkową platformę z własną nazwą." },
+      { question: "Czy muszę łączyć konta platform?", answer: "Nie. Dane o zmianie wprowadzasz ręcznie, więc CourierDash nie potrzebuje dostępu do Twoich kont platform kurierskich." },
+      { question: "Jakie dane zapisuję?", answer: "Data, czas pracy, dystans, przychody z platform, zamówienia, napiwki online i gotówką oraz bonusy." },
+      { question: "Czy mogę pracować na wielu platformach?", answer: "Tak. Wybierasz aktywne platformy i możesz zmieniać ten zestaw razem ze swoim sposobem pracy." },
+      { question: "Czy CourierDash działa na telefonie?", answer: "Tak. To responsywna aplikacja internetowa przygotowana do mobilnej przeglądarki; nie deklarujemy tu natywnej aplikacji mobilnej." },
+    ] },
+    cta: { title: "Twoja praca już tworzy dane. Zacznij z nich korzystać.", description: "Zbuduj czytelny obraz każdej zmiany, platformy i miesiąca.", primary: "Utwórz konto", secondary: "Zaloguj się" },
+    footer: { ariaLabel: "Nawigacja w stopce", description: "Czytelny pulpit dla kurierów, którzy chcą lepiej rozumieć własne wyniki.", product: "Produkt", features: "Możliwości", howItWorks: "Jak to działa", faq: "FAQ", rights: "Stworzone dla kurierów dostawczych." },
   },
   uk: {
-    skipToContent: "Перейти до основного вмісту",
-    nav: { ariaLabel: "Навігація головної сторінки", features: "Можливості", product: "Продукт", howItWorks: "Як це працює", faq: "FAQ", signIn: "Увійти", language: "Мова" },
-    hero: {
-      badge: "Створено для кур'єрів доставки", title: "Знай, скільки заробляєш.", titleAccent: "Покращуй кожну зміну.",
-      description: "Відстежуй дохід, години, замовлення, відстань та ефективність з усіх платформ доставки в одному зосередженому просторі.",
-      primary: "Почати", secondary: "Подивитися, як це працює", platformsNote: "Записуй зміни з Glovo, Uber Eats, Wolt, Bolt Food, Stuart та інших платформ — вручну й на власних умовах.",
-    },
-    demo: { label: "Демонстраційний дашборд", ariaLabel: "Демонстраційний дашборд CourierDash із прикладом показників кур'єра", period: "Цей місяць", income: "Загальний дохід", hours: "Години", orders: "Замовлення", hourlyRate: "За годину", distance: "Відстань", trend: "Ефективність змін", currency: "PLN", hourUnit: "год", kmUnit: "км" },
-    features: {
-      eyebrow: "Усе перед очима", title: "Цифри за кожною зміною", description: "Зрозумілий робочий процес для кур'єрів однієї або кількох платформ.",
-      cards: [
-        { title: "Фіксуй кожен заробіток", description: "Тримай дохід з платформ, онлайн- і готівкові чайові та бонуси разом, не втрачаючи розбивку за платформами." },
-        { title: "Вимірюй ефективність", description: "Переглядай години роботи, замовлення, відстань і дохід за годину, щоб розуміти контекст кожної зміни." },
-        { title: "Бач ширшу картину", description: "Аналізуй місячну статистику, підсумки Annual Report, розбивку за платформами й особисті рекорди." },
-      ],
-    },
-    product: {
-      eyebrow: "Усередині CourierDash", title: "Єдиний командний центр роботи кур'єра", description: "Переходь від щоденних записів до довгострокового контексту без окремих таблиць.",
-      stories: [
-        { title: "Робочий дашборд", description: "Додавай зміни вручну й переглядай дохід, години, замовлення, відстань, чайові та бонуси в місячному огляді.", tag: "Щоденний контроль" },
-        { title: "Розбивка за платформами", description: "Зберігай результати Glovo, Uber Eats, Wolt, Bolt Food, Stuart та власних платформ окремо.", tag: "Кілька платформ" },
-        { title: "Annual Report", description: "Розумій річні підсумки, динаміку за місяцями, частки платформ і найсильніші результати.", tag: "Річний контекст" },
-        { title: "Гараж", description: "Відстежуй одометр, сервісні інтервали, ремонти й історію обслуговування транспорту.", tag: "Догляд за транспортом" },
-      ],
-      previewLabels: { work: "Огляд місяця", platforms: "Частки платформ", annual: "Річна динаміка", garage: "Стан транспорту", active: "Активний вигляд", odometer: "Одометр", serviceInterval: "Сервісний інтервал", driveBelt: "Привідний ремінь", brakePads: "Гальмівні колодки", engineOil: "Моторна олива" },
-    },
-    how: {
-      eyebrow: "Як це працює", title: "Від завершеної зміни до корисного висновку",
-      steps: [
-        { title: "Створи акаунт", description: "Налаштуй робочий простір кур'єра та вибери зручну мову." },
-        { title: "Додавай зміни вручну", description: "Внось платформи, дохід, години, замовлення, відстань, чайові та бонуси." },
-        { title: "Розумій статистику", description: "Порівнюй результати в часі й бач, які зміни та платформи працюють для тебе найкраще." },
-      ],
-    },
-    platforms: { eyebrow: "Гнучкість за задумом", title: "Твої платформи разом", description: "CourierDash упорядковує внесені вручну результати й не передбачає підключення до акаунтів платформ.", other: "Інша" },
-    benefits: { eyebrow: "Створено для ясності", title: "Менше здогадок після зміни", items: ["Дохід з усіх активних платформ в одному місці", "Зрозуміле порівняння результатів платформ", "Робочий час і дохід за годину в контексті", "Місячна й річна статистика без розрізнених файлів", "Безперервна історія замість нової таблиці на кожен період", "Адаптивний простір у мобільному браузері"] },
-    faq: {
-      eyebrow: "FAQ", title: "Запитання перед першим записом зміни",
-      items: [
-        { question: "Що таке CourierDash?", answer: "CourierDash — це вебдашборд для кур'єрів доставки, які хочуть фіксувати роботу й розуміти дохід, час, замовлення, відстань та ефективність." },
-        { question: "Які платформи можна відстежувати?", answer: "Можна записувати Glovo, Uber Eats, Wolt, Bolt Food, Stuart і додаткову платформу з власною назвою." },
-        { question: "Чи потрібно підключати акаунти платформ?", answer: "Ні. Дані про зміни додаються вручну, тому CourierDash не потребує доступу до твоїх акаунтів на платформах доставки." },
-        { question: "Які дані я додаю?", answer: "Зміна може містити дату, години роботи, відстань, дохід з платформ, замовлення, онлайн- і готівкові чайові та бонуси." },
-        { question: "Чи можна працювати з кількома платформами?", answer: "Так. Ти вибираєш активні платформи й можеш змінювати вибір разом зі своїм способом роботи." },
-        { question: "Чи працює CourierDash на телефоні?", answer: "Так. CourierDash — адаптивний вебзастосунок, що працює в мобільному браузері. Тут не заявляється про нативний мобільний застосунок." },
-      ],
-    },
-    cta: { title: "Досить здогадуватися. Почни розуміти свою роботу.", description: "Склади надійну картину кожної зміни, кожної платформи й кожного місяця.", primary: "Створити акаунт", secondary: "Увійти" },
-    footer: { ariaLabel: "Навігація у футері", description: "Зосереджений дашборд для кур'єрів, які хочуть краще розуміти свої показники.", product: "Продукт", features: "Можливості", howItWorks: "Як це працює", faq: "FAQ", rights: "Створено для кур'єрів доставки." },
+    skipToContent: "Перейти до вмісту",
+    nav: { ariaLabel: "Головна навігація", features: "Можливості", product: "Продукт", howItWorks: "Як це працює", faq: "FAQ", signIn: "Увійти", language: "Мова" },
+    hero: { badge: "Твоя зміна. Твої цифри. Твоя перевага.", title: "Перетвори кожну доставку на", titleAccent: "зрозумілий прогрес.", description: "CourierDash упорядковує дохід, час, замовлення й кілометри з кожної платформи — в одному зрозумілому дашборді для кур’єра.", primary: "Почати зараз", secondary: "Переглянути дашборд", note: "Ручне введення даних. Без підключення акаунтів платформ доставки.", floatingIncome: "+12,4% цього місяця", floatingEfficiency: "63,79 PLN / год" },
+    demo: { label: "Демонстраційні дані", ariaLabel: "Попередній перегляд дашборда CourierDash", period: "Липень 2026", income: "Дохід", hours: "Години", orders: "Замовлення", hourlyRate: "За годину", distance: "Відстань", currency: "PLN", hourUnit: "год", kmUnit: "км", shiftTrend: "Ритм змін", platformMix: "Розподіл платформ", onlineTips: "Чайові онлайн", cashTips: "Чайові готівкою", bonuses: "Бонуси", active: "Активний вигляд" },
+    valueItems: ["Усі платформи", "Дохід за годину", "Чайові й бонуси", "Місяць і весь рік"],
+    features: { eyebrow: "Один маршрут до кращих рішень", title: "Усе потрібне після зміни", description: "П’ять простих виглядів поєднують щоденні цифри з довгостроковою картиною роботи.", cards: [
+      { title: "Повний дохід", description: "Платформи, онлайн- і готівкові чайові та бонуси видно окремо, але вони складаються в одному місці." },
+      { title: "Реальна ефективність", description: "Порівнюй дохід за годину, кількість замовлень і відстань, а не лише підсумкову суму." },
+      { title: "Гнучкі платформи", description: "Обирай активні застосунки, додавай власну платформу та зберігай свій робочий набір." },
+      { title: "Річний звіт", description: "Переглядай місяці, частки платформ і найкращі результати без перенесення даних в окремі таблиці." },
+      { title: "Гараж", description: "Контролюй пробіг, сервісні інтервали та історію ремонтів робочого транспорту." },
+    ] },
+    product: { eyebrow: "Дашборд у русі", title: "Один продукт, чотири перспективи", description: "Перемикай вигляд і дивись, як CourierDash веде від окремої зміни до повної картини року.", tabListLabel: "Вигляди продукту", tabs: [
+      { label: "Робота", title: "Місяць під контролем", description: "Зміни, дохід, час, замовлення, відстань, чайові й бонуси в одному ритмі." },
+      { label: "Платформи", title: "Результат кожної платформи", description: "Порівнюй частку Glovo, Uber Eats, Wolt, Bolt Food, Stuart і власних платформ." },
+      { label: "Річний звіт", title: "Ширший контекст", description: "Спостерігай динаміку місяців, рекорди та частки платформ за весь рік." },
+      { label: "Гараж", title: "Транспорт теж працює", description: "Відстежуй пробіг, використання ресурсів та історію обслуговування без додаткових нотаток." },
+    ], previewLabels: { work: "Огляд місяця", platforms: "Частки платформ", annual: "Річний звіт", garage: "Стан транспорту", annualTrend: "Динаміка року", odometer: "Одометр", serviceInterval: "Сервісний інтервал", driveBelt: "Приводний ремінь", brakePads: "Гальмівні колодки", engineOil: "Моторна олива" } },
+    how: { eyebrow: "Простий процес", title: "Від завершеної зміни до чіткого висновку", description: "CourierDash не отримує дані з платформ. Ти записуєш результат, а дашборд перетворює його на зрозумілий контекст.", steps: [
+      { title: "Створи акаунт", description: "Обери мову та підготуй власний простір для обліку роботи." },
+      { title: "Додай зміну", description: "Внеси вручну платформи, дохід, час, замовлення, відстань, чайові й бонуси." },
+      { title: "Порівнюй результати", description: "Аналізуй місяці, платформи й ефективність, зберігаючи безперервну історію." },
+    ] },
+    platforms: { title: "Працюй по-своєму", description: "Glovo, Uber Eats, Wolt, Bolt Food, Stuart і платформа з власною назвою можуть працювати поруч.", manualNote: "CourierDash не підключений і не пов’язаний із платформами доставки. Дані вводяться вручну.", other: "Інша" },
+    faq: { eyebrow: "FAQ", title: "Поширені запитання перед першою зміною", items: [
+      { question: "Що таке CourierDash?", answer: "Це адаптивний вебдашборд для кур’єрів доставки, які хочуть записувати роботу й розуміти дохід, час, замовлення, відстань та ефективність." },
+      { question: "Які платформи можна відстежувати?", answer: "Glovo, Uber Eats, Wolt, Bolt Food, Stuart і додаткову платформу з власною назвою." },
+      { question: "Чи треба підключати акаунти платформ?", answer: "Ні. Дані про зміну вводяться вручну, тому CourierDash не потрібен доступ до твоїх акаунтів на платформах доставки." },
+      { question: "Які дані я додаю?", answer: "Дату, робочий час, відстань, дохід із платформ, замовлення, онлайн- і готівкові чайові та бонуси." },
+      { question: "Чи можна працювати з кількома платформами?", answer: "Так. Ти обираєш активні платформи й можеш змінювати цей набір разом зі своїм способом роботи." },
+      { question: "Чи працює CourierDash на телефоні?", answer: "Так. Це адаптивний вебзастосунок для мобільного браузера; тут не заявляється нативний мобільний застосунок." },
+    ] },
+    cta: { title: "Твоя робота вже створює дані. Почни їх використовувати.", description: "Побудуй зрозумілу картину кожної зміни, платформи й місяця.", primary: "Створити акаунт", secondary: "Увійти" },
+    footer: { ariaLabel: "Навігація в підвалі", description: "Зрозумілий дашборд для кур’єрів, які хочуть краще бачити власні показники.", product: "Продукт", features: "Можливості", howItWorks: "Як це працює", faq: "FAQ", rights: "Створено для кур’єрів доставки." },
+  },
+  en: {
+    skipToContent: "Skip to content",
+    nav: { ariaLabel: "Main navigation", features: "Features", product: "Product", howItWorks: "How it works", faq: "FAQ", signIn: "Sign in", language: "Language" },
+    hero: { badge: "Your shift. Your numbers. Your advantage.", title: "Turn every delivery into", titleAccent: "clear progress.", description: "CourierDash brings earnings, hours, orders, and distance from every platform into one clear workspace built for couriers.", primary: "Get started", secondary: "Explore dashboard", note: "Manual data entry. No delivery-platform account connections.", floatingIncome: "+12.4% this month", floatingEfficiency: "63.79 PLN / hour" },
+    demo: { label: "Demo data", ariaLabel: "CourierDash dashboard preview", period: "July 2026", income: "Earnings", hours: "Hours", orders: "Orders", hourlyRate: "Per hour", distance: "Distance", currency: "PLN", hourUnit: "h", kmUnit: "km", shiftTrend: "Shift rhythm", platformMix: "Platform breakdown", onlineTips: "In-app tips", cashTips: "Cash tips", bonuses: "Bonuses", active: "Active view" },
+    valueItems: ["Every platform", "Hourly earnings", "Tips and bonuses", "Month and year"],
+    features: { eyebrow: "One route to better decisions", title: "Everything you need after a shift", description: "Five focused views connect your daily numbers with the long-term picture of your work.", cards: [
+      { title: "Complete earnings", description: "Platform income, in-app and cash tips, and bonuses stay visible separately while adding up in one place." },
+      { title: "Real efficiency", description: "Compare hourly earnings, order volume, and distance instead of looking only at the final total." },
+      { title: "Flexible platforms", description: "Choose active apps, add a custom platform, and keep a setup that matches the way you work." },
+      { title: "Annual Report", description: "Review months, platform shares, and best results without moving data into separate spreadsheets." },
+      { title: "Garage", description: "Track mileage, service intervals, and repair history for the vehicle that keeps you moving." },
+    ] },
+    product: { eyebrow: "A dashboard in motion", title: "One product, four perspectives", description: "Switch the view and see how CourierDash connects a single shift with the wider story of your year.", tabListLabel: "Product views", tabs: [
+      { label: "Work", title: "Keep the month in view", description: "Shifts, earnings, time, orders, distance, tips, and bonuses in one working rhythm." },
+      { label: "Platforms", title: "See every platform’s result", description: "Compare Glovo, Uber Eats, Wolt, Bolt Food, Stuart, and your own custom platforms." },
+      { label: "Annual Report", title: "See the wider context", description: "Follow monthly momentum, records, and platform shares across the whole year." },
+      { label: "Garage", title: "Your vehicle works too", description: "Track mileage, resource use, and maintenance history without a separate notebook." },
+    ], previewLabels: { work: "Monthly overview", platforms: "Platform share", annual: "Annual Report", garage: "Vehicle status", annualTrend: "Yearly trend", odometer: "Odometer", serviceInterval: "Service interval", driveBelt: "Drive belt", brakePads: "Brake pads", engineOil: "Engine oil" } },
+    how: { eyebrow: "A simple process", title: "From a finished shift to a useful decision", description: "CourierDash does not fetch data from delivery platforms. You record the result; the dashboard turns it into clear context.", steps: [
+      { title: "Create an account", description: "Choose your language and set up a personal workspace for tracking your work." },
+      { title: "Add a shift", description: "Enter platforms, earnings, time, orders, distance, tips, and bonuses manually." },
+      { title: "Compare results", description: "Review months, platforms, and efficiency while keeping one continuous history." },
+    ] },
+    platforms: { title: "Work your way", description: "Glovo, Uber Eats, Wolt, Bolt Food, Stuart, and a platform with your own name can all sit side by side.", manualNote: "CourierDash is not connected to or affiliated with delivery platforms. You enter your data manually.", other: "Other" },
+    faq: { eyebrow: "FAQ", title: "Common questions before your first shift entry", items: [
+      { question: "What is CourierDash?", answer: "It is a responsive web dashboard for delivery couriers who want to record work and understand earnings, time, orders, distance, and efficiency." },
+      { question: "Which platforms can I track?", answer: "You can record Glovo, Uber Eats, Wolt, Bolt Food, Stuart, and an additional platform with your own name." },
+      { question: "Do I need to connect platform accounts?", answer: "No. You enter shift data manually, so CourierDash does not need access to your delivery-platform accounts." },
+      { question: "What data do I add?", answer: "A shift can include its date, working time, distance, platform earnings, orders, in-app and cash tips, and bonuses." },
+      { question: "Can I work with several platforms?", answer: "Yes. You choose active platforms and can adjust that selection as the way you work changes." },
+      { question: "Does CourierDash work on a phone?", answer: "Yes. CourierDash is a responsive web app designed for a mobile browser; this page does not claim a native mobile app." },
+    ] },
+    cta: { title: "Your work already creates data. Start using it.", description: "Build a clear picture of every shift, platform, and month.", primary: "Create account", secondary: "Sign in" },
+    footer: { ariaLabel: "Footer navigation", description: "A clear dashboard for couriers who want to understand their own numbers.", product: "Product", features: "Features", howItWorks: "How it works", faq: "FAQ", rights: "Built for delivery couriers." },
   },
   ru: {
-    skipToContent: "Перейти к основному содержанию",
-    nav: { ariaLabel: "Навигация главной страницы", features: "Возможности", product: "Продукт", howItWorks: "Как это работает", faq: "FAQ", signIn: "Войти", language: "Язык" },
-    hero: {
-      badge: "Создано для курьеров доставки", title: "Знай, сколько зарабатываешь.", titleAccent: "Улучшай каждую смену.",
-      description: "Отслеживай доход, часы, заказы, расстояние и эффективность со всех платформ доставки в одном удобном пространстве.",
-      primary: "Начать", secondary: "Посмотреть, как это работает", platformsNote: "Записывай смены из Glovo, Uber Eats, Wolt, Bolt Food, Stuart и других платформ — вручную и на своих условиях.",
-    },
-    demo: { label: "Демонстрационный дашборд", ariaLabel: "Демонстрационный дашборд CourierDash с примером показателей курьера", period: "Этот месяц", income: "Общий доход", hours: "Часы", orders: "Заказы", hourlyRate: "В час", distance: "Расстояние", trend: "Эффективность смен", currency: "PLN", hourUnit: "ч", kmUnit: "км" },
-    features: {
-      eyebrow: "Всё перед глазами", title: "Цифры за каждой сменой", description: "Понятный рабочий процесс для курьеров одной или нескольких платформ.",
-      cards: [
-        { title: "Учитывай каждый заработок", description: "Храни доход с платформ, онлайн- и наличные чаевые, а также бонусы вместе, сохраняя разбивку по платформам." },
-        { title: "Измеряй эффективность", description: "Смотри часы работы, заказы, расстояние и доход в час, чтобы понимать контекст каждой смены." },
-        { title: "Видь общую картину", description: "Анализируй месячную статистику, итоги Annual Report, разбивку по платформам и личные рекорды." },
-      ],
-    },
-    product: {
-      eyebrow: "Внутри CourierDash", title: "Единый командный центр работы курьера", description: "Переходи от ежедневных записей к долгосрочному контексту без отдельных таблиц.",
-      stories: [
-        { title: "Рабочий дашборд", description: "Добавляй смены вручную и смотри доход, часы, заказы, расстояние, чаевые и бонусы в месячном обзоре.", tag: "Ежедневный контроль" },
-        { title: "Разбивка по платформам", description: "Храни результаты Glovo, Uber Eats, Wolt, Bolt Food, Stuart и собственных платформ отдельно.", tag: "Несколько платформ" },
-        { title: "Annual Report", description: "Понимай годовые итоги, динамику по месяцам, доли платформ и лучшие результаты.", tag: "Годовой контекст" },
-        { title: "Гараж", description: "Отслеживай одометр, сервисные интервалы, ремонты и историю обслуживания транспорта.", tag: "Уход за транспортом" },
-      ],
-      previewLabels: { work: "Обзор месяца", platforms: "Доли платформ", annual: "Годовая динамика", garage: "Состояние транспорта", active: "Активный вид", odometer: "Одометр", serviceInterval: "Сервисный интервал", driveBelt: "Приводной ремень", brakePads: "Тормозные колодки", engineOil: "Моторное масло" },
-    },
-    how: {
-      eyebrow: "Как это работает", title: "От завершённой смены к полезному выводу",
-      steps: [
-        { title: "Создай аккаунт", description: "Настрой пространство курьера и выбери удобный язык." },
-        { title: "Добавляй смены вручную", description: "Вноси платформы, доход, часы, заказы, расстояние, чаевые и бонусы." },
-        { title: "Понимай статистику", description: "Сравнивай результаты со временем и смотри, какие смены и платформы работают для тебя лучше." },
-      ],
-    },
-    platforms: { eyebrow: "Гибкость по замыслу", title: "Твои платформы вместе", description: "CourierDash упорядочивает введённые вручную результаты и не подразумевает подключения к аккаунтам платформ.", other: "Другая" },
-    benefits: { eyebrow: "Создано для ясности", title: "Меньше догадок после смены", items: ["Доход со всех активных платформ в одном месте", "Понятное сравнение результатов платформ", "Рабочее время и доход в час в контексте", "Месячная и годовая статистика без разрозненных файлов", "Непрерывная история вместо новой таблицы на каждый период", "Адаптивное рабочее пространство в мобильном браузере"] },
-    faq: {
-      eyebrow: "FAQ", title: "Вопросы перед первой записью смены",
-      items: [
-        { question: "Что такое CourierDash?", answer: "CourierDash — это веб-дашборд для курьеров доставки, которые хотят учитывать работу и понимать доход, время, заказы, расстояние и эффективность." },
-        { question: "Какие платформы можно отслеживать?", answer: "Можно записывать Glovo, Uber Eats, Wolt, Bolt Food, Stuart и дополнительную платформу со своим названием." },
-        { question: "Нужно ли подключать аккаунты платформ?", answer: "Нет. Данные о сменах добавляются вручную, поэтому CourierDash не нужен доступ к твоим аккаунтам на платформах доставки." },
-        { question: "Какие данные я добавляю?", answer: "Смена может включать дату, часы работы, расстояние, доход с платформ, заказы, онлайн- и наличные чаевые, а также бонусы." },
-        { question: "Можно ли работать с несколькими платформами?", answer: "Да. Ты выбираешь активные платформы и можешь менять этот выбор вместе со своим способом работы." },
-        { question: "Работает ли CourierDash на телефоне?", answer: "Да. CourierDash — адаптивное веб-приложение для мобильного браузера. Здесь не заявляется о нативном мобильном приложении." },
-      ],
-    },
-    cta: { title: "Хватит гадать. Начни понимать свою работу.", description: "Составь надёжную картину каждой смены, каждой платформы и каждого месяца.", primary: "Создать аккаунт", secondary: "Войти" },
-    footer: { ariaLabel: "Навигация в подвале", description: "Понятный дашборд для курьеров, которые хотят лучше понимать свои показатели.", product: "Продукт", features: "Возможности", howItWorks: "Как это работает", faq: "FAQ", rights: "Создано для курьеров доставки." },
+    skipToContent: "Перейти к содержимому",
+    nav: { ariaLabel: "Главная навигация", features: "Возможности", product: "Продукт", howItWorks: "Как это работает", faq: "FAQ", signIn: "Войти", language: "Язык" },
+    hero: { badge: "Твоя смена. Твои цифры. Твоё преимущество.", title: "Преврати каждую доставку в", titleAccent: "понятный прогресс.", description: "CourierDash собирает доход, время, заказы и километры с каждой платформы в одном понятном рабочем пространстве для курьера.", primary: "Начать", secondary: "Посмотреть дашборд", note: "Ручной ввод данных. Без подключения аккаунтов платформ доставки.", floatingIncome: "+12,4% в этом месяце", floatingEfficiency: "63,79 PLN / ч" },
+    demo: { label: "Демонстрационные данные", ariaLabel: "Предпросмотр дашборда CourierDash", period: "Июль 2026", income: "Доход", hours: "Часы", orders: "Заказы", hourlyRate: "В час", distance: "Расстояние", currency: "PLN", hourUnit: "ч", kmUnit: "км", shiftTrend: "Ритм смен", platformMix: "Распределение платформ", onlineTips: "Чаевые онлайн", cashTips: "Чаевые наличными", bonuses: "Бонусы", active: "Активный вид" },
+    valueItems: ["Все платформы", "Доход в час", "Чаевые и бонусы", "Месяц и весь год"],
+    features: { eyebrow: "Один маршрут к лучшим решениям", title: "Всё необходимое после смены", description: "Пять понятных видов связывают ежедневные цифры с долгосрочной картиной работы.", cards: [
+      { title: "Полный доход", description: "Доход с платформ, онлайн- и наличные чаевые и бонусы видны отдельно, но складываются в одном месте." },
+      { title: "Реальная эффективность", description: "Сравнивай доход в час, количество заказов и расстояние, а не только итоговую сумму." },
+      { title: "Гибкие платформы", description: "Выбирай активные приложения, добавляй свою платформу и сохраняй удобный рабочий набор." },
+      { title: "Годовой отчёт", description: "Просматривай месяцы, доли платформ и лучшие результаты без переноса данных в отдельные таблицы." },
+      { title: "Гараж", description: "Контролируй пробег, сервисные интервалы и историю ремонтов рабочего транспорта." },
+    ] },
+    product: { eyebrow: "Дашборд в движении", title: "Один продукт, четыре перспективы", description: "Переключай вид и смотри, как CourierDash связывает отдельную смену с полной картиной года.", tabListLabel: "Виды продукта", tabs: [
+      { label: "Работа", title: "Месяц под контролем", description: "Смены, доход, время, заказы, расстояние, чаевые и бонусы в одном рабочем ритме." },
+      { label: "Платформы", title: "Результат каждой платформы", description: "Сравнивай долю Glovo, Uber Eats, Wolt, Bolt Food, Stuart и собственных платформ." },
+      { label: "Годовой отчёт", title: "Более широкий контекст", description: "Отслеживай динамику месяцев, рекорды и доли платформ за весь год." },
+      { label: "Гараж", title: "Транспорт тоже работает", description: "Следи за пробегом, использованием ресурсов и историей обслуживания без отдельных записей." },
+    ], previewLabels: { work: "Обзор месяца", platforms: "Доли платформ", annual: "Годовой отчёт", garage: "Состояние транспорта", annualTrend: "Динамика года", odometer: "Одометр", serviceInterval: "Сервисный интервал", driveBelt: "Приводной ремень", brakePads: "Тормозные колодки", engineOil: "Моторное масло" } },
+    how: { eyebrow: "Простой процесс", title: "От завершённой смены к полезному выводу", description: "CourierDash не получает данные с платформ. Ты записываешь результат, а дашборд превращает его в понятный контекст.", steps: [
+      { title: "Создай аккаунт", description: "Выбери язык и подготовь личное пространство для учёта работы." },
+      { title: "Добавь смену", description: "Внеси вручную платформы, доход, время, заказы, расстояние, чаевые и бонусы." },
+      { title: "Сравнивай результаты", description: "Анализируй месяцы, платформы и эффективность, сохраняя непрерывную историю." },
+    ] },
+    platforms: { title: "Работай по-своему", description: "Glovo, Uber Eats, Wolt, Bolt Food, Stuart и платформа с собственным названием могут работать рядом.", manualNote: "CourierDash не подключён и не связан с платформами доставки. Данные вводятся вручную.", other: "Другая" },
+    faq: { eyebrow: "FAQ", title: "Частые вопросы перед первой записью смены", items: [
+      { question: "Что такое CourierDash?", answer: "Это адаптивный веб-дашборд для курьеров доставки, которые хотят записывать работу и понимать доход, время, заказы, расстояние и эффективность." },
+      { question: "Какие платформы можно отслеживать?", answer: "Glovo, Uber Eats, Wolt, Bolt Food, Stuart и дополнительную платформу с собственным названием." },
+      { question: "Нужно ли подключать аккаунты платформ?", answer: "Нет. Данные о смене вводятся вручную, поэтому CourierDash не нужен доступ к твоим аккаунтам на платформах доставки." },
+      { question: "Какие данные я добавляю?", answer: "Дату, рабочее время, расстояние, доход с платформ, заказы, онлайн- и наличные чаевые и бонусы." },
+      { question: "Можно работать с несколькими платформами?", answer: "Да. Ты выбираешь активные платформы и можешь менять этот набор вместе со своим способом работы." },
+      { question: "CourierDash работает на телефоне?", answer: "Да. Это адаптивное веб-приложение для мобильного браузера; здесь не заявляется нативное мобильное приложение." },
+    ] },
+    cta: { title: "Твоя работа уже создаёт данные. Начни их использовать.", description: "Собери понятную картину каждой смены, платформы и месяца.", primary: "Создать аккаунт", secondary: "Войти" },
+    footer: { ariaLabel: "Навигация в подвале", description: "Понятный дашборд для курьеров, которые хотят лучше видеть собственные показатели.", product: "Продукт", features: "Возможности", howItWorks: "Как это работает", faq: "FAQ", rights: "Создано для курьеров доставки." },
   },
-} satisfies Record<LangType, LandingV1Copy>;
+};
