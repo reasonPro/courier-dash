@@ -10,11 +10,11 @@ const APP_URL = "https://courier-dash-gamma.vercel.app";
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: "CourierDash — Smart dashboard for couriers",
+    default: "CourierDash — Dashboard for Delivery Couriers",
     template: "%s | CourierDash",
   },
   description:
-    "The ultimate professional tool for couriers and delivery drivers. Track your real net income, analyze statistics, plan taxes, and manage vehicle depreciation all in one place.",
+    "Track earnings, working hours, orders, distance and performance across your delivery platforms in one clear dashboard.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -22,9 +22,9 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
   },
   openGraph: {
-    title: "CourierDash — Smart dashboard for couriers",
+    title: "CourierDash — Dashboard for Delivery Couriers",
     description:
-      "The ultimate professional tool for couriers and delivery drivers. Track your real net income, analyze statistics, plan taxes, and manage vehicle depreciation all in one place.",
+      "Track earnings, working hours, orders, distance and performance across your delivery platforms in one clear dashboard.",
     url: APP_URL,
     siteName: "CourierDash",
     locale: "en_US",
@@ -34,15 +34,15 @@ export const metadata: Metadata = {
         url: `${APP_URL}/opengraph-image.png`, // Оце робить магію (абсолютний шлях)
         width: 1200,
         height: 630,
-        alt: "CourierDash — Manage your income like a true pro",
+        alt: "CourierDash dashboard for delivery couriers",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "CourierDash — Smart dashboard for couriers",
+    title: "CourierDash — Dashboard for Delivery Couriers",
     description:
-      "The ultimate professional tool for couriers and delivery drivers. Track your real net income, analyze statistics, plan taxes, and manage vehicle depreciation all in one place.",
+      "Track earnings, working hours, orders, distance and performance across your delivery platforms in one clear dashboard.",
     images: [`${APP_URL}/opengraph-image.png`], // І тут теж
   },
 };
@@ -60,7 +60,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pl">
+    <html lang="en">
       <body className={inter.className}>
         <LanguageProvider>{children}</LanguageProvider>
       </body>

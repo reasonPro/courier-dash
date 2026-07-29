@@ -9,18 +9,19 @@
 - локалізації Garage;
 - продуктового аудиту власника CourierDash;
 - read-only технічного аудиту архітектури;
-- read-only аудиту майбутньої системи витрат і оренди транспорту.
+- read-only аудиту майбутньої системи витрат і оренди транспорту;
+- реалізації нової public Landing Page V1 у стилі Courier Command Center.
 
 ## Поточний стабільний baseline
 
-- Commit: `20be974d196c5b15bd07f5ac8f0ebc7d26072d43`.
-- Branch: `main`.
+- Базовий commit feature-гілки Landing Page V1: `fb4239ccc2b5a88af17bb6047c0a76037b9570d0`.
+- Branch реалізації: `feat/landing-page-v1`.
 - Lint: 0 errors, 0 warnings.
 - Typecheck проходить.
-- 3 тестові файли.
-- 34 автоматичні тести.
+- 7 тестових файлів.
+- 71 автоматичний тест.
 - Production build проходить.
-- Production стабільний.
+- Production-стан Landing Page V1 ще не перевірявся.
 - PL, UK, EN і RU підтримуються на основних локалізованих сторінках.
 
 ## Принцип роботи
@@ -245,7 +246,9 @@ Scope:
 
 # PHASE 3 — сучасна Landing Page
 
-Статус фази: `REQUIRES DESIGN`.
+Статус фази: `COMPLETED`.
+
+Власник продукту свідомо поставив Landing Page V1 перед PHASE 2.3. Реалізацію завершено локально в окремій feature-гілці; production verification має виконуватися лише після review, merge і автоматичного deployment.
 
 ## 3.1. Продуктова структура
 
@@ -254,7 +257,7 @@ Landing Page повинна виконувати дві головні функ�
 1. Новий відвідувач одразу розуміє, що таке CourierDash.
 2. У нього виникає бажання зареєструватися.
 
-Потрібні:
+Реалізовано:
 
 - сильний Hero-блок;
 - зрозуміле пояснення продукту;
@@ -263,39 +266,32 @@ Landing Page повинна виконувати дві головні функ�
 - демонстрація dashboard;
 - Annual Report;
 - Garage;
-- майбутня персоналізація й витрати;
 - FAQ;
 - CTA;
 - footer;
-- якісний mobile layout.
+- адаптивний mobile, tablet і desktop layout;
+- локалізація PL, UK, EN і RU;
+- browser-language detection із fallback на EN та пріоритетом збереженого ручного вибору;
+- доступні reveal/count/parallax ефекти з підтримкою `prefers-reduced-motion`.
 
-## 3.2. Візуальні концепції
+## 3.2. Погоджена візуальна концепція
 
-До реалізації потрібно підготувати 2–3 концепції:
-
-- desktop;
-- mobile;
-- структура;
-- стиль;
-- анімації;
-- композиція;
-- screenshots або mockups;
-- reduced-motion behavior;
-- performance considerations;
-- accessibility.
-
-Остаточний дизайн не вибирається Codex самостійно.
+- Концепція: `Courier Command Center`.
+- Аудиторія: індивідуальні delivery couriers, а не fleets, компанії чи platform partners.
+- Стиль: premium dark productivity/fintech interface із синіми, фіолетовими, magenta та green accents.
+- Product mockups створені локальним HTML/CSS/inline SVG і чітко позначені як demo.
+- Heavy animation dependencies, stock photos, testimonials і непідтверджені product claims не використовуються.
+- Motion реалізовано через CSS, `IntersectionObserver` і `requestAnimationFrame`; reduced-motion вимикає декоративне переміщення.
+- Основний Landing UI винесено в компоненти <code>app/components/landing/</code>.
 
 ## 3.3. Погоджена route behavior
 
 - Неавторизований користувач відкриває `/` і бачить Landing Page.
 - Авторизований користувач при звичайному відкритті CourierDash автоматично потрапляє на `/work`.
 - Після login/register користувач переходить на `/work`.
-- У dashboard буде кнопка переходу на `/about`.
-- `/about` використовує той самий основний Landing content.
-- На `/about` авторизований користувач не бачить кнопок login/register.
-- Замість них він бачить кнопку «Відкрити dashboard».
-- Потрібно уникнути дублювання великої кількості JSX через shared Landing component.
+- Головні CTA відкривають наявний register modal; Sign in відкриває наявний login modal.
+- Password recovery routes і protected-route policy не змінюються.
+- Route `/about` не входить до Landing Page V1 і не створювався.
 
 # PHASE 4 — інформаційна архітектура dashboard
 
@@ -977,7 +973,6 @@ Annual Report повинен підтримувати:
 
 Ці питання не вирішуються в межах roadmap. Вони мають бути погоджені перед відповідними фазами:
 
-- фінальний дизайн Landing Page;
 - точна інформаційна архітектура dashboard;
 - точний спосіб показу двох показників expenses per km;
 - UX залежностей input fields і visible metrics;
