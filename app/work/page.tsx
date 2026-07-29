@@ -7,6 +7,7 @@ import { supabase } from "../../lib/supabase";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../../context/LanguageContext";
 import { calculateWorkedHours } from "../../lib/work-hours";
+import { AUTH_ROUTES, checkAuthRoute } from "../../lib/auth-route-policy";
 import {
   PLATFORM_KEYS,
   PLATFORM_LABELS,
@@ -186,28 +187,43 @@ export default function WorkDashboard() {
   };
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push("/");
-      } else {
-        const savedPreference = parsePlatformPreference(
-          localStorage.getItem(getPlatformPreferenceKey(session.user.id)),
-        );
-        const initialPlatforms = savedPreference?.platforms ?? FIRST_RUN_PLATFORMS;
-        const initialOtherPlatformName = savedPreference?.otherPlatformName ?? "";
+    let isActive = true;
 
-        setUserId(session.user.id);
-        setPreferredPlatforms([...initialPlatforms]);
-        setPreferredOtherPlatformName(initialOtherPlatformName);
-        setActivePlatforms([...initialPlatforms]);
-        setOtherPlatformName(initialOtherPlatformName);
-        fetchShifts(session.user.id);
-        checkNickname(session.user);
-        fetchTaxSettings(session.user.id);
+    const checkUser = async () => {
+      const { redirectTo, user } = await checkAuthRoute("protected", () =>
+        supabase.auth.getSession(),
+      );
+
+      if (!isActive) return;
+
+      if (redirectTo) {
+        router.replace(redirectTo);
+        return;
       }
+
+      if (!user) return;
+
+      const savedPreference = parsePlatformPreference(
+        localStorage.getItem(getPlatformPreferenceKey(user.id)),
+      );
+      const initialPlatforms = savedPreference?.platforms ?? FIRST_RUN_PLATFORMS;
+      const initialOtherPlatformName = savedPreference?.otherPlatformName ?? "";
+
+      setUserId(user.id);
+      setPreferredPlatforms([...initialPlatforms]);
+      setPreferredOtherPlatformName(initialOtherPlatformName);
+      setActivePlatforms([...initialPlatforms]);
+      setOtherPlatformName(initialOtherPlatformName);
+      fetchShifts(user.id);
+      checkNickname(user);
+      fetchTaxSettings(user.id);
     };
+
     checkUser();
+
+    return () => {
+      isActive = false;
+    };
   }, [router]);
 
   const saveTaxSettings = async () => {
@@ -259,7 +275,7 @@ export default function WorkDashboard() {
     setIsLoading(true);
     await supabase.auth.signOut();
     localStorage.removeItem("supabase.auth.token"); 
-    router.push("/");
+    router.replace(AUTH_ROUTES.home);
   };
 
   const handleEarningChange = (platform: PlatformKey, value: string) => setEarnings((prev) => ({ ...prev, [platform]: value }));

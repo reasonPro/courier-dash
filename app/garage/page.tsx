@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../../context/LanguageContext";
+import { checkAuthRoute } from "../../lib/auth-route-policy";
 
 type GarageRule = {
   id: number;
@@ -77,16 +78,31 @@ export default function GarageDashboard() {
   };
 
   useEffect(() => {
+    let isActive = true;
+
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push("/login");
-      } else {
-        setUserId(session.user.id);
-        fetchData(session.user.id);
+      const { redirectTo, user } = await checkAuthRoute("protected", () =>
+        supabase.auth.getSession(),
+      );
+
+      if (!isActive) return;
+
+      if (redirectTo) {
+        router.replace(redirectTo);
+        return;
       }
+
+      if (!user) return;
+
+      setUserId(user.id);
+      fetchData(user.id);
     };
+
     checkUser();
+
+    return () => {
+      isActive = false;
+    };
   }, [router]);
 
   const handleOdometerChange = (val: string) => {

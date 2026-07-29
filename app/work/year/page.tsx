@@ -9,6 +9,7 @@ import { supabase } from "../../../lib/supabase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../../../context/LanguageContext";
+import { checkAuthRoute } from "../../../lib/auth-route-policy";
 import type { PlatformKey } from "../../../lib/work-platforms";
 import {
   aggregateAnnualShifts,
@@ -74,16 +75,31 @@ export default function YearReport() {
   };
 
   useEffect(() => {
+    let isActive = true;
+
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push("/");
-      } else {
-        setUserId(session.user.id);
-        fetchYearShifts(session.user.id);
+      const { redirectTo, user } = await checkAuthRoute("protected", () =>
+        supabase.auth.getSession(),
+      );
+
+      if (!isActive) return;
+
+      if (redirectTo) {
+        router.replace(redirectTo);
+        return;
       }
+
+      if (!user) return;
+
+      setUserId(user.id);
+      fetchYearShifts(user.id);
     };
+
     checkUser();
+
+    return () => {
+      isActive = false;
+    };
   }, [router]);
 
   if (!userId) return <div className="min-h-screen bg-[#121212] text-white flex items-center justify-center">{t.common.loading}</div>;

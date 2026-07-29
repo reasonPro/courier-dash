@@ -1,16 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { useRouter } from "next/navigation";
+import { AUTH_ROUTES, checkAuthRoute } from "../../lib/auth-route-policy";
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const router = useRouter();
+
+  useEffect(() => {
+    let isActive = true;
+
+    const checkActiveSession = async () => {
+      const { redirectTo } = await checkAuthRoute("login", () =>
+        supabase.auth.getSession(),
+      );
+
+      if (!isActive) return;
+
+      if (redirectTo) {
+        router.replace(redirectTo);
+      } else {
+        setIsCheckingSession(false);
+      }
+    };
+
+    checkActiveSession();
+
+    return () => {
+      isActive = false;
+    };
+  }, [router]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,14 +50,15 @@ export default function LoginPage() {
         password,
       });
       if (error) setErrorMsg("Помилка входу: перевір email та пароль.");
-      else router.push("/work");
+      else router.replace(AUTH_ROUTES.dashboard);
     } else {
       // Логіка реєстрації
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
       });
       if (error) setErrorMsg("Помилка реєстрації: " + error.message);
+      else if (data.session) router.replace(AUTH_ROUTES.dashboard);
       else {
         alert("Реєстрація успішна! Тепер ти можеш увійти.");
         setIsLogin(true);
@@ -39,6 +66,10 @@ export default function LoginPage() {
     }
     setIsLoading(false);
   };
+
+  if (isCheckingSession) {
+    return <div className="min-h-screen bg-[#121212]" />;
+  }
 
   return (
     <div className="min-h-screen bg-[#121212] flex items-center justify-center p-4">
