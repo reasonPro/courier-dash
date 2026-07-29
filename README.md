@@ -1,46 +1,114 @@
-# 🏍️ CourierDash
+# CourierDash
 
-**CourierDash** is the ultimate professional dashboard designed specifically for gig economy couriers working with platforms like Uber, Wolt, Bolt, and Glovo. It allows you to effortlessly track shifts, analyze real net earnings, manage partner fleet taxes, and monitor performance metrics like a pro.
+## Що це за проєкт
 
----
+CourierDash — web-застосунок для кур’єрів: облік робочих змін і доходів, статистика та технічна історія транспорту. Цей repository містить лише CourierDash Web.
 
-## ✨ Key Features
+CourierDash Mobile є окремим проєктом та окремим repository. Узгоджені точки інтеграції описано в [CourierDash Web ↔ Mobile Integration](docs/MOBILE_INTEGRATION.md).
 
-*   **📊 Advanced Analytics**: Track your Gross (Brutto) and Net (Netto) income. Instantly calculate your average earnings per hour (PLN/hr), per kilometer (PLN/km), and per order.
-*   **💸 Smart Tax & Fee Management**: Set up custom tax profiles for each app. Supports percentage-based taxes (e.g., 27.7%) and fixed fleet partner fees (weekly or monthly). The system automatically distributes fixed fees proportionally across your active apps for accurate net calculations.
-*   **📈 Visual Reports**: Comprehensive monthly and yearly overviews with interactive charts (Bar and Doughnut) showing income dynamics, tip percentages, and platform shares.
-*   **🏆 Global Leaderboard & Records**: Track your best performing days, record-breaking tips, and peak hourly rates throughout the year.
-*   **⏱️ Shift Calculator**: Built-in time calculator with break management to accurately determine total active working hours.
-*   **🏍️ Virtual Garage**: Keep track of your vehicle's mileage and maintenance (designed for scooters, motorcycles, and cars).
-*   **📱 Mobile-First Design**: Fully responsive UI tailored for quick, one-handed data entry while on the go.
-*   **🌍 Multi-language Support**: Available in English, Polish, Ukrainian, and Russian.
+## Поточний статус
 
----
+PHASE 2.1 — єдина політика auth routes — завершена й merged у <code>main</code>. Наступна задача за [roadmap](docs/COURIERDASH_ROADMAP.md) — PHASE 2.2, password recovery.
 
-## 🛠️ Built With (Tech Stack)
+Поточний локально підтверджений snapshot наведено в [CURRENT_STATE.md](docs/CURRENT_STATE.md).
 
-This project leverages modern web development technologies to ensure high performance, security, and a seamless user experience:
+## Основні можливості
 
-*   **[Next.js](https://nextjs.org/)** - React framework for fast, server-rendered, and static web applications.
-*   **[React](https://reactjs.org/)** - UI library.
-*   **[TypeScript](https://www.typescriptlang.org/)** - Static typing for scalable and secure code.
-*   **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first CSS framework for rapid and responsive styling.
-*   **[Supabase](https://supabase.com/)** - Open-source Firebase alternative (PostgreSQL Database, Row Level Security, and Authentication).
-*   **[Chart.js](https://www.chartjs.org/) & [react-chartjs-2](https://react-chartjs-2.js.org/)** - Powerful data visualization for analytics.
+- Landing Page, login і registration flows.
+- Protected Work dashboard із create, edit і delete для робочих змін.
+- Uber, Wolt, Bolt, Glovo, Stuart і named Other.
+- Income, orders, hours, distance, online tips, cash tips і bonuses.
+- Calculator тривалості зміни з breaks.
+- Місячні totals, averages, charts і personal records.
+- Поточний Annual Report із річними/місячними totals, charts і records.
+- Garage rules та routine/repair history.
+- Localization PL, UK, EN і RU.
 
----
+Tax/fee presentation існує, але не повинна трактуватися як гарантовано точна податкова модель або «точний Netto». Expenses, rentals, exports, Annual Report 2.0 і leaderboard залишаються roadmap work, а не готовими можливостями.
 
-## 🚀 Getting Started
+## Технології
 
-To get a local copy up and running, follow these simple steps.
+- Next.js 16.2.9 і React 19.2.4;
+- TypeScript 5;
+- Tailwind CSS 4;
+- Supabase JS 2.108.x;
+- Chart.js 4.5.x і <code>react-chartjs-2</code> 5.3.x;
+- Vitest 4.1.x та ESLint 9.
 
-### Prerequisites
-*   Node.js (v18 or higher)
-*   npm or yarn
-*   A Supabase account (for database and auth)
+Актуальні версії й constraints визначає <code>package.json</code>.
 
-### Installation
+## Локальний запуск
 
-1. Clone the repository:
-   ```sh
-   git clone [https://github.com/your-username/courier-dash.git](https://github.com/your-username/courier-dash.git)
+Потрібні Node.js, npm, встановлені dependencies і локальний environment із такими назвами variables:
+
+- <code>NEXT_PUBLIC_SUPABASE_URL</code>;
+- <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>.
+
+Значення environment variables не документуються й не додаються до Git.
+
+Запуск development server:
+
+~~~bash
+npm run dev
+~~~
+
+Production-mode запуск після окремо виконаного build:
+
+~~~bash
+npm run build
+npm run start
+~~~
+
+## Перевірки
+
+Доступні scripts із <code>package.json</code>:
+
+~~~bash
+npm run lint
+npm run typecheck
+npm test
+npm run build:check
+npm run verify
+~~~
+
+<code>npm run verify</code> послідовно запускає lint, typecheck, tests і build check.
+
+## Структура repository
+
+~~~text
+app/                 Next.js routes і UI
+context/             React context для localization
+lib/                 Supabase client, generated types, translations і helpers
+public/              PWA/static assets
+tests/               Vitest tests
+docs/                Product і engineering documentation
+supabase/            Local Supabase config, migrations і schema snapshots
+~~~
+
+## Документація
+
+- [Контекст проєкту](docs/PROJECT_CONTEXT.md)
+- [Поточний стан](docs/CURRENT_STATE.md)
+- [Roadmap](docs/COURIERDASH_ROADMAP.md)
+- [Журнал рішень](docs/DECISIONS.md)
+- [Workflow розробки](docs/WORKFLOW.md)
+- [Web ↔ Mobile Integration](docs/MOBILE_INTEGRATION.md)
+
+## Supabase
+
+Application code використовує typed browser client із <code>lib/supabase.ts</code>. Локальні generated types, schema snapshot і migration history не є автоматично production truth.
+
+Безпечний workflow і caveats описано в [CourierDash Supabase](supabase/README.md).
+
+## Web і Mobile
+
+Web і Mobile — окремі codebases. Спільними можуть бути погоджені Auth flows, data model, column semantics, RLS rules, product calculations і terminology. Next.js routes, web UI та browser <code>localStorage</code> не є готовою mobile architecture.
+
+## Важливі обмеження
+
+- [Roadmap](docs/COURIERDASH_ROADMAP.md) є головним джерелом статусів.
+- Remote Supabase і production state без окремої перевірки мають статус <code>REMOTE STATE: UNKNOWN</code>.
+- Не починати migrations без read-only remote schema audit.
+- Не змінювати tax formulas без окремого предметного audit.
+- Не додавати secrets або environment values до code, docs чи commits.
+- Не називати planned або design-stage можливості реалізованими.
