@@ -468,6 +468,52 @@ Revisit when:
 
 Коли буде запроваджено інший documentation lifecycle.
 
+### DEC-021 — Password recovery не розкриває існування акаунта
+
+Status: ACTIVE
+Date: 2026-07-29
+Scope: Authentication security and UX
+Source: PHASE 2.2 implementation; [COURIERDASH_ROADMAP.md](./COURIERDASH_ROADMAP.md), PHASE 2.2
+
+Decision:
+
+Форма запиту відновлення пароля показує однакове neutral success повідомлення незалежно від того, чи існує акаунт із введеною адресою. Технічні деталі Auth errors користувачу не показуються.
+
+Reason:
+
+Різні відповіді для наявної та відсутньої адреси можуть дозволити account enumeration.
+
+Consequences:
+
+Web і майбутній Mobile flow не повинні підтверджувати існування акаунта через recovery UI. Реальні network/system failures показуються generic localized error.
+
+Revisit when:
+
+Лише після окремого security review Auth UX.
+
+### DEC-022 — Recovery session має окремий lifecycle
+
+Status: ACTIVE
+Date: 2026-07-29
+Scope: Password recovery session and redirects
+Source: PHASE 2.2 implementation; [COURIERDASH_ROADMAP.md](./COURIERDASH_ROADMAP.md), PHASE 2.2
+
+Decision:
+
+Запит і встановлення нового пароля розділені між <code>/forgot-password</code> та <code>/reset-password</code>. Reset form відкривається лише після події <code>PASSWORD_RECOVERY</code>; звичайна auth session не є достатньою. Після успішного <code>updateUser()</code> виконується <code>signOut()</code> і redirect на <code>/login?password-reset=success</code>, а не на <code>/work</code>. Мінімальна довжина пароля лишається 6 символів відповідно до чинної local registration policy.
+
+Reason:
+
+Recovery token не повинен перетворювати password reset на неявний звичайний login, а правила пароля не мають розходитися між registration і recovery.
+
+Consequences:
+
+Recovery listener існує лише на reset route та очищується при unmount. Production Auth settings, redirect allow-list, SMTP і email delivery не виводяться з local code і мають статус <code>REMOTE STATE: UNKNOWN</code>.
+
+Revisit when:
+
+Після підтвердження production Auth configuration або зміни password policy.
+
 ## Рішення, що потребують перегляду
 
 Затверджених рішень із простроченим status локально не виявлено. Окремого product/design рішення ще потребують, зокрема, Annual Report 2.0, UX <code>/expenses</code>, rental history correction, branded email і tax model. До погодження вони не є активними decisions.

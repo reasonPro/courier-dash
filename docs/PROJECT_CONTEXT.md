@@ -83,9 +83,12 @@ Application code використовує Data API для tables <code>profiles<
 - <code>signInWithPassword()</code> для входу;
 - <code>signUp()</code> для реєстрації;
 - <code>signOut()</code> для виходу;
+- <code>resetPasswordForEmail()</code> для neutral recovery request;
+- <code>onAuthStateChange()</code> для підтвердження події <code>PASSWORD_RECOVERY</code>;
+- <code>updateUser()</code> для встановлення нового пароля у recovery session;
 - <code>checkAuthRoute()</code> для узгодженого redirect policy.
 
-Підписки <code>onAuthStateChange</code>, password recovery flow, OAuth і server-side session enforcement у локальному codebase не знайдені. Remote Auth settings, redirect URLs, SMTP та email delivery мають статус <code>REMOTE STATE: UNKNOWN</code>.
+Password recovery реалізовано в routes <code>/forgot-password</code> і <code>/reset-password</code>. Підписка <code>onAuthStateChange</code> обмежена reset route і очищується при unmount. Звичайна session не вважається recovery proof; після успішної зміни пароля виконується sign-out і перехід на <code>/login?password-reset=success</code>. OAuth і server-side session enforcement у локальному codebase не знайдені. Remote Auth settings, redirect allow-list, SMTP та email delivery мають статус <code>REMOTE STATE: UNKNOWN</code>.
 
 ## Localization
 
@@ -114,7 +117,7 @@ Application code використовує Data API для tables <code>profiles<
 
 ## Відомі обмеження
 
-- Password recovery є наступною, а не завершеною функцією.
+- Email confirmation для нових користувачів є наступною, а не завершеною функцією.
 - Expenses, transport rentals, documents, notifications, exports і leaderboard schema не реалізовані.
 - Annual Report 2.0 ще потребує окремого product/design етапу.
 - Поточна tax/Netto presentation logic не пройшла окремий предметний audit.
