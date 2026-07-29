@@ -3,17 +3,17 @@
 ## Остання перевірка
 
 - Дата: 2026-07-29.
-- Feature branch створено від актуального <code>main</code> commit <code>74684d32a563c53a51215f5aa8923962fe5abb02</code>.
-- Snapshot підтверджено локальним аудитом і перевірками PHASE 2.2.
+- Landing Page V1 feature branch створено від актуального <code>main</code> commit <code>fb4239ccc2b5a88af17bb6047c0a76037b9570d0</code>.
+- Snapshot підтверджено локальним аудитом і автоматичними перевірками Landing Page V1.
 - Remote Supabase state не перевірявся: <code>REMOTE STATE: UNKNOWN</code>.
 
 ## Поточна фаза
 
-[Roadmap](./COURIERDASH_ROADMAP.md) позначає PHASE 2.2 як <code>COMPLETED</code>. Поточний напрям — PHASE 2, auth і email flows.
+[Roadmap](./COURIERDASH_ROADMAP.md) позначає PHASE 3 — сучасна Landing Page — як <code>COMPLETED</code>. Після цього продукт повертається до PHASE 2, auth і email flows.
 
 ## Остання завершена значна задача
 
-PHASE 2.2 — browser password recovery через Supabase Auth. Додано окремі routes запиту та встановлення нового пароля, neutral request response, обробку <code>PASSWORD_RECOVERY</code>, invalid/expired state, sign-out після зміни пароля та локалізацію PL, UK, EN і RU.
+PHASE 3 — public Landing Page V1 у концепції Courier Command Center. Реалізовано адаптивні секції, HTML/CSS product mockups, локалізацію PL/UK/EN/RU, browser-language fallback на EN, доступний FAQ, анімації без важких dependencies і reduced-motion behavior. Production-стан цієї версії ще не перевірявся.
 
 ## Наступна задача
 
@@ -21,7 +21,10 @@ PHASE 2.3 — підтвердження email для нових користу�
 
 ## Реалізована функціональність
 
-- Public Landing Page із головним login/register modal та password recovery entry; додаткова сторінка <code>/login</code> також веде на recovery flow.
+- Public Landing Page для delivery couriers із Hero, demo dashboard, Features, Product showcase, How it works, Platforms, Benefits, FAQ, CTA і footer.
+- Наявний login/register modal і password recovery entry збережені; додаткова сторінка <code>/login</code> також веде на recovery flow.
+- Ручний вибір мови зберігається в <code>courier_dash_lang</code>; без збереженого вибору перевіряються <code>navigator.languages</code> та <code>navigator.language</code>, а unsupported language отримує EN.
+- Landing motion використовує CSS, <code>IntersectionObserver</code> і <code>requestAnimationFrame</code> із підтримкою <code>prefers-reduced-motion</code>.
 - Єдина client-side route policy для public, login-specific і protected routes.
 - Work shift CRUD з Uber, Wolt, Bolt, Glovo, Stuart і named Other.
 - Окремі platform fields для income, orders, online tips, cash tips і bonuses.
@@ -51,12 +54,12 @@ Planned expenses, rentals, Annual Report 2.0, exports і leaderboard не нал
 
 - <code>npm run lint</code> — пройдено;
 - <code>npm run typecheck</code> — пройдено;
-- <code>npm test</code> — 6 test files, 62 tests, усі пройдено;
+- <code>npm test</code> — 7 test files, 71 test, усі пройдено;
 - <code>npm run build</code> — production build пройдено.
 
-Перевіряються auth route policy, password recovery validation і URL states, Work platforms і cash tips, worked-hours logic, Annual Report calculations та локальний Supabase schema snapshot.
+Перевіряються auth route policy, password recovery validation і URL states, browser-language resolution, Work platforms і cash tips, worked-hours logic, Annual Report calculations та локальний Supabase schema snapshot.
 
-HTTP smoke-check підтвердив status 200 для <code>/login</code>, <code>/forgot-password</code>, <code>/reset-password</code> і <code>/login?password-reset=success</code>. Реальний recovery email, recovery token і password update не перевірялися без контрольованого акаунта; перед production merge потрібна ручна перевірка у Vercel Preview.
+HTTP smoke-check і точна viewport-перевірка Landing Page V1 мають бути виконані до merge або у Vercel Preview. Реальний recovery email, recovery token і password update не перевірялися без контрольованого акаунта.
 
 ## Supabase state
 

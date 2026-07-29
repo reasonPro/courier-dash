@@ -8,13 +8,14 @@ CourierDash Mobile є окремим проєктом та окремим reposi
 
 ## Поточний статус
 
-PHASE 2.1 — єдина політика auth routes — завершена й merged у <code>main</code>. Наступна задача за [roadmap](docs/COURIERDASH_ROADMAP.md) — PHASE 2.2, password recovery.
+Public Landing Page V1 у концепції Courier Command Center реалізована у feature-гілці та очікує review. Наступна продуктова задача за [roadmap](docs/COURIERDASH_ROADMAP.md) — PHASE 2.3, підтвердження email для нових користувачів.
 
 Поточний локально підтверджений snapshot наведено в [CURRENT_STATE.md](docs/CURRENT_STATE.md).
 
 ## Основні можливості
 
-- Landing Page, login і registration flows.
+- Адаптивна public Landing Page для delivery couriers із локалізацією PL, UK, EN і RU, demo dashboard, product sections, FAQ та reduced-motion support.
+- Login, registration і password recovery flows.
 - Protected Work dashboard із create, edit і delete для робочих змін.
 - Uber, Wolt, Bolt, Glovo, Stuart і named Other.
 - Income, orders, hours, distance, online tips, cash tips і bonuses.

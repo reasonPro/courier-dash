@@ -6,6 +6,7 @@ import { supabase } from "../lib/supabase";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../context/LanguageContext";
 import { AUTH_ROUTES, checkAuthRoute } from "../lib/auth-route-policy";
+import { LandingPageContent } from "./components/landing/LandingPageContent";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -129,127 +130,39 @@ export default function LandingPage() {
   };
 
   if (isCheckingSession) {
-    return <div className="min-h-screen bg-[#0a0a0e] text-white flex items-center justify-center font-medium">{t.common.loading}</div>;
+    return <div className="flex min-h-screen items-center justify-center bg-[#07080d] font-medium text-white">{t.common.loading}</div>;
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0e] text-white relative overflow-hidden flex flex-col">
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
-        .animate-scale-in { animation: scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-      `}} />
-
-      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-purple-600/20 rounded-full blur-[100px] pointer-events-none"></div>
-
-      <nav className="relative z-10 flex items-center justify-between gap-2 border-b border-gray-800/50 bg-[#0a0a0e]/80 p-3 backdrop-blur-md sm:p-6 md:px-12">
-        <div className="shrink-0 text-lg font-black tracking-tight sm:text-xl">
-          {t.landing.navLogo}<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Dash</span>
-        </div>
-        
-        <div className="flex min-w-0 items-center gap-2 sm:gap-4">
-          <div className="relative shrink-0 sm:hidden">
-            <select
-              aria-label="Language"
-              value={lang}
-              onChange={(e) => setLanguage(e.target.value as typeof lang)}
-              className="h-11 w-14 cursor-pointer appearance-none rounded-full border border-gray-700 bg-[#1e1e24] py-2 pl-2 pr-5 text-center text-xs font-bold uppercase text-white outline-none transition-colors focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30"
-            >
-              <option value="pl">PL</option>
-              <option value="uk">UK</option>
-              <option value="en">EN</option>
-              <option value="ru">RU</option>
-            </select>
-            <span aria-hidden="true" className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">▼</span>
-          </div>
-
-          <div className="hidden bg-[#1e1e24] p-1 rounded-full border border-gray-700 text-xs font-bold sm:flex">
-            {(["pl", "uk", "en", "ru"] as const).map((l) => (
-              <button
-                key={l}
-                onClick={() => setLanguage(l)}
-                className={`px-2.5 py-1 rounded-full uppercase transition-all ${
-                  lang === l ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md" : "text-gray-400 hover:text-white"
-                }`}
-              >
-                {l}
-              </button>
-            ))}
-          </div>
-
-          <button onClick={() => openModal("login")} className="min-h-11 shrink-0 whitespace-nowrap rounded-full border border-gray-700 bg-[#1e1e24] px-3 py-2.5 text-xs font-bold transition-all hover:bg-[#2a2a35] sm:min-h-0 sm:px-5 sm:text-sm">
-            {t.landing.navBtn}
-          </button>
-        </div>
-      </nav>
-
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center text-center p-6 mt-12 md:mt-20">
-        <div className="inline-block mb-4 px-4 py-1.5 rounded-full bg-blue-900/30 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-wider">
-          {t.landing.badge}
-        </div>
-        
-        <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight leading-tight max-w-4xl">
-          {t.landing.heroTitle1} <br className="hidden md:block" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-green-400">
-            {t.landing.heroTitle2}
-          </span>
-        </h1>
-        
-        <p className="text-gray-400 text-lg md:text-xl max-w-2xl mb-10 leading-relaxed">
-          {t.landing.heroDesc}
-        </p>
-        
-        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-          <button onClick={() => openModal("register")} className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] hover:-translate-y-1 flex items-center justify-center gap-2">
-            {t.landing.startBtn}
-          </button>
-        </div>
-      </main>
-
-      <section className="relative z-10 max-w-6xl mx-auto p-6 my-16 md:my-24 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-[#1e1e24]/80 backdrop-blur-sm border border-gray-800 p-8 rounded-2xl hover:border-blue-500/50 hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] transition-all duration-300 group">
-          <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">📈</div>
-          <h3 className="text-xl font-bold mb-3 text-white">{t.landing.feat1Title}</h3>
-          <p className="text-gray-400 text-sm leading-relaxed">{t.landing.feat1Desc}</p>
-        </div>
-        <div className="bg-[#1e1e24]/80 backdrop-blur-sm border border-gray-800 p-8 rounded-2xl hover:border-purple-500/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] transition-all duration-300 group">
-          <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">🏍️</div>
-          <h3 className="text-xl font-bold mb-3 text-white">{t.landing.feat2Title}</h3>
-          <p className="text-gray-400 text-sm leading-relaxed">{t.landing.feat2Desc}</p>
-        </div>
-        <div className="bg-[#1e1e24]/80 backdrop-blur-sm border border-gray-800 p-8 rounded-2xl hover:border-green-500/50 hover:shadow-[0_0_30px_rgba(34,197,94,0.15)] transition-all duration-300 group">
-          <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">📱</div>
-          <h3 className="text-xl font-bold mb-3 text-white">{t.landing.feat3Title}</h3>
-          <p className="text-gray-400 text-sm leading-relaxed">{t.landing.feat3Desc}</p>
-        </div>
-      </section>
+    <>
+      <LandingPageContent
+        lang={lang}
+        onLanguageChange={setLanguage}
+        onRegister={() => openModal("register")}
+        onSignIn={() => openModal("login")}
+      />
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in">
-          <div className="bg-[#1e1e24] border border-gray-800 rounded-2xl w-full max-w-md overflow-hidden p-6 md:p-8 relative shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
-            
-            <button onClick={closeModal} className="absolute top-4 right-4 text-gray-400 hover:text-white transition text-lg">✕</button>
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4 backdrop-blur-md animate-fade-in">
+          <div className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-gray-800 bg-[#1e1e24] p-6 shadow-2xl animate-scale-in md:p-8">
+            <button onClick={closeModal} className="absolute right-4 top-4 text-lg text-gray-400 transition hover:text-white">✕</button>
 
-            <div className="flex border-b border-gray-800 mb-6 font-bold">
-              <button onClick={() => { setModalMode("login"); setErrorMsg(null); }} className={`flex-1 pb-3 text-center transition ${modalMode === "login" ? "text-blue-400 border-b-2 border-blue-500" : "text-gray-400 hover:text-gray-200"}`}>
+            <div className="mb-6 flex border-b border-gray-800 font-bold">
+              <button onClick={() => { setModalMode("login"); setErrorMsg(null); }} className={`flex-1 pb-3 text-center transition ${modalMode === "login" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-gray-200"}`}>
                 {t.auth.loginTab}
               </button>
-              <button onClick={() => { setModalMode("register"); setErrorMsg(null); }} className={`flex-1 pb-3 text-center transition ${modalMode === "register" ? "text-purple-400 border-b-2 border-purple-500" : "text-gray-400 hover:text-gray-200"}`}>
+              <button onClick={() => { setModalMode("register"); setErrorMsg(null); }} className={`flex-1 pb-3 text-center transition ${modalMode === "register" ? "border-b-2 border-purple-500 text-purple-400" : "text-gray-400 hover:text-gray-200"}`}>
                 {t.auth.registerTab}
               </button>
             </div>
 
-            {errorMsg && <div className="bg-red-900/30 border border-red-700/50 text-red-400 p-3 rounded-lg text-sm mb-4">{errorMsg}</div>}
-            {successMsg && <div className="bg-green-900/30 border border-green-700/50 text-green-400 p-3 rounded-lg text-sm mb-4">{successMsg}</div>}
+            {errorMsg && <div className="mb-4 rounded-lg border border-red-700/50 bg-red-900/30 p-3 text-sm text-red-400">{errorMsg}</div>}
+            {successMsg && <div className="mb-4 rounded-lg border border-green-700/50 bg-green-900/30 p-3 text-sm text-green-400">{successMsg}</div>}
 
             <form onSubmit={handleAuthSubmit} className="space-y-4">
-              
-              {/* ПОЛЕ: Нікнейм (Тільки для реєстрації) */}
               {modalMode === "register" && (
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5">{t.auth.nicknameLabel}</label>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-400">{t.auth.nicknameLabel}</label>
                   <input 
                     type="text" 
                     required 
@@ -258,58 +171,52 @@ export default function LandingPage() {
                     value={nickname}
                     onChange={(e) => setNickname(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))}
                     placeholder="FastRider_99"
-                    className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full rounded-xl border border-gray-700 bg-[#2a2a35] p-3 text-white focus:border-blue-500 focus:outline-none"
                   />
                 </div>
               )}
 
-              {/* ПОЛЕ: Email */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5">{t.auth.emailLabel}</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-400">{t.auth.emailLabel}</label>
                 <input 
                   type="email" 
                   required 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500"
+                  className="w-full rounded-xl border border-gray-700 bg-[#2a2a35] p-3 text-white focus:border-blue-500 focus:outline-none"
                 />
               </div>
 
-              {/* ПОЛЕ: Пароль */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5">{t.auth.passwordLabel}</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-400">{t.auth.passwordLabel}</label>
                 <input 
                   type="password" 
                   required 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500"
+                  className="w-full rounded-xl border border-gray-700 bg-[#2a2a35] p-3 text-white focus:border-blue-500 focus:outline-none"
                 />
                 {modalMode === "login" && (
                   <div className="mt-2 text-right">
-                    <Link
-                      href="/forgot-password"
-                      className="text-sm text-blue-400 transition hover:text-blue-300"
-                    >
+                    <Link href="/forgot-password" className="text-sm text-blue-400 transition hover:text-blue-300">
                       {t.passwordRecovery.forgotLink}
                     </Link>
                   </div>
                 )}
               </div>
 
-              {/* ПОЛЕ: Підтвердження пароля (Тільки для реєстрації) */}
               {modalMode === "register" && (
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5">{t.auth.confirmPasswordLabel}</label>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-400">{t.auth.confirmPasswordLabel}</label>
                   <input 
                     type="password" 
                     required 
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-[#2a2a35] border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full rounded-xl border border-gray-700 bg-[#2a2a35] p-3 text-white focus:border-blue-500 focus:outline-none"
                   />
                 </div>
               )}
@@ -317,23 +224,18 @@ export default function LandingPage() {
               <button 
                 type="submit" 
                 disabled={isLoading}
-                className={`w-full py-3.5 mt-4 rounded-xl font-bold transition text-white ${
+                className={`mt-4 w-full rounded-xl py-3.5 font-bold text-white transition ${
                   modalMode === "login" 
-                    ? "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]" 
-                    : "bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
-                } ${isLoading && "opacity-70 cursor-not-allowed"}`}
+                    ? "bg-gradient-to-r from-blue-600 to-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:from-blue-500 hover:to-blue-400"
+                    : "bg-gradient-to-r from-purple-600 to-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:from-purple-500 hover:to-purple-400"
+                } ${isLoading && "cursor-not-allowed opacity-70"}`}
               >
                 {isLoading ? t.common.loading : (modalMode === "login" ? t.auth.loginBtn : t.auth.registerBtn)}
               </button>
             </form>
-
           </div>
         </div>
       )}
-
-      <footer className="relative z-10 border-t border-gray-800/50 mt-auto py-8 text-center text-gray-500 text-sm">
-        <p>© {new Date().getFullYear()} CourierDash. {t.landing.footer}</p>
-      </footer>
-    </div>
+    </>
   );
 }

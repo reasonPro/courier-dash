@@ -514,6 +514,29 @@ Revisit when:
 
 Після підтвердження production Auth configuration або зміни password policy.
 
+### DEC-023 — Landing Page V1 використовує Courier Command Center
+
+Status: ACTIVE
+Date: 2026-07-29
+Scope: Public Landing Page
+Source: погоджене продуктове завдання Landing Page V1; [COURIERDASH_ROADMAP.md](./COURIERDASH_ROADMAP.md), PHASE 3
+
+Decision:
+
+Public Landing Page орієнтована лише на delivery couriers і використовує premium dark концепцію Courier Command Center. Наявний modal auth flow зберігається: основний CTA відкриває registration, Sign in — login. Мова визначається після збереженого ручного вибору за browser preferences із fallback на EN. Product mockups є демонстраційними, а motion реалізується без важких dependencies із повною reduced-motion альтернативою.
+
+Reason:
+
+Landing має чітко пояснювати фактично наявний продукт, показувати його можливості без непідтверджених інтеграцій і залишатися швидким, доступним та сумісним із чинною auth-архітектурою.
+
+Consequences:
+
+Testimonials, fleet/company positioning, platform partnership claims, автоматична API sync, exports, готовий expenses module і native mobile app не заявляються. Demo values позначаються як demo. Supabase, route policy та password recovery flow не змінюються в межах Landing Page V1.
+
+Revisit when:
+
+Після підтвердженого продуктового рішення про нову аудиторію, інший auth UX або заміну Landing visual direction.
+
 ## Рішення, що потребують перегляду
 
 Затверджених рішень із простроченим status локально не виявлено. Окремого product/design рішення ще потребують, зокрема, Annual Report 2.0, UX <code>/expenses</code>, rental history correction, branded email і tax model. До погодження вони не є активними decisions.

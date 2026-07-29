@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { translations, LangType } from "../lib/translations";
+import { LANGUAGE_STORAGE_KEY, resolveLanguage } from "../lib/language";
 
 type LanguageContextType = {
   lang: LangType;
@@ -12,38 +13,28 @@ type LanguageContextType = {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  // За замовчуванням ставимо "pl" (базова мова ринку)
-  const [lang, setLang] = useState<LangType>("pl");
+  const [lang, setLang] = useState<LangType>("en");
 
   useEffect(() => {
-    // 1. Перевіряємо, чи користувач вже обирав мову раніше
-    const savedLang = localStorage.getItem("courier_dash_lang") as LangType;
-    
-    if (savedLang && (savedLang === "pl" || savedLang === "uk" || savedLang === "en" || savedLang === "ru")) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Restore browser-only language after hydration while preserving the Polish SSR snapshot.
-      setLang(savedLang);
-    } else {
-      // 2. Якщо ні, визначаємо мову його телефону/браузера
-      const browserLang = navigator.language.toLowerCase();
-      let detectedLang: LangType = "pl"; // фолбек на польську
+    const resolvedLanguage = resolveLanguage(
+      localStorage.getItem(LANGUAGE_STORAGE_KEY),
+      navigator.languages,
+      navigator.language,
+    );
 
-      if (browserLang.startsWith("uk")) detectedLang = "uk";
-      else if (browserLang.startsWith("ru")) detectedLang = "ru";
-      else if (browserLang.startsWith("en")) detectedLang = "en";
-      else if (browserLang.startsWith("pl")) detectedLang = "pl";
-
-      setLang(detectedLang);
-      localStorage.setItem("courier_dash_lang", detectedLang);
-    }
+    document.documentElement.lang = resolvedLanguage;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Browser language and saved preference are only available after hydration; the English SSR snapshot remains stable.
+    setLang(resolvedLanguage);
   }, []);
 
   const setLanguage = (newLang: LangType) => {
     setLang(newLang);
-    localStorage.setItem("courier_dash_lang", newLang);
+    document.documentElement.lang = newLang;
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, newLang);
   };
 
   // Витягуємо тексти для поточної мови, якщо щось забули перекласти - беремо з польської
-  const t = translations[lang] || translations.pl;
+  const t = translations[lang] || translations.en;
 
   return (
     <LanguageContext.Provider value={{ lang, setLanguage, t }}>

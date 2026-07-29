@@ -33,6 +33,7 @@ Stack підтверджено файлом <code>package.json</code>:
 - <code>lib/supabase.ts</code> створює один typed Supabase client.
 - <code>lib/</code> містить translations і pure helpers для auth policy, робочого часу та platform-aware даних.
 - <code>app/work/components/</code> містить UI-компоненти Work dashboard.
+- <code>app/components/landing/</code> містить секції, product mockups і керовані motion-компоненти public Landing Page.
 - <code>tests/</code> перевіряє pure business helpers, auth route policy та локальний schema snapshot.
 
 У repository не знайдено власних Next.js Route Handlers, Server Actions або middleware. Це твердження стосується лише поточного локального codebase.
@@ -53,7 +54,7 @@ Stack підтверджено файлом <code>package.json</code>:
 
 ### Landing/Auth
 
-<code>app/page.tsx</code> містить public landing, головний login/registration modal із nickname та основну точку входу у password recovery. <code>app/login/page.tsx</code> містить альтернативну login/register сторінку з такою самою recovery entry. Обидва посилання ведуть на <code>/forgot-password</code>.
+<code>app/page.tsx</code> зберігає route-level auth check і головний login/registration modal із nickname. Presentation public Landing Page винесено в <code>app/components/landing/</code>: Hero, demo dashboard, Features, Product showcase, How it works, Platforms, Benefits, FAQ, CTA та footer. Demo mockups не є live platform integrations і не передбачають доступу до акаунтів delivery platforms. <code>app/login/page.tsx</code> містить альтернативну login/register сторінку з такою самою recovery entry. Обидва посилання ведуть на <code>/forgot-password</code>.
 
 ### Work
 
@@ -92,7 +93,13 @@ Password recovery реалізовано в routes <code>/forgot-password</code>
 
 ## Localization
 
-<code>lib/translations.ts</code> містить PL, UK, EN і RU dictionaries. <code>context/LanguageContext.tsx</code> визначає browser language, використовує польську як fallback і зберігає вибір у browser <code>localStorage</code> за ключем <code>courier_dash_lang</code>.
+<code>lib/translations.ts</code> і <code>lib/landing-translations.ts</code> містять PL, UK, EN і RU dictionaries. <code>context/LanguageContext.tsx</code> зберігає ручний вибір у browser <code>localStorage</code> за незміненим ключем <code>courier_dash_lang</code>. Якщо валідного збереженого вибору немає, pure helper <code>lib/language.ts</code> бере першу підтримувану мову з <code>navigator.languages</code>, потім <code>navigator.language</code>, а для unsupported language використовує EN. Автоматичне визначення не записується як ручний вибір.
+
+## Landing motion та accessibility
+
+Landing Page використовує лише CSS transitions/keyframes, <code>IntersectionObserver</code> і throttled через <code>requestAnimationFrame</code> parallax CSS variable. Важкі motion libraries, video та WebGL не підключені. За <code>prefers-reduced-motion: reduce</code> декоративні переміщення вимикаються, лічильники одразу показують фінальні значення, а reveal content залишається видимим.
+
+Семантична структура містить один <code>h1</code>, послідовні section headings, skip link, focus-visible states та FAQ accordion із <code>aria-expanded</code>, <code>aria-controls</code> і keyboard-native buttons. Demo dashboard має узагальнений screen-reader label, а внутрішній декоративний UI приховано через <code>aria-hidden</code>.
 
 ## Business logic
 
