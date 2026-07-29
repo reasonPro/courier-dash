@@ -1,7 +1,10 @@
 "use client";
 
+import Image from "next/image";
+
 import type { LangType } from "../../../lib/translations";
 import type { LandingV2Copy } from "../../../lib/landing-translations";
+import courierDashIcon from "../../icon.png";
 
 type LandingHeaderProps = {
   copy: LandingV2Copy;
@@ -17,9 +20,7 @@ export function LandingHeader({ copy, lang, onLanguageChange, onSignIn }: Landin
     <header className="fixed inset-x-0 top-3 z-50 px-3 sm:top-4 sm:px-5">
       <div className="night-header mx-auto flex min-h-14 max-w-5xl items-center justify-between gap-2 rounded-2xl border border-white/10 bg-[#090b12]/72 px-2.5 shadow-[0_16px_55px_rgba(0,0,0,0.38)] backdrop-blur-2xl sm:px-4">
         <a href="#top" className="group flex min-w-0 items-center gap-2 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300">
-          <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-xl border border-cyan-300/25 bg-cyan-300/10 text-cyan-200 shadow-[0_0_24px_rgba(34,211,238,0.14)]">
-            <svg viewBox="0 0 24 24" className="size-4.5" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 15 10.5 4l2.1 6H20L13.5 20l-2.1-6H4Z" strokeLinejoin="round" /></svg>
-          </span>
+          <Image src={courierDashIcon} alt="" sizes="32px" className="size-8 shrink-0 rounded-xl object-contain shadow-[0_0_24px_rgba(34,211,238,0.14)] ring-1 ring-cyan-300/20" />
           <span className="truncate text-sm font-black tracking-[-0.04em] sm:text-base">Courier<span className="night-gradient-text">Dash</span></span>
         </a>
 
