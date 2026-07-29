@@ -10,18 +10,16 @@
 - продуктового аудиту власника CourierDash;
 - read-only технічного аудиту архітектури;
 - read-only аудиту майбутньої системи витрат і оренди транспорту;
-- реалізації нової public Landing Page V1 у стилі Courier Command Center.
+- інтеграції та production-перевірки фінальної Landing Page V2.
 
 ## Поточний стабільний baseline
 
-- Базовий commit feature-гілки Landing Page V1: `fb4239ccc2b5a88af17bb6047c0a76037b9570d0`.
-- Branch реалізації: `feat/landing-page-v1`.
-- Lint: 0 errors, 0 warnings.
-- Typecheck проходить.
-- 7 тестових файлів.
-- 71 автоматичний тест.
-- Production build проходить.
-- Production-стан Landing Page V1 ще не перевірявся.
+- Landing Page V2 інтегрована в `main` merge commit `63276c3a42243d2642b49b33cf7b8deadc4cff8e`.
+- Production-стан Landing Page V2 перевірений і підтверджений власником проєкту.
+- Landing-фаза завершена; V1 більше не підтримується як окремий production-напрям.
+- Lint і typecheck проходять.
+- 8 test files і 75 tests проходять.
+- Production build проходить; зовнішнє завантаження Google Fonts потребує мережевого доступу.
 - PL, UK, EN і RU підтримуються на основних локалізованих сторінках.
 
 ## Принцип роботи
@@ -248,7 +246,7 @@ Scope:
 
 Статус фази: `COMPLETED`.
 
-Власник продукту свідомо поставив Landing Page V1 перед PHASE 2.3. Реалізацію завершено локально в окремій feature-гілці; production verification має виконуватися лише після review, merge і автоматичного deployment.
+Власник продукту свідомо поставив Landing Page перед PHASE 2.3. Фінальну Landing Page V2 інтегровано в `main`, розгорнуто й перевірено в production; Landing-фаза завершена.
 
 ## 3.1. Продуктова структура
 
@@ -276,10 +274,13 @@ Landing Page повинна виконувати дві головні функ�
 
 ## 3.2. Погоджена візуальна концепція
 
-- Концепція: `Courier Command Center`.
+- Фінальна версія: `Landing Page V2`.
 - Аудиторія: індивідуальні delivery couriers, а не fleets, компанії чи platform partners.
-- Стиль: premium dark productivity/fintech interface із синіми, фіолетовими, magenta та green accents.
+- Стиль: компактний premium dark productivity/fintech interface із night-route visual direction, синіми, фіолетовими, magenta та green accents.
+- `night-route` є описом візуального напряму, а не окремою офіційною назвою Landing.
 - Product mockups створені локальним HTML/CSS/inline SVG і чітко позначені як demo.
+- У header використовується офіційний `app/icon.png` поруч із назвою CourierDash.
+- Dashboard preview вирівняно: проблемний rotation і floating transform прибрано без зміни demo-даних.
 - Heavy animation dependencies, stock photos, testimonials і непідтверджені product claims не використовуються.
 - Motion реалізовано через CSS, `IntersectionObserver` і `requestAnimationFrame`; reduced-motion вимикає декоративне переміщення.
 - Основний Landing UI винесено в компоненти <code>app/components/landing/</code>.
@@ -291,7 +292,7 @@ Landing Page повинна виконувати дві головні функ�
 - Після login/register користувач переходить на `/work`.
 - Головні CTA відкривають наявний register modal; Sign in відкриває наявний login modal.
 - Password recovery routes і protected-route policy не змінюються.
-- Route `/about` не входить до Landing Page V1 і не створювався.
+- Route `/about` не входить до Landing Page V2 і не створювався.
 
 # PHASE 4 — інформаційна архітектура dashboard
 

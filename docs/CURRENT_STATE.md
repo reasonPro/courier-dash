@@ -3,17 +3,20 @@
 ## Остання перевірка
 
 - Дата: 2026-07-29.
-- Landing Page V1 feature branch створено від актуального <code>main</code> commit <code>fb4239ccc2b5a88af17bb6047c0a76037b9570d0</code>.
-- Snapshot підтверджено локальним аудитом і автоматичними перевірками Landing Page V1.
+- Landing Page V2 інтегрована в <code>main</code> merge commit <code>63276c3a42243d2642b49b33cf7b8deadc4cff8e</code>.
+- Production-стан Landing Page V2 перевірений і підтверджений власником проєкту.
+- Landing-фаза повністю завершена; V1 більше не є окремим актуальним production-напрямом.
 - Remote Supabase state не перевірявся: <code>REMOTE STATE: UNKNOWN</code>.
 
 ## Поточна фаза
 
-[Roadmap](./COURIERDASH_ROADMAP.md) позначає PHASE 3 — сучасна Landing Page — як <code>COMPLETED</code>. Після цього продукт повертається до PHASE 2, auth і email flows.
+[Roadmap](./COURIERDASH_ROADMAP.md) позначає PHASE 3 — сучасна Landing Page V2 — як <code>COMPLETED</code>. Після завершення Landing продукт повертається до PHASE 2, auth і email flows.
 
 ## Остання завершена значна задача
 
-PHASE 3 — public Landing Page V1 у концепції Courier Command Center. Реалізовано адаптивні секції, HTML/CSS product mockups, локалізацію PL/UK/EN/RU, browser-language fallback на EN, доступний FAQ, анімації без важких dependencies і reduced-motion behavior. Production-стан цієї версії ще не перевірявся.
+PHASE 3 — Landing Page V2. Фінальна production-версія використовує компактний premium dark дизайн із night-route visual direction, адаптивні секції, HTML/CSS Dashboard preview, product tabs, FAQ, CTA, локалізацію PL/UK/EN/RU, browser-language fallback на EN, анімації без важких dependencies і reduced-motion behavior.
+
+У header використовується офіційний <code>app/icon.png</code> поруч із назвою CourierDash. Dashboard preview вирівняно: проблемний rotation і floating transform прибрано без зміни demo-даних або структури секцій.
 
 ## Наступна задача
 
@@ -21,7 +24,9 @@ PHASE 2.3 — підтвердження email для нових користу�
 
 ## Реалізована функціональність
 
-- Public Landing Page для delivery couriers із Hero, demo dashboard, Features, Product showcase, How it works, Platforms, Benefits, FAQ, CTA і footer.
+- Landing Page V2 для delivery couriers із Hero, Dashboard preview, compact bento Features, Product showcase з tabs, How it works, Platforms, FAQ, CTA і footer.
+- Animated route background, responsive mobile/desktop layout і <code>prefers-reduced-motion</code> behavior.
+- Офіційний <code>app/icon.png</code> у header; назва CourierDash, language selector і Sign In збережені.
 - Наявний login/register modal і password recovery entry збережені; додаткова сторінка <code>/login</code> також веде на recovery flow.
 - Ручний вибір мови зберігається в <code>courier_dash_lang</code>; без збереженого вибору перевіряються <code>navigator.languages</code> та <code>navigator.language</code>, а unsupported language отримує EN.
 - Landing motion використовує CSS, <code>IntersectionObserver</code> і <code>requestAnimationFrame</code> із підтримкою <code>prefers-reduced-motion</code>.
@@ -50,16 +55,16 @@ Planned expenses, rentals, Annual Report 2.0, exports і leaderboard не нал
 
 ## Поточний стан тестів і перевірок
 
-На 2026-07-29:
+На 2026-07-29 у documentation branch, створеній безпосередньо від інтегрованого <code>origin/main</code>:
 
 - <code>npm run lint</code> — пройдено;
 - <code>npm run typecheck</code> — пройдено;
-- <code>npm test</code> — 7 test files, 71 test, усі пройдено;
-- <code>npm run build</code> — production build пройдено.
+- <code>npm test</code> — 8 test files, 75 tests, усі пройдено;
+- <code>npm run build</code> — production build пройдено після повторного запуску з мережевим доступом; перша спроба зупинилася лише через недоступність Google Fonts.
 
 Перевіряються auth route policy, password recovery validation і URL states, browser-language resolution, Work platforms і cash tips, worked-hours logic, Annual Report calculations та локальний Supabase schema snapshot.
 
-HTTP smoke-check і точна viewport-перевірка Landing Page V1 мають бути виконані до merge або у Vercel Preview. Реальний recovery email, recovery token і password update не перевірялися без контрольованого акаунта.
+Landing Page V2 пройшла production-перевірку за підтвердженням власника проєкту. Landing не змінювала Supabase schema, RLS або shared Web/Mobile contracts. Реальний recovery email, recovery token і password update не перевірялися без контрольованого акаунта.
 
 ## Supabase state
 

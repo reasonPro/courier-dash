@@ -2,7 +2,7 @@
 
 ## Як читати цей документ
 
-Цей журнал містить лише погоджені product та engineering decisions. <code>Status: ACTIVE</code> означає, що правило діє зараз, навіть якщо пов’язана функція ще запланована. <code>Date: UNKNOWN</code> використано там, де точну дату рішення неможливо підтвердити локально.
+Цей журнал містить лише погоджені product та engineering decisions. <code>Status: ACTIVE</code> означає, що правило діє зараз, навіть якщо пов’язана функція ще запланована. <code>Status: SUPERSEDED</code> зберігає історичне рішення, яке замінене новішим погодженим рішенням. <code>Date: UNKNOWN</code> використано там, де точну дату рішення неможливо підтвердити локально.
 
 Статуси робіт визначає [CourierDash Roadmap](./COURIERDASH_ROADMAP.md), а фактичний snapshot — [CURRENT_STATE.md](./CURRENT_STATE.md).
 
@@ -516,10 +516,11 @@ Revisit when:
 
 ### DEC-023 — Landing Page V1 використовує Courier Command Center
 
-Status: ACTIVE
+Status: SUPERSEDED
 Date: 2026-07-29
 Scope: Public Landing Page
 Source: погоджене продуктове завдання Landing Page V1; [COURIERDASH_ROADMAP.md](./COURIERDASH_ROADMAP.md), PHASE 3
+Superseded by: DEC-024
 
 Decision:
 
@@ -536,6 +537,31 @@ Testimonials, fleet/company positioning, platform partnership claims, автом
 Revisit when:
 
 Після підтвердженого продуктового рішення про нову аудиторію, інший auth UX або заміну Landing visual direction.
+
+### DEC-024 — Landing Page V2 є фінальним production-рішенням
+
+Status: ACTIVE
+Date: 2026-07-29
+Scope: Public Landing Page
+Source: підтверджене власником продуктове рішення; merge commit <code>63276c3a42243d2642b49b33cf7b8deadc4cff8e</code>; [COURIERDASH_ROADMAP.md](./COURIERDASH_ROADMAP.md), PHASE 3; <code>app/components/landing/</code>
+
+Decision:
+
+Фінальним production-рішенням є Landing Page V2 — компактний premium dark Landing із night-route visual direction. Офіційна назва в документації: <code>Landing Page V2</code>; назва <code>Courier Night Route</code> не використовується як офіційна. V1 зберігається лише як історична альтернатива й не підтримується паралельно як окремий production-напрям.
+
+Landing Page V2 містить Hero, Dashboard preview, основні feature/bento sections, Product showcase з tabs, How it works, Platforms, FAQ, final CTA, footer, responsive behavior і локалізацію PL, UK, EN та RU. CTA повторно використовують чинні login/register flows із <code>app/page.tsx</code>.
+
+Reason:
+
+Після порівняння варіантів власник обрав компактну V2 як остаточний public experience. Вона зберігає фактичні можливості продукту, чинну Auth-архітектуру та контрольований lightweight motion без паралельної підтримки двох Landing-версій.
+
+Consequences:
+
+Документація й майбутні Landing-зміни орієнтуються лише на V2. Landing не змінює backend, Supabase schema, RLS або shared Web/Mobile contracts. Нові CTA продовжують використовувати наявні login/register callbacks; V1 не розгортається й не розвивається окремо.
+
+Revisit when:
+
+Після окремого підтвердженого продуктового рішення про нову аудиторію, auth UX або повну заміну Landing visual direction.
 
 ## Рішення, що потребують перегляду
 

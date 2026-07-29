@@ -54,7 +54,9 @@ Stack підтверджено файлом <code>package.json</code>:
 
 ### Landing/Auth
 
-<code>app/page.tsx</code> зберігає route-level auth check і головний login/registration modal із nickname. Presentation public Landing Page винесено в <code>app/components/landing/</code>: Hero, demo dashboard, Features, Product showcase, How it works, Platforms, Benefits, FAQ, CTA та footer. Demo mockups не є live platform integrations і не передбачають доступу до акаунтів delivery platforms. <code>app/login/page.tsx</code> містить альтернативну login/register сторінку з такою самою recovery entry. Обидва посилання ведуть на <code>/forgot-password</code>.
+<code>app/page.tsx</code> зберігає route-level auth check і головний login/registration modal із nickname. Фінальна Landing Page V2 винесена в <code>app/components/landing/</code>: <code>LandingPageContent</code> збирає animated route background, header, Hero, Dashboard preview, value strip, feature/bento sections, Product showcase з keyboard-accessible tabs, How it works, Platforms, FAQ на native <code>&lt;details&gt;/&lt;summary&gt;</code>, final CTA та footer. Компактний premium dark дизайн використовує night-route visual direction без офіційної назви <code>Courier Night Route</code>.
+
+Landing presentation отримує чинні login/register callbacks із <code>app/page.tsx</code> і не створює нової Auth-системи. Demo mockups не є live platform integrations і не передбачають доступу до акаунтів delivery platforms. <code>app/login/page.tsx</code> містить альтернативну login/register сторінку з такою самою recovery entry. Обидва посилання ведуть на <code>/forgot-password</code>.
 
 ### Work
 
@@ -97,9 +99,11 @@ Password recovery реалізовано в routes <code>/forgot-password</code>
 
 ## Landing motion та accessibility
 
-Landing Page використовує лише CSS transitions/keyframes, <code>IntersectionObserver</code> і throttled через <code>requestAnimationFrame</code> parallax CSS variable. Важкі motion libraries, video та WebGL не підключені. За <code>prefers-reduced-motion: reduce</code> декоративні переміщення вимикаються, лічильники одразу показують фінальні значення, а reveal content залишається видимим.
+Landing Page V2 використовує лише CSS transitions/keyframes, <code>IntersectionObserver</code> і throttled через <code>requestAnimationFrame</code> parallax CSS variables. <code>NightRouteBackground</code> розділяє animated mesh, route-map і foreground layers. Важкі motion libraries, video та WebGL не підключені. За <code>prefers-reduced-motion: reduce</code> декоративні переміщення вимикаються, лічильники одразу показують фінальні значення, а reveal content залишається видимим.
 
-Семантична структура містить один <code>h1</code>, послідовні section headings, skip link, focus-visible states та FAQ accordion із <code>aria-expanded</code>, <code>aria-controls</code> і keyboard-native buttons. Demo dashboard має узагальнений screen-reader label, а внутрішній декоративний UI приховано через <code>aria-hidden</code>.
+Семантична структура містить один <code>h1</code>, послідовні section headings, skip link і focus-visible states. FAQ використовує native <code>&lt;details&gt;/&lt;summary&gt;</code>; явних <code>aria-expanded</code> або <code>aria-controls</code> у фактичному <code>FaqSection</code> немає. Product tabs мають tab semantics і keyboard navigation. Demo dashboard має узагальнений screen-reader label, а внутрішній декоративний UI приховано через <code>aria-hidden</code>.
+
+Responsive behavior визначається без окремої mobile codepath: header, Hero, Dashboard preview, bento grids, Product showcase, FAQ, CTA і footer адаптуються Tailwind breakpoints у компонентах <code>app/components/landing/</code>. Browser-language detection і ручне збереження PL/UK/EN/RU залишаються в <code>context/LanguageContext.tsx</code> та <code>lib/language.ts</code>.
 
 ## Business logic
 
@@ -129,7 +133,7 @@ Landing Page використовує лише CSS transitions/keyframes, <code>
 - Annual Report 2.0 ще потребує окремого product/design етапу.
 - Поточна tax/Netto presentation logic не пройшла окремий предметний audit.
 - Значна частина data access і route protection працює client-side.
-- Production deployment і remote Supabase state у межах цього аудиту не перевірялися.
+- Production-стан Landing Page V2 перевірений і підтверджений власником проєкту; Vercel configuration та remote Supabase state окремо не аудитувалися.
 
 ## Що не входить до цього repository
 
