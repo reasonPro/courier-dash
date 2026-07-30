@@ -1,3 +1,5 @@
+import type { RefObject } from "react";
+
 const foregroundMarks = [
   { left: "8%", top: "18%", delay: "-1.2s", duration: "7.6s" },
   { left: "19%", top: "72%", delay: "-4.8s", duration: "9.2s" },
@@ -7,16 +9,26 @@ const foregroundMarks = [
   { left: "88%", top: "31%", delay: "-5.5s", duration: "9.7s" },
 ];
 
-export function NightRouteBackground() {
+type NightRouteBackgroundProps = {
+  meshLayerRef: RefObject<HTMLDivElement | null>;
+  mapLayerRef: RefObject<SVGSVGElement | null>;
+  foregroundLayerRef: RefObject<HTMLDivElement | null>;
+};
+
+export function NightRouteBackground({
+  meshLayerRef,
+  mapLayerRef,
+  foregroundLayerRef,
+}: NightRouteBackgroundProps) {
   return (
     <div aria-hidden="true" className="night-route-background pointer-events-none fixed inset-0 overflow-hidden">
-      <div className="night-mesh-layer absolute -inset-[12%]">
+      <div ref={meshLayerRef} className="night-mesh-layer absolute -inset-[12%]">
         <span className="night-mesh-orb night-mesh-orb-a" />
         <span className="night-mesh-orb night-mesh-orb-b" />
         <span className="night-mesh-orb night-mesh-orb-c" />
       </div>
 
-      <svg className="night-map-layer absolute -inset-[6%] size-[112%]" viewBox="0 0 1440 1000" preserveAspectRatio="xMidYMid slice">
+      <svg ref={mapLayerRef} className="night-map-layer absolute -inset-[6%] size-[112%]" viewBox="0 0 1440 1000" preserveAspectRatio="xMidYMid slice">
         <defs>
           <linearGradient id="route-main-gradient" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stopColor="#38bdf8" stopOpacity="0" />
@@ -49,7 +61,7 @@ export function NightRouteBackground() {
         })}
       </svg>
 
-      <div className="night-foreground-layer absolute inset-0">
+      <div ref={foregroundLayerRef} className="night-foreground-layer absolute inset-0">
         {foregroundMarks.map((mark, index) => (
           <span
             key={mark.left}

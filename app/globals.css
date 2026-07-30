@@ -30,10 +30,6 @@ body {
 .animate-scale-in { animation: scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 
 .night-root {
-  --night-slow-y: 0px;
-  --night-map-x: 0px;
-  --night-map-y: 0px;
-  --night-fast-y: 0px;
   position: relative;
   isolation: isolate;
   background:
@@ -44,7 +40,7 @@ body {
 .night-route-background { z-index: 0; }
 
 .night-mesh-layer {
-  transform: translate3d(0, var(--night-slow-y), 0);
+  transform: translate3d(0, 0px, 0);
   will-change: transform;
 }
 
@@ -62,7 +58,7 @@ body {
 
 .night-map-layer {
   opacity: 0.76;
-  transform: translate3d(var(--night-map-x), var(--night-map-y), 0);
+  transform: translate3d(0px, 0px, 0);
   will-change: transform;
 }
 
@@ -70,7 +66,7 @@ body {
 .night-route-trail { animation: night-route-dash 5.2s linear infinite; }
 
 .night-foreground-layer {
-  transform: translate3d(0, var(--night-fast-y), 0);
+  transform: translate3d(0, 0px, 0);
   will-change: transform;
 }
 

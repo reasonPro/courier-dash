@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
+import { startLandingScrollMotion } from "../../../lib/landing-scroll-motion";
 import type { LangType } from "../../../lib/translations";
 import { landingTranslations } from "../../../lib/landing-translations";
 import { FaqSection } from "./FaqSection";
@@ -20,39 +21,39 @@ type LandingPageContentProps = {
 };
 
 export function LandingPageContent({ lang, onLanguageChange, onRegister, onSignIn }: LandingPageContentProps) {
-  const rootRef = useRef<HTMLDivElement>(null);
+  const meshLayerRef = useRef<HTMLDivElement>(null);
+  const mapLayerRef = useRef<SVGSVGElement>(null);
+  const foregroundLayerRef = useRef<HTMLDivElement>(null);
   const copy = landingTranslations[lang];
 
   useEffect(() => {
-    const root = rootRef.current;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (!root || reducedMotion.matches) return;
 
-    let frame = 0;
-    const updateLayers = () => {
-      const scroll = window.scrollY;
-      root.style.setProperty("--night-slow-y", `${scroll * 0.035}px`);
-      root.style.setProperty("--night-map-y", `${scroll * -0.055}px`);
-      root.style.setProperty("--night-map-x", `${Math.sin(scroll / 560) * 12}px`);
-      root.style.setProperty("--night-fast-y", `${scroll * -0.11}px`);
-      frame = 0;
-    };
-    const onScroll = () => {
-      if (!frame) frame = requestAnimationFrame(updateLayers);
-    };
-
-    updateLayers();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(frame);
-    };
+    return startLandingScrollMotion({
+      layers: {
+        mesh: meshLayerRef.current,
+        map: mapLayerRef.current,
+        foreground: foregroundLayerRef.current,
+      },
+      reducedMotion: reducedMotion.matches,
+      getScrollY: () => window.scrollY,
+      requestFrame: (callback) => requestAnimationFrame(callback),
+      cancelFrame: (frame) => cancelAnimationFrame(frame),
+      addScrollListener: (listener) =>
+        window.addEventListener("scroll", listener, { passive: true }),
+      removeScrollListener: (listener) =>
+        window.removeEventListener("scroll", listener),
+    });
   }, []);
 
   return (
-    <div ref={rootRef} className="night-root min-h-screen overflow-clip bg-[#06070b] text-white">
+    <div className="night-root min-h-screen overflow-clip bg-[#06070b] text-white">
       <a href="#landing-main" className="landing-skip-link">{copy.skipToContent}</a>
-      <NightRouteBackground />
+      <NightRouteBackground
+        meshLayerRef={meshLayerRef}
+        mapLayerRef={mapLayerRef}
+        foregroundLayerRef={foregroundLayerRef}
+      />
       <LandingHeader copy={copy} lang={lang} onLanguageChange={onLanguageChange} onSignIn={onSignIn} />
       <main id="landing-main" className="relative z-10">
         <LandingHero copy={copy} lang={lang} onRegister={onRegister} />
