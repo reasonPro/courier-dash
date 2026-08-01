@@ -14,10 +14,46 @@ Only these evidence statuses are used by this contract:
 ## Source-of-truth rules
 
 - Every schema, data, function, trigger, or RLS change starts as a versioned SQL migration.
+- CourierDash Web is the sole authoritative repository for Supabase migrations and the canonical `docs/shared` contract.
 - A generated database type file is a client artifact, not a migration and not proof that Staging matches.
 - A local schema snapshot is evidence only. It must record capture context and must not contain project references, credentials, database URLs, user data, or concrete ownership defaults in exported documentation.
 - `schemaRevision` and `latestMigration` stay `null` until an unambiguous Staging target is checked read-only.
 - Production metadata is not used to fill Staging gaps.
+
+## Supabase governance
+
+This section is the canonical governance rule for shared Supabase changes across CourierDash Web and CourierDash Mobile.
+
+### Repository authority
+
+- Web owns and authors changes to shared schema, RLS, Auth configuration, database functions, triggers, and shared enums.
+- Only Web may plan, create, review, and store Supabase migrations. Parallel or independent migration creation in Web and Mobile is forbidden.
+- Mobile must not create or apply Supabase migrations. It may describe a need or propose a schema change, but planning and migration authoring take place in Web.
+- Web maintains the canonical `docs/shared`. Mobile consumes a versioned snapshot and must not edit it into an independent contract version.
+- Mobile must review the planned change against its code and report compatibility before a migration is created or applied.
+
+### Approval and rollout gate
+
+The project owner gives two separate explicit approvals: first to create a migration and later to apply it. Approval to create is not approval to apply.
+
+Every future shared change follows this route:
+
+1. Describe the need and affected shared behavior.
+2. Plan the change in Web, including compatibility and rollout impact.
+3. Obtain Mobile compatibility review against the planned change.
+4. Obtain explicit project-owner approval to create the migration.
+5. Create the versioned migration only in Web.
+6. Verify it against an unambiguously identified and approved Staging environment.
+7. Update canonical `docs/shared` and its versioned snapshot, then create and verify generated database types against that Staging revision.
+8. Transfer one mandatory handoff to Mobile containing two separate artifacts:
+   - the versioned shared snapshot;
+   - the generated database types created and verified against the same Staging revision.
+   Generated database types are a separate handoff artifact; this contract does not define them as part of the versioned shared snapshot.
+9. Obtain Mobile confirmation with status `PASS` that it received both artifacts and that its code is compatible with both.
+10. Obtain separate explicit project-owner approval for Production application.
+11. Apply the change to Production.
+
+If Staging cannot be verified and identified unambiguously, no remote Supabase change may be applied. Until the separate read-only Supabase audit is complete, no new migration may be created and no schema, RLS, or Auth change may be made.
 
 ## Observed local public schema
 
@@ -34,7 +70,7 @@ The repository migration directory currently contains only:
 
 They add platform and cash-tip fields and related checks. They do not create the base tables, base RLS policies, profile model, or the complete set of earlier constraints. Consequently a clean database cannot be reconstructed from the checked-in migrations alone. This is a blocker for a verified mobile schema snapshot.
 
-Migration rollout must follow expand, migrate clients, verify, deprecate, remove. Applying a migration remotely always requires separate explicit approval and is outside this contract-generation task.
+Migration rollout must follow expand, migrate clients, verify, deprecate, remove within the governance and approval route above. Applying a migration remotely always requires separate explicit approval and is outside this contract-generation task.
 
 ## Ownership and nullability
 
