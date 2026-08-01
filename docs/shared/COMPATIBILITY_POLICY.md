@@ -9,13 +9,15 @@ Additive evolution is preferred. Clients may present different interfaces, but t
 
 ## Rollout sequence
 
-Every shared data or behavior change follows:
+The complete cross-repository ownership and approval route is normative in `SCHEMA_POLICY.md`. Within that route, every shared data or behavior change follows this compatibility lifecycle:
 
 1. Expand the contract and backend with backward-compatible capability.
 2. Migrate clients while old behavior remains supported.
 3. Verify Web and Mobile against the same Staging snapshot and fixtures.
 4. Deprecate the old capability with an explicit end condition.
 5. Remove it only after the supported client range no longer needs it.
+
+No remote rollout starts without an unambiguously identified Staging target. Mobile compatibility `PASS` and separate project-owner Production approval are required before Production application.
 
 ## Change classes
 

@@ -13,6 +13,7 @@
 - Mobile repository має визначати власні architecture, delivery status, UI/UX і platform behavior.
 - Mobile не повинен копіювати Web один в один.
 - Будь-яке використання спільного Supabase project потребує погодженого contract і перевірки фактичного remote state.
+- Web зберігає canonical `docs/shared` і є єдиним авторитетним джерелом Supabase migrations. Mobile отримує versioned snapshot, не перетворює його на незалежну contract-версію, не створює та не застосовує migrations. Mobile може запропонувати зміну, але зобов'язаний перевірити planned compatibility; нормативний маршрут визначає [Schema Policy](./shared/SCHEMA_POLICY.md).
 
 ## Що може бути спільним
 
@@ -196,6 +197,8 @@ Local <code>lib/database.types.ts</code>, <code>supabase/schema.snapshot.json</c
 Статус: <code>REMOTE STATE: UNKNOWN</code>.
 
 Перед shared schema changes потрібні окремий read-only remote audit, migration strategy, RLS/grants review, generated type update і compatibility plan для обох applications.
+
+До завершення цього audit migration creation і зміни schema, RLS або Auth заблоковані. Mobile compatibility review не замінює окремих дозволів власника проєкту на створення migration та на її Production application.
 
 ## Правила сумісності
 

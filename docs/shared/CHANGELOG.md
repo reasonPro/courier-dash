@@ -1,5 +1,22 @@
 # Shared Contract Changelog
 
+## Snapshot 0.2.0-draft.4 governance finalization — 2026-08-01
+
+Status: `partially_verified`
+
+This Class A documentation snapshot keeps contract version `0.2.0-draft` and records the approved Web–Mobile governance for shared Supabase changes.
+
+### Governance recorded
+
+- Web is the sole authoritative source of Supabase migrations and canonical `docs/shared`.
+- Mobile consumes versioned snapshots, does not independently edit the contract, and neither creates nor applies migrations.
+- Web authors shared schema, RLS, Auth, database functions, triggers, and enums; Mobile reviews planned compatibility before migration creation or application.
+- The project owner separately approves migration creation and Production application.
+- The mandatory route now covers Web planning, Mobile compatibility review, verified Staging, canonical contract/snapshot/type updates, Mobile `PASS`, and Production approval.
+- No remote change is allowed without an unambiguously identified Staging target.
+- New migrations and schema, RLS, or Auth changes remain frozen until the separate read-only Supabase audit is complete.
+- Manifest artifact checksums were regenerated automatically with PowerShell `Get-FileHash -Algorithm SHA256`; no runtime artifact or business rule changed.
+
 ## Snapshot 0.2.0-draft.3 finalization — 2026-08-01
 
 Status: `partially_verified`

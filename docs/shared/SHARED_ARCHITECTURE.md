@@ -8,6 +8,8 @@ Contract status: `partially_verified`
 
 The versioned shared contract is the cross-client authority for behavior, data semantics, security expectations, and compatibility. Web source code and the local schema snapshot are evidence; neither silently becomes a shared rule.
 
+CourierDash Web maintains canonical `docs/shared` and is the sole authoritative source of Supabase migrations. Mobile consumes versioned snapshots, performs compatibility review, and does not create or apply migrations. The complete ownership, approval, Staging, and rollout rules are normative in `SCHEMA_POLICY.md`.
+
 Web is a behavioral reference only for a flow confirmed by a versioned snapshot; shared contract; source evidence; verified fixture. Unverified Web behavior is discovery evidence, not automatically canonical business behavior.
 
 Evidence priority is:

@@ -124,6 +124,10 @@ Deployed Edge Functions: <code>REMOTE STATE: UNKNOWN</code>.
 
 ## Безпечний workflow schema changes
 
+Нормативний ownership і повний Web–Mobile rollout route визначає [Schema Policy](../docs/shared/SCHEMA_POLICY.md). Цей Web repository є єдиним авторитетним джерелом Supabase migrations; Mobile не створює і не застосовує їх. Власник проєкту окремо дозволяє створення migration і окремо — її застосування.
+
+До завершення окремого read-only Supabase audit нові migrations і зміни schema, RLS або Auth заборонені. Remote change не застосовується, якщо Staging не ідентифіковано однозначно та не перевірено.
+
 Перед зміною:
 
 1. Отримати окреме підтвердження на read-only remote schema audit.

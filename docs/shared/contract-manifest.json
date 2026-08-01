@@ -2,8 +2,8 @@
   "manifestSchemaVersion": "1.0.0",
   "contractName": "courierdash-shared-contract",
   "contractVersion": "0.2.0-draft",
-  "snapshotId": "courierdash-0.2.0-draft-c4a67d5-20260801t130748z",
-  "snapshotVersion": "0.2.0-draft.3",
+  "snapshotId": "courierdash-0.2.0-draft-c4a67d5-20260801t165545z",
+  "snapshotVersion": "0.2.0-draft.4",
   "status": "partially_verified",
   "canonicalLocation": "docs/shared",
   "developmentPhase": "mobile_catch_up",
@@ -11,7 +11,7 @@
   "sourceWebCommit": "c4a67d58997b36dc6d4913c226d9cf489c816b2e",
   "schemaRevision": null,
   "latestMigration": null,
-  "generatedAt": "2026-08-01T13:07:48Z",
+  "generatedAt": "2026-08-01T16:55:45Z",
   "compatibility": {
     "semverRangeFormat": "npm-semver",
     "web": ">=0.2.0-draft <0.3.0",
@@ -22,47 +22,47 @@
   "artifacts": [
     {
       "path": "docs/shared/SHARED_ARCHITECTURE.md",
-      "sha256": "e747fc2b9beaf658e915f079f240f827ae85bedfc43cf28a0bd76c86f9b45324",
+      "sha256": "b30389dbf10bb1778a79c091d5db7e78e9b1e507ba31723b1d62a54e4532f775",
       "status": "present",
       "sourceRefs": [
         "docs/shared/SHARED_ARCHITECTURE.md"
       ],
-      "generatedAt": "2026-08-01T10:01:49Z",
+      "generatedAt": "2026-08-01T16:55:45Z",
       "stagingStatus": "not_checked",
       "productionStatus": "not_checked",
       "verificationStatus": "partially_verified"
     },
     {
       "path": "docs/shared/SCHEMA_POLICY.md",
-      "sha256": "ed75eac98dc8eca3d6f3f30b652c3d1ca3bd03c5252b1f83e332523765545783",
+      "sha256": "e25ac71d3ed4248f40b2622abb7daa434c82fa128d28a5b71464e581e7a7a7e5",
       "status": "present",
       "sourceRefs": [
         "supabase/schema.snapshot.json",
         "lib/database.types.ts",
         "supabase/migrations"
       ],
-      "generatedAt": "2026-08-01T10:01:49Z",
+      "generatedAt": "2026-08-01T18:41:48Z",
       "stagingStatus": "not_checked",
       "productionStatus": "not_checked",
       "verificationStatus": "draft_pending_schema_snapshot"
     },
     {
       "path": "docs/shared/API_CONTRACT.md",
-      "sha256": "3762377ff4c72e2d3dd482a728dc17e1a20a75efcebe82c85e12d2b653f837e3",
+      "sha256": "a6bbb72e59667321e9c4bc439eb205fec3240e288f505b528d64513a56a6c397",
       "status": "present",
       "sourceRefs": [
         "app",
         "lib/supabase.ts",
         "lib/database.types.ts"
       ],
-      "generatedAt": "2026-08-01T10:01:49Z",
+      "generatedAt": "2026-08-01T16:55:45Z",
       "stagingStatus": "not_checked",
       "productionStatus": "not_checked",
       "verificationStatus": "partially_verified"
     },
     {
       "path": "docs/shared/AUTH_AND_SECURITY.md",
-      "sha256": "6aa5b32f42c628c109bf11f2cf04fdb460dc0da85bdf496267a87a221c7c7371",
+      "sha256": "dfb5b7d97336155e68962ce03c3d4357f27cb1d1f56e5c74cdda5377f257f654",
       "status": "present",
       "sourceRefs": [
         "app/login/page.tsx",
@@ -73,7 +73,7 @@
         "supabase/config.toml",
         "supabase/schema.snapshot.json"
       ],
-      "generatedAt": "2026-08-01T13:07:48Z",
+      "generatedAt": "2026-08-01T16:55:45Z",
       "stagingStatus": "not_checked",
       "productionStatus": "not_checked",
       "verificationStatus": "reported_pending_snapshot"
@@ -94,25 +94,25 @@
     },
     {
       "path": "docs/shared/COMPATIBILITY_POLICY.md",
-      "sha256": "30f4992f58a4509c5c5516a5574dbc8813f39ffea2894563185157da65a1854f",
+      "sha256": "48ecd2fd3e577b1e2ddc5b0716e2e6ac0d33c18f29d09d30c4f65e237b2c3725",
       "status": "present",
       "sourceRefs": [
         "docs/shared/SHARED_ARCHITECTURE.md",
         "docs/shared/SCHEMA_POLICY.md"
       ],
-      "generatedAt": "2026-08-01T13:07:48Z",
+      "generatedAt": "2026-08-01T16:55:45Z",
       "stagingStatus": "not_applicable",
       "productionStatus": "not_applicable",
       "verificationStatus": "proposed"
     },
     {
       "path": "docs/shared/CHANGELOG.md",
-      "sha256": "5d2565ae20cac62d0d5dfec345205b3f278784fa409c1426b120451ea37c2ed4",
+      "sha256": "212d8f84cfa49ba51b914431728cd102c7e760d31a5a1a76b8573af5e5c53b65",
       "status": "present",
       "sourceRefs": [
         "docs/shared"
       ],
-      "generatedAt": "2026-08-01T13:07:48Z",
+      "generatedAt": "2026-08-01T16:55:45Z",
       "stagingStatus": "not_checked",
       "productionStatus": "not_checked",
       "verificationStatus": "blocked"
@@ -806,7 +806,7 @@
   "breakingChanges": [],
   "sanitization": {
     "status": "passed",
-    "scannedAt": "2026-08-01T13:08:48Z",
+    "scannedAt": "2026-08-01T16:58:07Z",
     "checks": [
       "credentials",
       "database_urls",
