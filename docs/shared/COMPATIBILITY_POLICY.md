@@ -38,19 +38,19 @@ During the pre-public Mobile phase, compatibility is governed by the explicit ca
 
 The technical review of snapshot `0.2.0-draft.2` completed with `PASS WITH NON-BLOCKING MISMATCHES`. Work and Statistics may continue as local compatibility references, and ordinary Class A Mobile or Web work may continue.
 
-The review resolved no shared backend blocker. Profile, Annual Report, and backend-sensitive shared work remain governed by the existing Staging identity, migration, RLS, ownership, timezone, rounding, and Auth blockers. A Mobile review pass is not Staging verification and is not Production approval.
+The earlier review resolved no shared backend blocker. Staging identity, migration history, privileges, work ownership, profile bootstrap, and RLS were subsequently reconciled at revision `202608020002`. Snapshot `0.2.0-draft.5` and its separately verified generated types now require a new Mobile acceptance pass; that pass is not Production approval.
 
 ## Mobile catch-up gate
 
 Mobile cannot be accepted as contract-verified until all applicable items pass:
 
-- Staging identity is unambiguously verified read-only.
-- A fresh schema/type snapshot is generated from that Staging target.
-- Checked-in migrations can explain the applied schema or the migration gap is explicitly repaired.
+- Staging identity is unambiguously verified read-only. **Passed for this snapshot.**
+- A fresh schema/type snapshot is generated from that Staging target. **Passed for this snapshot.**
+- Checked-in migrations can explain the applied schema or the migration gap is explicitly repaired. **Passed through `202608020002`.**
 - Auth confirmation, redirect, recovery, and deep-link behavior is verified.
-- One canonical profile creation mechanism is selected and tested.
-- Ownership nullability/default risks are removed or accepted through an explicit migration plan.
-- Two-account RLS tests pass for every Mobile-accessed table.
+- One canonical profile creation mechanism is selected and tested. **Passed on Staging; Mobile acceptance pending.**
+- Work ownership nullability/default risks are removed. **Passed on Staging; nullable Garage ownership remains outside Mobile scope.**
+- Two-account RLS tests pass for every Mobile-accessed table. **Passed on Staging for the current five-table Web surface.**
 - Work and annual-report fixtures pass on both clients.
 - Local-date/week/month boundary semantics are identical.
 - Shared rounding and precision are decided before rental or income-after-expenses ships.

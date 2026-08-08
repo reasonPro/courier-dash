@@ -35,8 +35,8 @@ Conflicts do not get resolved by choosing the newest-looking file. They become e
 | Flow | Canonical scope | Current contract state |
 | --- | --- | --- |
 | Auth | Email/password signup, login, logout, recovery, session | `reported_pending_snapshot` |
-| Profile | One profile per Auth user; nickname uniqueness | `blocked` because creation mechanisms diverge |
-| Work | One dated record per user/day, six platforms, recorded metrics | `partially_verified` |
+| Profile | One profile per Auth user; nickname uniqueness | `verified` on Staging; Mobile acceptance pending |
+| Work | One dated record per user/day, six platforms, recorded metrics | `verified` on Staging for schema and access |
 | Statistics | Brutto and platform aggregation | `reported_pending_snapshot` for Mobile |
 | Reports | Annual totals and safe averages | `partially_verified` |
 | Expenses | Fuel and vehicle rental only | `draft_pending_schema_snapshot` |
@@ -52,7 +52,7 @@ Conflicts do not get resolved by choosing the newest-looking file. They become e
 
 ## Evidence and verification
 
-Each material statement carries one of the status values defined in `SCHEMA_POLICY.md`. Remote Staging metadata was not queried because the local target could not be proven to be Staging. Therefore `schemaRevision` and `latestMigration` remain `null`, and any environment-specific claim is reported or blocked rather than verified.
+Each material statement carries one of the status values defined in `SCHEMA_POLICY.md`. Staging was identified unambiguously, reconciled through migration `202608020002`, captured without project identifiers or user data, and verified with metadata and rollback-only two-account tests. Production was not changed, and Mobile acceptance of snapshot `0.2.0-draft.5` is pending.
 
 ## Change governance
 
@@ -65,10 +65,10 @@ Changes are classified A-D:
 
 Class C requires a new contract version, migration path, client catch-up gate, fixtures, and Staging verification. Class D requires the same evidence as soon as containment permits.
 
-## Known architectural blockers
+## Remaining architectural blockers
 
-- Staging identity cannot be verified from approved local evidence, so remote metadata inspection is blocked.
-- The repository contains only two additive migrations and no reproducible bootstrap for the five observed public tables, policies, and base constraints.
-- The local schema snapshot reports a nullable ownership field with a concrete default on work records. The value is deliberately redacted from all artifacts.
-- Profile creation occurs through more than one Web path, and one signup surface does not provide nickname metadata.
+- Mobile has not yet reviewed snapshot `0.2.0-draft.5` and the separately verified generated database types.
+- A clean executable migration bootstrap still needs a Docker-compatible or isolated PostgreSQL CI runtime before Production rollout.
 - Device-local Mobile date semantics conflict with Web uses of UTC-derived date strings and JavaScript date parsing.
+- Shared precision and rounding, legacy income precedence, Expenses, and rental remain unresolved outside this schema reconciliation.
+- Garage ownership columns remain nullable and Garage is not promoted to a shared Mobile contract.

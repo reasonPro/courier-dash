@@ -18,28 +18,28 @@ Introduce a versioned service API when the domain becomes complex, integrations 
 | Surface | Operation | Evidence | Status | Mobile relevance |
 | --- | --- | --- | --- | --- |
 | Auth | Password signup/login/logout/recovery/update | `app/login/page.tsx`, `app/forgot-password/page.tsx`, `app/reset-password/page.tsx`, `app/work/page.tsx` | `partially_verified` | Required |
-| `profiles` | Select, insert/upsert | `app/page.tsx`, `app/work/page.tsx` | `partially_verified` | Required; flow blocked |
-| `work_shifts` | Select, insert, update, delete | `app/work/page.tsx`, `app/work/year/page.tsx` | `partially_verified` | Required |
+| `profiles` | Trigger bootstrap, select, insert/upsert | `202608020002_reconcile_ownership_profiles_rls.sql`, `app/page.tsx`, `app/work/page.tsx` | `verified` on Staging | Required; Mobile acceptance pending |
+| `work_shifts` | Select, insert, update, delete with explicit required owner | `app/work/page.tsx`, `app/work/year/page.tsx` | `verified` on Staging | Required |
 | `tax_settings` | Select, insert, update | `app/work/page.tsx` | `partially_verified` | Deferred unless Mobile exposes Web tax calculations |
 | `garage_rules` | Select, insert, update, delete | `app/garage/page.tsx` | `partially_verified` | Not equivalent to Expenses |
 | `garage_history` | Select, insert | `app/garage/page.tsx` | `partially_verified` | Not equivalent to Expenses |
-| RPC | No call sites or generated functions found | `lib/database.types.ts`, repository search | `not_used` | None today |
+| RPC | No call sites or callable generated functions found | `lib/database.types.ts`, repository search | `not_used` | Trigger helper is not an RPC |
 | Edge Functions | No invocation or function source found | repository search | `not_used` | None today |
 | Storage | No Storage calls found | repository search | `not_used` | None today |
 
-The absence statements are repository-local. Remote Staging inventory is `blocked` because the target identity is unverified.
+The public schema and access claims above were verified against the named Staging revision `202608020002`. Production remains unchanged and was not used to fill evidence gaps.
 
 ## Work record contract
 
-The current Web operation writes one `work_shifts` row per user and calendar date. The unique `(user_id, date)` constraint is present in local snapshot evidence. Create and update payloads include distance, hours, and platform-specific income, orders, app tips, cash tips, bonuses, plus an optional trimmed custom name for `other`.
+The current Web operation writes one `work_shifts` row per user and calendar date. Verified Staging requires `user_id`, provides no ownership default, retains the Auth-user foreign key, and enforces unique `(user_id, date)`. Create and update payloads explicitly include `user_id`, distance, hours, and platform-specific income, orders, app tips, cash tips, bonuses, plus an optional trimmed custom name for `other`.
 
 Supported platform identifiers are `uber`, `wolt`, `bolt`, `glovo`, `stuart`, and `other`. For `other`, non-zero metrics require a non-empty trimmed name in local migration evidence. Cash tips are non-negative in both Web validation and local constraint evidence. General non-negativity for every other metric is not verified and must not be invented by Mobile.
 
 Web reads all owned rows, performs filters and aggregations client-side, and writes directly. Errors from mutations are surfaced to the UI; several read paths do not expose structured errors. No shared error envelope or retry/idempotency contract exists.
 
-## Profile operation warning
+## Profile operation contract
 
-The Web has parallel profile creation paths: signup-time upsert when a session is immediately available, metadata-driven lazy upsert on the Work page, and an interactive nickname prompt. A separate login-page signup does not provide nickname metadata. This is not a single deterministic API contract. Mobile must treat profile bootstrap as blocked until one canonical mechanism and failure policy are accepted.
+Profile creation is canonical at the Auth-user database trigger. It inserts the Auth identifier and an optional non-empty metadata nickname, never overwrites an existing profile, and lets uniqueness conflicts fail atomically. Client upserts are idempotent recovery/UX paths, not competing bootstrap authorities. A signup without nickname metadata receives a profile with `NULL` nickname and must complete the existing nickname flow.
 
 ## Multi-write warning
 

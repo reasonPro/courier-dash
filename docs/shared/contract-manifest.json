@@ -2,16 +2,16 @@
   "manifestSchemaVersion": "1.0.0",
   "contractName": "courierdash-shared-contract",
   "contractVersion": "0.2.0-draft",
-  "snapshotId": "courierdash-0.2.0-draft-470b1ca-20260801t200323z",
-  "snapshotVersion": "0.2.0-draft.4",
+  "snapshotId": "courierdash-0.2.0-draft-aec017d-20260808t163857z",
+  "snapshotVersion": "0.2.0-draft.5",
   "status": "partially_verified",
   "canonicalLocation": "docs/shared",
   "developmentPhase": "mobile_catch_up",
   "generatedFromEnvironment": "staging",
-  "sourceWebCommit": "470b1cafd2715e1998c27eb39f8dd4bc66b2c1a3",
-  "schemaRevision": null,
-  "latestMigration": null,
-  "generatedAt": "2026-08-01T20:03:23Z",
+  "sourceWebCommit": "aec017db173b846bea98210224ff40df99906d05",
+  "schemaRevision": "202608020002",
+  "latestMigration": "202608020002",
+  "generatedAt": "2026-08-08T16:38:57Z",
   "compatibility": {
     "semverRangeFormat": "npm-semver",
     "web": ">=0.2.0-draft <0.3.0",
@@ -22,25 +22,25 @@
   "artifacts": [
     {
       "path": "docs/shared/SHARED_ARCHITECTURE.md",
-      "sha256": "b30389dbf10bb1778a79c091d5db7e78e9b1e507ba31723b1d62a54e4532f775",
+      "sha256": "341d622ace00800ea321b48d3291254f8dc1becd7499ecf333f2b3721f2abe9d",
       "status": "present",
       "sourceRefs": [
         "docs/shared/SHARED_ARCHITECTURE.md"
       ],
-      "generatedAt": "2026-08-01T20:03:23Z",
-      "stagingStatus": "not_checked",
-      "productionStatus": "not_checked",
+      "generatedAt": "2026-08-08T16:38:57Z",
+      "stagingStatus": "verified",
+      "productionStatus": "not_applied",
       "verificationStatus": "partially_verified"
     },
     {
       "path": "docs/shared/SCHEMA_POLICY.md",
-      "sha256": "e25ac71d3ed4248f40b2622abb7daa434c82fa128d28a5b71464e581e7a7a7e5",
+      "sha256": "b5bad9995ac80acedb334ff66c4e962eb453a3c03d7ec73b26171b5da76f3e37",
       "status": "present",
       "sourceRefs": [
         "supabase/schema.snapshot.json",
         "lib/database.types.ts",
         "supabase/migrations",
-        "web-commit:470b1cafd2715e1998c27eb39f8dd4bc66b2c1a3",
+        "web-commit:aec017db173b846bea98210224ff40df99906d05",
         "docs/MOBILE_INTEGRATION.md",
         "docs/WORKFLOW.md",
         "docs/shared/CHANGELOG.md",
@@ -51,28 +51,28 @@
         "supabase/README.md",
         "mobile-governance-review:pending"
       ],
-      "generatedAt": "2026-08-01T20:03:23Z",
-      "stagingStatus": "not_checked",
-      "productionStatus": "not_checked",
-      "verificationStatus": "draft_pending_schema_snapshot"
+      "generatedAt": "2026-08-08T16:38:57Z",
+      "stagingStatus": "verified",
+      "productionStatus": "not_applied",
+      "verificationStatus": "partially_verified"
     },
     {
       "path": "docs/shared/API_CONTRACT.md",
-      "sha256": "a6bbb72e59667321e9c4bc439eb205fec3240e288f505b528d64513a56a6c397",
+      "sha256": "9834d4ea5587289716c0b6ab8d502f783feb01882c83ec8776dded66647f26ba",
       "status": "present",
       "sourceRefs": [
         "app",
         "lib/supabase.ts",
         "lib/database.types.ts"
       ],
-      "generatedAt": "2026-08-01T16:55:45Z",
-      "stagingStatus": "not_checked",
-      "productionStatus": "not_checked",
+      "generatedAt": "2026-08-08T16:38:57Z",
+      "stagingStatus": "verified",
+      "productionStatus": "not_applied",
       "verificationStatus": "partially_verified"
     },
     {
       "path": "docs/shared/AUTH_AND_SECURITY.md",
-      "sha256": "dfb5b7d97336155e68962ce03c3d4357f27cb1d1f56e5c74cdda5377f257f654",
+      "sha256": "3f209e0aff412ffb1ca7385a85406dbf2552860498189aa828862805d4ac6634",
       "status": "present",
       "sourceRefs": [
         "app/login/page.tsx",
@@ -83,49 +83,49 @@
         "supabase/config.toml",
         "supabase/schema.snapshot.json"
       ],
-      "generatedAt": "2026-08-01T16:55:45Z",
-      "stagingStatus": "not_checked",
-      "productionStatus": "not_checked",
-      "verificationStatus": "reported_pending_snapshot"
+      "generatedAt": "2026-08-08T16:38:57Z",
+      "stagingStatus": "verified",
+      "productionStatus": "not_applied",
+      "verificationStatus": "partially_verified"
     },
     {
       "path": "docs/shared/BUSINESS_RULES.md",
-      "sha256": "17667a9bc12d6dd497cb5c4eedd2a947a053be8da94e7247746882da40037363",
+      "sha256": "9161d2160b66b37003daa089655ea9881c42f4a9494c6f2d46794b0b51a84d27",
       "status": "present",
       "sourceRefs": [
         "lib/work-platforms.ts",
         "app/work/year/annual-report-calculations.ts",
         "reported:mobile-statistics"
       ],
-      "generatedAt": "2026-08-01T13:07:48Z",
-      "stagingStatus": "not_checked",
-      "productionStatus": "not_checked",
+      "generatedAt": "2026-08-08T16:38:57Z",
+      "stagingStatus": "verified",
+      "productionStatus": "not_applied",
       "verificationStatus": "partially_verified"
     },
     {
       "path": "docs/shared/COMPATIBILITY_POLICY.md",
-      "sha256": "48ecd2fd3e577b1e2ddc5b0716e2e6ac0d33c18f29d09d30c4f65e237b2c3725",
+      "sha256": "7bc7fb6c54b9c8c4a6e61f69014f09bd838eab63b75a7fbddb8130698a6a350e",
       "status": "present",
       "sourceRefs": [
         "docs/shared/SHARED_ARCHITECTURE.md",
         "docs/shared/SCHEMA_POLICY.md"
       ],
-      "generatedAt": "2026-08-01T20:03:23Z",
+      "generatedAt": "2026-08-08T16:38:57Z",
       "stagingStatus": "not_applicable",
       "productionStatus": "not_applicable",
-      "verificationStatus": "proposed"
+      "verificationStatus": "partially_verified"
     },
     {
       "path": "docs/shared/CHANGELOG.md",
-      "sha256": "d21a99824448e9764326966abeeb23d1f9a28fbd24bcaa7b72303cc9ae87f1bb",
+      "sha256": "db3fc2086477a5e370014f2e5416f7a5722f789ccd87942be510c6f1bd907fdf",
       "status": "present",
       "sourceRefs": [
         "docs/shared"
       ],
-      "generatedAt": "2026-08-01T20:03:23Z",
-      "stagingStatus": "not_checked",
-      "productionStatus": "not_checked",
-      "verificationStatus": "blocked"
+      "generatedAt": "2026-08-08T16:38:57Z",
+      "stagingStatus": "verified",
+      "productionStatus": "not_applied",
+      "verificationStatus": "partially_verified"
     },
     {
       "path": "docs/shared/contract-manifest.schema.json",
@@ -221,7 +221,7 @@
   "sharedFlows": [
     {
       "id": "auth",
-      "implementationStatus": "implemented_unverified",
+      "implementationStatus": "staging_verified",
       "implementationCommit": "c4a67d58997b36dc6d4913c226d9cf489c816b2e",
       "reviewStatus": "passed",
       "acceptanceStatus": "accepted_by_web",
@@ -235,12 +235,10 @@
         "client_session_guard"
       ],
       "missingCapabilities": [
-        "verified_staging_settings",
         "verified_mobile_deep_links",
         "verified_confirmation_flow"
       ],
       "blockers": [
-        "RISK-001",
         "RISK-009"
       ],
       "evidenceRefs": [
@@ -249,45 +247,46 @@
         "app/reset-password/page.tsx",
         "lib/auth-route-policy.ts",
         "supabase/config.toml",
+        "supabase/schema.snapshot.json",
         "mobile-audit:4ecfb48d99951539c7f5db73fb748667478ffb85:snapshot-0.2.0-draft.2"
       ]
     },
     {
       "id": "profile",
-      "implementationStatus": "blocked",
-      "implementationCommit": "c4a67d58997b36dc6d4913c226d9cf489c816b2e",
-      "reviewStatus": "failed",
-      "acceptanceStatus": "not_assessed",
+      "implementationStatus": "staging_verified",
+      "implementationCommit": "aec017db173b846bea98210224ff40df99906d05",
+      "reviewStatus": "pending",
+      "acceptanceStatus": "accepted_by_web",
       "contractVersion": "0.2.0-draft",
-      "verificationStatus": "blocked",
+      "verificationStatus": "verified",
       "supportedCapabilities": [
         "nickname_unique_lookup",
-        "owner_profile_upsert"
+        "owner_profile_upsert",
+        "database_trigger_bootstrap",
+        "nickname_only_anonymous_read"
       ],
       "missingCapabilities": [
-        "single_profile_creation_mechanism",
-        "confirmed_signup_bootstrap",
-        "deterministic_retry_policy"
+        "mobile_snapshot_acceptance",
+        "verified_confirmation_flow"
       ],
       "blockers": [
-        "RISK-001",
-        "RISK-005",
-        "RISK-006"
+        "RISK-009"
       ],
       "evidenceRefs": [
         "app/page.tsx",
         "app/login/page.tsx",
         "app/work/page.tsx",
         "supabase/schema.snapshot.json",
+        "supabase/migrations/202608020002_reconcile_ownership_profiles_rls.sql",
         "mobile-audit:4ecfb48d99951539c7f5db73fb748667478ffb85:snapshot-0.2.0-draft.2"
       ]
     },
     {
       "id": "work",
-      "implementationStatus": "contract_verified",
-      "implementationCommit": "c4a67d58997b36dc6d4913c226d9cf489c816b2e",
-      "reviewStatus": "passed",
-      "acceptanceStatus": "accepted_by_both",
+      "implementationStatus": "staging_verified",
+      "implementationCommit": "aec017db173b846bea98210224ff40df99906d05",
+      "reviewStatus": "pending",
+      "acceptanceStatus": "accepted_by_web",
       "contractVersion": "0.2.0-draft",
       "verificationStatus": "partially_verified",
       "supportedCapabilities": [
@@ -300,15 +299,11 @@
         "history_edit_delete"
       ],
       "missingCapabilities": [
-        "staging_schema_verification",
+        "mobile_snapshot_acceptance",
         "device_local_date_parity",
         "active_shift_semantics"
       ],
       "blockers": [
-        "RISK-001",
-        "RISK-002",
-        "RISK-003",
-        "RISK-004",
         "RISK-007"
       ],
       "evidenceRefs": [
@@ -316,6 +311,7 @@
         "lib/work-platforms.ts",
         "lib/database.types.ts",
         "supabase/migrations",
+        "supabase/schema.snapshot.json",
         "mobile-audit:4ecfb48d99951539c7f5db73fb748667478ffb85:snapshot-0.2.0-draft.2"
       ]
     },
@@ -337,7 +333,6 @@
         "shared_rounding"
       ],
       "blockers": [
-        "RISK-001",
         "RISK-007",
         "RISK-008"
       ],
@@ -366,13 +361,12 @@
         "safe_zero_average"
       ],
       "missingCapabilities": [
-        "staging_data_shape_verification",
+        "mobile_snapshot_acceptance",
         "timezone_parity",
         "shared_rounding",
         "mobile_annual_report_implementation"
       ],
       "blockers": [
-        "RISK-001",
         "RISK-007",
         "RISK-008"
       ],
@@ -402,7 +396,6 @@
         "mobile_implementation"
       ],
       "blockers": [
-        "RISK-001",
         "RISK-014"
       ],
       "evidenceRefs": [
@@ -445,102 +438,79 @@
       "id": "RISK-001",
       "area": "staging_identity",
       "severity": "blocker",
-      "status": "open",
-      "description": "The locally linked project has no approved evidence proving that it is Staging; remote metadata inspection was not run.",
-      "blocksFlows": [
-        "auth",
-        "profile",
-        "work",
-        "statistics",
-        "reports",
-        "expenses"
-      ],
+      "status": "resolved",
+      "description": "Staging was identified unambiguously and inspected without exporting credentials or user data.",
+      "blocksFlows": [],
       "evidenceRefs": [
-        "supabase/config.toml",
-        "local:staging-credential-search"
+        "supabase/schema.snapshot.json",
+        "remote-audit:staging-environment"
       ],
-      "requiredResolution": "Provide an unambiguous Staging project reference through an approved credential source, then perform a read-only metadata audit."
+      "requiredResolution": "Completed by the remote audit and reconciliation verification."
     },
     {
       "id": "RISK-002",
       "area": "migration_history",
       "severity": "blocker",
-      "status": "open",
-      "description": "Checked-in migrations do not reconstruct the five-table base schema or its RLS policies.",
-      "blocksFlows": [
-        "profile",
-        "work",
-        "reports",
-        "expenses"
-      ],
+      "status": "resolved",
+      "description": "The reviewed baseline and all forward migrations are checked in and Staging history is coherent through 202608020002.",
+      "blocksFlows": [],
       "evidenceRefs": [
         "supabase/migrations",
         "supabase/schema.snapshot.json"
       ],
-      "requiredResolution": "Create reviewed baseline or reconciliation migrations and verify their applied state on Staging."
+      "requiredResolution": "Completed for repository and Staging history; isolated empty-database bootstrap remains a pre-Production verification gate."
     },
     {
       "id": "RISK-003",
       "area": "work_ownership_default",
       "severity": "blocker",
-      "status": "open",
-      "description": "Local schema evidence reports a concrete redacted default for nullable work ownership, which can misattribute inserts that omit ownership.",
-      "blocksFlows": [
-        "work",
-        "statistics",
-        "reports"
-      ],
+      "status": "resolved",
+      "description": "Staging work ownership is required, has no database default, retains its Auth foreign key, and passed two-account isolation tests.",
+      "blocksFlows": [],
       "evidenceRefs": [
         "supabase/schema.snapshot.json",
         "lib/database.types.ts"
       ],
-      "requiredResolution": "Verify Staging, remove the concrete default by migration, make ownership required, and run isolation tests."
+      "requiredResolution": "Completed by migration 202608020002 and rollback-only Staging tests."
     },
     {
       "id": "RISK-004",
       "area": "ownership_nullability",
       "severity": "high",
-      "status": "open",
-      "description": "Work and garage ownership columns are nullable in local evidence despite owner-only semantics.",
-      "blocksFlows": [
-        "work"
-      ],
+      "status": "accepted_risk",
+      "description": "Work ownership is now required. Garage ownership remains nullable in the existing Web-only model and is not promoted to a shared Mobile requirement in this snapshot.",
+      "blocksFlows": [],
       "evidenceRefs": [
         "supabase/schema.snapshot.json",
         "lib/database.types.ts"
       ],
-      "requiredResolution": "Reconcile existing nullability, add required constraints through migrations, and test RLS."
+      "requiredResolution": "Reassess Garage nullability before sharing or expanding Garage behavior; no current Work or Mobile flow is blocked."
     },
     {
       "id": "RISK-005",
       "area": "profile_creation",
       "severity": "high",
-      "status": "open",
-      "description": "Web uses multiple profile bootstrap paths and one signup path supplies no nickname metadata.",
-      "blocksFlows": [
-        "profile",
-        "auth"
-      ],
+      "status": "resolved",
+      "description": "A database trigger now creates one profile for every new Auth user; client upserts remain idempotent fallback and nickname-completion paths.",
+      "blocksFlows": [],
       "evidenceRefs": [
         "app/page.tsx",
         "app/login/page.tsx",
         "app/work/page.tsx"
       ],
-      "requiredResolution": "Select one canonical creation mechanism and verify confirmation, retry, and uniqueness races."
+      "requiredResolution": "Completed on Staging; Mobile acceptance of the new snapshot remains pending."
     },
     {
       "id": "RISK-006",
       "area": "profile_privacy",
       "severity": "high",
-      "status": "open",
-      "description": "Local RLS evidence reports unrestricted profile reads, exposing all nicknames to public-client queries.",
-      "blocksFlows": [
-        "profile"
-      ],
+      "status": "resolved",
+      "description": "Profile row visibility supports nickname discovery while anonymous SQL privilege is restricted to the nickname column; owner mutations remain isolated.",
+      "blocksFlows": [],
       "evidenceRefs": [
         "supabase/schema.snapshot.json"
       ],
-      "requiredResolution": "Define the minimum nickname-discovery need and replace broad reads with a privacy-preserving contract."
+      "requiredResolution": "Completed by migrations 202608020001 and 202608020002 and verified with anonymous and two-account tests."
     },
     {
       "id": "RISK-007",
@@ -584,17 +554,18 @@
       "id": "RISK-009",
       "area": "auth_configuration",
       "severity": "medium",
-      "status": "open",
-      "description": "Local development disables email confirmation while supplied Staging behavior says it is enabled; Staging was not verified.",
+      "status": "accepted_risk",
+      "description": "Staging email confirmation is verified enabled while local development intentionally disables it; Mobile deep links and the confirmation journey remain a controlled Phase 2.3 feature gate.",
       "blocksFlows": [
         "auth",
         "profile"
       ],
       "evidenceRefs": [
         "supabase/config.toml",
-        "reported:auth-settings"
+        "remote-audit:staging-auth-settings",
+        "docs/shared/AUTH_AND_SECURITY.md"
       ],
-      "requiredResolution": "Verify Staging Auth metadata and execute confirmed-signup flows on both clients."
+      "requiredResolution": "Complete and accept the confirmation, recovery redirect, and Mobile deep-link flows before Phase 2.3 rollout."
     },
     {
       "id": "RISK-010",
@@ -672,15 +643,15 @@
     {
       "id": "MISMATCH-001",
       "severity": "blocker",
-      "status": "open",
-      "summary": "The repository migration history cannot reproduce the local schema evidence.",
+      "status": "resolved",
+      "summary": "Repository and Staging migration history are coherent through 202608020002.",
       "evidenceRefs": [
         "supabase/migrations",
         "supabase/schema.snapshot.json"
       ],
-      "impact": "A generated Mobile model cannot be tied to an auditable schema revision.",
-      "mobileStop": true,
-      "recommendation": "Reconcile a baseline and verify applied Staging migrations.",
+      "impact": "The schema revision and generated artifacts now have an auditable migration chain; empty-database execution remains a pre-Production gate.",
+      "mobileStop": false,
+      "recommendation": "Run the deferred isolated bootstrap before Production rollout.",
       "flows": [
         "profile",
         "work",
@@ -691,16 +662,16 @@
     {
       "id": "MISMATCH-002",
       "severity": "high",
-      "status": "open",
-      "summary": "Web signup/profile creation has multiple incompatible bootstrap paths.",
+      "status": "resolved",
+      "summary": "Profile bootstrap is canonical at the Auth-user trigger; Web client upserts are idempotent fallback and nickname-completion paths.",
       "evidenceRefs": [
         "app/page.tsx",
         "app/login/page.tsx",
         "app/work/page.tsx"
       ],
-      "impact": "A confirmed user may have neither nickname metadata nor a profile.",
-      "mobileStop": true,
-      "recommendation": "Choose one idempotent profile bootstrap contract.",
+      "impact": "Every new Auth user receives a profile even when nickname metadata is absent.",
+      "mobileStop": false,
+      "recommendation": "Mobile must verify and accept the trigger-based lifecycle in snapshot 0.2.0-draft.5.",
       "flows": [
         "auth",
         "profile"
@@ -730,15 +701,15 @@
     {
       "id": "MISMATCH-004",
       "severity": "high",
-      "status": "open",
-      "summary": "Intended owner-required semantics conflict with nullable ownership and a redacted concrete work default.",
+      "status": "resolved",
+      "summary": "Work ownership is required on Staging, has no database default, and is explicit in generated Row and Insert types.",
       "evidenceRefs": [
         "supabase/schema.snapshot.json",
         "lib/database.types.ts"
       ],
-      "impact": "Rows can be orphaned or attributed through an unsafe default.",
-      "mobileStop": true,
-      "recommendation": "Remove the default, reconcile nulls, require ownership, and test RLS.",
+      "impact": "Omitted or foreign ownership is rejected and existing rows passed aggregate integrity checks.",
+      "mobileStop": false,
+      "recommendation": "Preserve explicit authenticated ownership in both clients and re-run isolation tests before Production.",
       "flows": [
         "work",
         "statistics",
@@ -749,14 +720,15 @@
       "id": "MISMATCH-005",
       "severity": "medium",
       "status": "open",
-      "summary": "Local Auth confirmation is disabled while supplied Staging behavior says enabled.",
+      "summary": "Local development intentionally disables email confirmation while verified Staging enables it as the Phase 2.3 feature gate.",
       "evidenceRefs": [
         "supabase/config.toml",
-        "reported:auth-settings"
+        "remote-audit:staging-auth-settings",
+        "docs/shared/AUTH_AND_SECURITY.md"
       ],
       "impact": "Signup session availability and profile timing differ.",
       "mobileStop": true,
-      "recommendation": "Verify Staging Auth settings and the confirmation journey.",
+      "recommendation": "Complete the cross-client confirmation, recovery redirect, and Mobile deep-link journey before Phase 2.3 rollout.",
       "flows": [
         "auth",
         "profile"
@@ -797,15 +769,15 @@
     {
       "id": "MISMATCH-008",
       "severity": "medium",
-      "status": "open",
-      "summary": "Generated database type parity: Mobile requires work_shifts.user_id and includes graphql_public declarations, while the snapshot type marks that owner nullable and has no matching graphql_public declarations.",
+      "status": "resolved",
+      "summary": "Verified Staging types now require work_shifts.user_id; the non-callable trigger helper is correctly absent from the client function surface.",
       "evidenceRefs": [
         "mobile-audit:4ecfb48d99951539c7f5db73fb748667478ffb85:snapshot-0.2.0-draft.2",
         "snapshot-0.2.0-draft.2:database/database.types.ts"
       ],
-      "impact": "Generated type artifacts cannot yet be treated as one verified canonical Staging artifact.",
+      "impact": "The Web generated artifact matches Staging revision 202608020002; Mobile acceptance of the delivered artifact remains pending.",
       "mobileStop": false,
-      "recommendation": "Verify Staging identity, reconcile migrations, regenerate types from verified Staging, compare artifacts byte-for-byte, and never manually merge generated types.",
+      "recommendation": "Deliver the generated types separately with snapshot 0.2.0-draft.5 and record Mobile PASS before Production.",
       "flows": [
         "work",
         "statistics",
@@ -813,10 +785,22 @@
       ]
     }
   ],
-  "breakingChanges": [],
+  "breakingChanges": [
+    {
+      "id": "BREAKING-001",
+      "class": "C",
+      "description": "Staging now requires explicit work_shifts.user_id, uses trigger-based profile bootstrap, and enforces the reviewed application-role privilege and RLS matrix.",
+      "affectedFlows": [
+        "auth",
+        "profile",
+        "work"
+      ],
+      "migrationRequired": true
+    }
+  ],
   "sanitization": {
     "status": "passed",
-    "scannedAt": "2026-08-01T20:12:39Z",
+    "scannedAt": "2026-08-08T16:38:57Z",
     "checks": [
       "credentials",
       "database_urls",

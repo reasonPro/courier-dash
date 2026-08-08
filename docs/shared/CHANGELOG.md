@@ -1,5 +1,24 @@
 # Shared Contract Changelog
 
+## Snapshot 0.2.0-draft.5 Staging reconciliation — 2026-08-08
+
+Status: `partially_verified`
+
+This Class C post-schema snapshot keeps contract version `0.2.0-draft` and records the verified Staging revision after the approved Web reconciliation package. Mobile acceptance is `pending`; Production application is `not_applied`.
+
+### Staging reconciliation
+
+- Restored the reviewed baseline so Web and Staging migration histories contain the same ordered revisions through `202608020002`.
+- Hardened direct table/sequence privileges and migration-owner default privileges; anonymous access is limited to `profiles.nickname`.
+- Made `work_shifts.user_id` required with no database default while preserving its Auth foreign key and per-user/date uniqueness.
+- Added one canonical Auth-user profile trigger, safely backfilled missing profiles without inventing nicknames, and retained client upserts as idempotent fallbacks.
+- Restricted mutation policies to authenticated owners and made Garage history append-only for application roles.
+- Verified five RLS-enabled public tables and 67 columns, exact ACL expectations, coherent migration history, the profile trigger, and rollback-only two-account isolation with zero test residue.
+- Generated `lib/database.types.ts` once from the stable Staging revision; `work_shifts.user_id` is required in Row and Insert types.
+- Source Web schema commit: `aec017db173b846bea98210224ff40df99906d05`.
+- Clean executable bootstrap remains a pre-Production CI gate because no Docker-compatible local runtime was available.
+- Production, GitHub, Vercel, and Mobile repository state were not changed.
+
 ## Snapshot 0.2.0-draft.4 governance finalization — 2026-08-01
 
 Status: `partially_verified`

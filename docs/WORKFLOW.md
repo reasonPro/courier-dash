@@ -171,7 +171,7 @@ Merged branch можна видалити лише після:
 
 Нормативні правила ownership і rollout визначає [Schema Policy](./shared/SCHEMA_POLICY.md). Web є єдиним авторитетним джерелом migrations і canonical `docs/shared`; Mobile не створює та не застосовує migrations, а до їх створення перевіряє сумісність запланованої зміни. Власник проєкту окремо дозволяє створення migration і окремо — її застосування.
 
-До завершення окремого read-only Supabase audit нові migrations і зміни schema, RLS або Auth заборонені. Якщо Staging не ідентифіковано однозначно та не перевірено, remote Supabase changes не застосовуються.
+Read-only Supabase audit і reconciliation snapshot `0.2.0-draft.5` завершили початковий freeze для Staging revision `202608020002`. Кожна наступна зміна знову проходить canonical approval route; якщо Staging не ідентифіковано однозначно та не перевірено, remote Supabase changes не застосовуються. Production application цього пакета потребує окремого дозволу.
 
 Перед новою migration потрібен окремий read-only audit фактичної linked remote schema.
 

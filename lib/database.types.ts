@@ -173,7 +173,7 @@ export type Database = {
           tips_uber: number | null
           tips_wolt: number | null
           uber: number
-          user_id: string | null
+          user_id: string
           wolt: number
         }
         Insert: {
@@ -214,7 +214,7 @@ export type Database = {
           tips_uber?: number | null
           tips_wolt?: number | null
           uber?: number
-          user_id?: string | null
+          user_id: string
           wolt?: number
         }
         Update: {
@@ -255,7 +255,7 @@ export type Database = {
           tips_uber?: number | null
           tips_wolt?: number | null
           uber?: number
-          user_id?: string | null
+          user_id?: string
           wolt?: number
         }
         Relationships: []

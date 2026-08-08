@@ -1,5 +1,13 @@
 {
-    "captured_at":  "2026-07-24T20:15:58.3194678Z",
+    "captured_at":  "2026-08-08T16:27:32.576Z",
+    "column_privileges":  [
+                              {
+                                  "column":  "nickname",
+                                  "grantee":  "anon",
+                                  "privilege":  "SELECT",
+                                  "table":  "profiles"
+                              }
+                          ],
     "columns":  [
                     {
                         "data_type":  "bigint",
@@ -185,7 +193,7 @@
                     },
                     {
                         "data_type":  "numeric",
-                        "default":  "\u00270\u0027::numeric",
+                        "default":  "0",
                         "generated":  "NEVER",
                         "generation_expression":  null,
                         "identity":  false,
@@ -521,13 +529,13 @@
                     },
                     {
                         "data_type":  "uuid",
-                        "default":  "\u0027284cae3b-046c-4595-8f74-d826df4c1939\u0027::uuid",
+                        "default":  null,
                         "generated":  "NEVER",
                         "generation_expression":  null,
                         "identity":  false,
                         "identity_generation":  null,
                         "name":  "user_id",
-                        "nullable":  true,
+                        "nullable":  false,
                         "position":  10,
                         "table":  "work_shifts",
                         "udt_name":  "uuid",
@@ -1002,13 +1010,55 @@
                             "type":  "unique"
                         },
                         {
-                            "definition":  "CHECK (other_platform_name IS NOT NULL OR other_income = 0::numeric AND orders_other = 0 AND tips_other = 0::numeric AND bonuses_other = 0::numeric)",
+                            "definition":  "CHECK ((cash_tips_bolt \u003e= (0)::numeric))",
+                            "name":  "work_shifts_cash_tips_bolt_nonnegative",
+                            "table":  "work_shifts",
+                            "type":  "check"
+                        },
+                        {
+                            "definition":  "CHECK ((cash_tips_glovo \u003e= (0)::numeric))",
+                            "name":  "work_shifts_cash_tips_glovo_nonnegative",
+                            "table":  "work_shifts",
+                            "type":  "check"
+                        },
+                        {
+                            "definition":  "CHECK ((cash_tips_other \u003e= (0)::numeric))",
+                            "name":  "work_shifts_cash_tips_other_nonnegative",
+                            "table":  "work_shifts",
+                            "type":  "check"
+                        },
+                        {
+                            "definition":  "CHECK ((cash_tips_stuart \u003e= (0)::numeric))",
+                            "name":  "work_shifts_cash_tips_stuart_nonnegative",
+                            "table":  "work_shifts",
+                            "type":  "check"
+                        },
+                        {
+                            "definition":  "CHECK ((cash_tips_uber \u003e= (0)::numeric))",
+                            "name":  "work_shifts_cash_tips_uber_nonnegative",
+                            "table":  "work_shifts",
+                            "type":  "check"
+                        },
+                        {
+                            "definition":  "CHECK ((cash_tips_wolt \u003e= (0)::numeric))",
+                            "name":  "work_shifts_cash_tips_wolt_nonnegative",
+                            "table":  "work_shifts",
+                            "type":  "check"
+                        },
+                        {
+                            "definition":  "CHECK (((other_platform_name IS NOT NULL) OR (cash_tips_other = (0)::numeric)))",
+                            "name":  "work_shifts_other_cash_tips_require_name",
+                            "table":  "work_shifts",
+                            "type":  "check"
+                        },
+                        {
+                            "definition":  "CHECK (((other_platform_name IS NOT NULL) OR ((other_income = (0)::numeric) AND (orders_other = 0) AND (tips_other = (0)::numeric) AND (bonuses_other = (0)::numeric))))",
                             "name":  "work_shifts_other_metrics_require_name",
                             "table":  "work_shifts",
                             "type":  "check"
                         },
                         {
-                            "definition":  "CHECK (other_platform_name IS NULL OR other_platform_name = btrim(other_platform_name) AND other_platform_name \u003c\u003e \u0027\u0027::text)",
+                            "definition":  "CHECK (((other_platform_name IS NULL) OR ((other_platform_name = btrim(other_platform_name)) AND (other_platform_name \u003c\u003e \u0027\u0027::text))))",
                             "name":  "work_shifts_other_platform_name_trimmed",
                             "table":  "work_shifts",
                             "type":  "check"
@@ -1030,51 +1080,13 @@
                             "name":  "work_shifts_user_id_fkey",
                             "table":  "work_shifts",
                             "type":  "foreign_key"
-                        },
-                        {
-                            "definition":  "CHECK (cash_tips_uber \u003e= 0::numeric)",
-                            "name":  "work_shifts_cash_tips_uber_nonnegative",
-                            "table":  "work_shifts",
-                            "type":  "check"
-                        },
-                        {
-                            "definition":  "CHECK (cash_tips_wolt \u003e= 0::numeric)",
-                            "name":  "work_shifts_cash_tips_wolt_nonnegative",
-                            "table":  "work_shifts",
-                            "type":  "check"
-                        },
-                        {
-                            "definition":  "CHECK (cash_tips_bolt \u003e= 0::numeric)",
-                            "name":  "work_shifts_cash_tips_bolt_nonnegative",
-                            "table":  "work_shifts",
-                            "type":  "check"
-                        },
-                        {
-                            "definition":  "CHECK (cash_tips_glovo \u003e= 0::numeric)",
-                            "name":  "work_shifts_cash_tips_glovo_nonnegative",
-                            "table":  "work_shifts",
-                            "type":  "check"
-                        },
-                        {
-                            "definition":  "CHECK (cash_tips_stuart \u003e= 0::numeric)",
-                            "name":  "work_shifts_cash_tips_stuart_nonnegative",
-                            "table":  "work_shifts",
-                            "type":  "check"
-                        },
-                        {
-                            "definition":  "CHECK (cash_tips_other \u003e= 0::numeric)",
-                            "name":  "work_shifts_cash_tips_other_nonnegative",
-                            "table":  "work_shifts",
-                            "type":  "check"
-                        },
-                        {
-                            "definition":  "CHECK (other_platform_name IS NOT NULL OR cash_tips_other = 0::numeric)",
-                            "name":  "work_shifts_other_cash_tips_require_name",
-                            "table":  "work_shifts",
-                            "type":  "check"
                         }
                     ],
     "database_version":  "17.6",
+    "enums":  [
+
+              ],
+    "environment":  "staging",
     "foreign_keys":  [
                          {
                              "definition":  "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
@@ -1113,7 +1125,18 @@
                          }
                      ],
     "functions":  [
+                      {
+                          "application_execute_grantees":  [
 
+                                                           ],
+                          "config":  [
+                                         "search_path=\"\""
+                                     ],
+                          "identity_arguments":  "",
+                          "name":  "handle_new_user_profile",
+                          "result":  "trigger",
+                          "security_definer":  true
+                      }
                   ],
     "indexes":  [
                     {
@@ -1157,6 +1180,32 @@
                         "table":  "work_shifts"
                     }
                 ],
+    "latest_migration":  "202608020002",
+    "migration_history":  [
+                              {
+                                  "name":  "baseline_production_schema",
+                                  "version":  "202607220000"
+                              },
+                              {
+                                  "name":  "add_stuart_and_other_platform",
+                                  "version":  "202607230001"
+                              },
+                              {
+                                  "name":  "add_cash_tips_per_platform",
+                                  "version":  "202607240001"
+                              },
+                              {
+                                  "name":  "harden_public_api_privileges",
+                                  "version":  "202608020001"
+                              },
+                              {
+                                  "name":  "reconcile_ownership_profiles_rls",
+                                  "version":  "202608020002"
+                              }
+                          ],
+    "postgres_default_privileges":  [
+
+                                    ],
     "primary_keys":  [
                          {
                              "definition":  "PRIMARY KEY (id)",
@@ -1184,25 +1233,35 @@
                              "table":  "work_shifts"
                          }
                      ],
-    "project_ref":  "wcwvmpsxrbnmzwdkbvgl",
     "rls_policies":  [
                          {
-                             "command":  "ALL",
-                             "name":  "Користувач керує своєю історією",
+                             "command":  "INSERT",
+                             "name":  "Користувач додає свою історію",
                              "permissive":  "PERMISSIVE",
                              "roles":  [
-                                           "public"
+                                           "authenticated"
+                                       ],
+                             "table":  "garage_history",
+                             "using":  null,
+                             "with_check":  "(auth.uid() = user_id)"
+                         },
+                         {
+                             "command":  "SELECT",
+                             "name":  "Користувач читає свою історію",
+                             "permissive":  "PERMISSIVE",
+                             "roles":  [
+                                           "authenticated"
                                        ],
                              "table":  "garage_history",
                              "using":  "(auth.uid() = user_id)",
-                             "with_check":  "(auth.uid() = user_id)"
+                             "with_check":  null
                          },
                          {
                              "command":  "ALL",
                              "name":  "Користувач керує своїм гаражем",
                              "permissive":  "PERMISSIVE",
                              "roles":  [
-                                           "public"
+                                           "authenticated"
                                        ],
                              "table":  "garage_rules",
                              "using":  "(auth.uid() = user_id)",
@@ -1213,18 +1272,18 @@
                              "name":  "Користувач може оновлювати свій п",
                              "permissive":  "PERMISSIVE",
                              "roles":  [
-                                           "public"
+                                           "authenticated"
                                        ],
                              "table":  "profiles",
                              "using":  "(auth.uid() = id)",
-                             "with_check":  null
+                             "with_check":  "(auth.uid() = id)"
                          },
                          {
                              "command":  "INSERT",
                              "name":  "Користувач може створювати свій п",
                              "permissive":  "PERMISSIVE",
                              "roles":  [
-                                           "public"
+                                           "authenticated"
                                        ],
                              "table":  "profiles",
                              "using":  null,
@@ -1235,7 +1294,8 @@
                              "name":  "Профілі можуть читати всі",
                              "permissive":  "PERMISSIVE",
                              "roles":  [
-                                           "public"
+                                           "anon",
+                                           "authenticated"
                                        ],
                              "table":  "profiles",
                              "using":  "true",
@@ -1246,7 +1306,7 @@
                              "name":  "Users can insert own tax settings",
                              "permissive":  "PERMISSIVE",
                              "roles":  [
-                                           "public"
+                                           "authenticated"
                                        ],
                              "table":  "tax_settings",
                              "using":  null,
@@ -1257,18 +1317,18 @@
                              "name":  "Users can update own tax settings",
                              "permissive":  "PERMISSIVE",
                              "roles":  [
-                                           "public"
+                                           "authenticated"
                                        ],
                              "table":  "tax_settings",
                              "using":  "(auth.uid() = user_id)",
-                             "with_check":  null
+                             "with_check":  "(auth.uid() = user_id)"
                          },
                          {
                              "command":  "SELECT",
                              "name":  "Users can view own tax settings",
                              "permissive":  "PERMISSIVE",
                              "roles":  [
-                                           "public"
+                                           "authenticated"
                                        ],
                              "table":  "tax_settings",
                              "using":  "(auth.uid() = user_id)",
@@ -1287,6 +1347,220 @@
                          }
                      ],
     "schema":  "public",
+    "sequence_privileges":  [
+                                {
+                                    "grantee":  "authenticated",
+                                    "privilege":  "USAGE",
+                                    "sequence":  "garage_history_id_seq"
+                                },
+                                {
+                                    "grantee":  "service_role",
+                                    "privilege":  "USAGE",
+                                    "sequence":  "garage_history_id_seq"
+                                },
+                                {
+                                    "grantee":  "authenticated",
+                                    "privilege":  "USAGE",
+                                    "sequence":  "garage_rules_id_seq"
+                                },
+                                {
+                                    "grantee":  "service_role",
+                                    "privilege":  "USAGE",
+                                    "sequence":  "garage_rules_id_seq"
+                                },
+                                {
+                                    "grantee":  "authenticated",
+                                    "privilege":  "USAGE",
+                                    "sequence":  "work_shifts_id_seq"
+                                },
+                                {
+                                    "grantee":  "service_role",
+                                    "privilege":  "USAGE",
+                                    "sequence":  "work_shifts_id_seq"
+                                }
+                            ],
+    "table_privileges":  [
+                             {
+                                 "grantee":  "authenticated",
+                                 "privilege":  "INSERT",
+                                 "table":  "garage_history"
+                             },
+                             {
+                                 "grantee":  "authenticated",
+                                 "privilege":  "SELECT",
+                                 "table":  "garage_history"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "DELETE",
+                                 "table":  "garage_history"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "INSERT",
+                                 "table":  "garage_history"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "SELECT",
+                                 "table":  "garage_history"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "UPDATE",
+                                 "table":  "garage_history"
+                             },
+                             {
+                                 "grantee":  "authenticated",
+                                 "privilege":  "DELETE",
+                                 "table":  "garage_rules"
+                             },
+                             {
+                                 "grantee":  "authenticated",
+                                 "privilege":  "INSERT",
+                                 "table":  "garage_rules"
+                             },
+                             {
+                                 "grantee":  "authenticated",
+                                 "privilege":  "SELECT",
+                                 "table":  "garage_rules"
+                             },
+                             {
+                                 "grantee":  "authenticated",
+                                 "privilege":  "UPDATE",
+                                 "table":  "garage_rules"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "DELETE",
+                                 "table":  "garage_rules"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "INSERT",
+                                 "table":  "garage_rules"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "SELECT",
+                                 "table":  "garage_rules"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "UPDATE",
+                                 "table":  "garage_rules"
+                             },
+                             {
+                                 "grantee":  "authenticated",
+                                 "privilege":  "INSERT",
+                                 "table":  "profiles"
+                             },
+                             {
+                                 "grantee":  "authenticated",
+                                 "privilege":  "SELECT",
+                                 "table":  "profiles"
+                             },
+                             {
+                                 "grantee":  "authenticated",
+                                 "privilege":  "UPDATE",
+                                 "table":  "profiles"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "DELETE",
+                                 "table":  "profiles"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "INSERT",
+                                 "table":  "profiles"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "SELECT",
+                                 "table":  "profiles"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "UPDATE",
+                                 "table":  "profiles"
+                             },
+                             {
+                                 "grantee":  "authenticated",
+                                 "privilege":  "INSERT",
+                                 "table":  "tax_settings"
+                             },
+                             {
+                                 "grantee":  "authenticated",
+                                 "privilege":  "SELECT",
+                                 "table":  "tax_settings"
+                             },
+                             {
+                                 "grantee":  "authenticated",
+                                 "privilege":  "UPDATE",
+                                 "table":  "tax_settings"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "DELETE",
+                                 "table":  "tax_settings"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "INSERT",
+                                 "table":  "tax_settings"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "SELECT",
+                                 "table":  "tax_settings"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "UPDATE",
+                                 "table":  "tax_settings"
+                             },
+                             {
+                                 "grantee":  "authenticated",
+                                 "privilege":  "DELETE",
+                                 "table":  "work_shifts"
+                             },
+                             {
+                                 "grantee":  "authenticated",
+                                 "privilege":  "INSERT",
+                                 "table":  "work_shifts"
+                             },
+                             {
+                                 "grantee":  "authenticated",
+                                 "privilege":  "SELECT",
+                                 "table":  "work_shifts"
+                             },
+                             {
+                                 "grantee":  "authenticated",
+                                 "privilege":  "UPDATE",
+                                 "table":  "work_shifts"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "DELETE",
+                                 "table":  "work_shifts"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "INSERT",
+                                 "table":  "work_shifts"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "SELECT",
+                                 "table":  "work_shifts"
+                             },
+                             {
+                                 "grantee":  "service_role",
+                                 "privilege":  "UPDATE",
+                                 "table":  "work_shifts"
+                             }
+                         ],
     "tables":  [
                    {
                        "kind":  "table",
@@ -1320,6 +1594,15 @@
                    }
                ],
     "triggers":  [
+                     {
+                         "definition":  "CREATE TRIGGER on_auth_user_created_create_profile AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION handle_new_user_profile()",
+                         "enabled":  "O",
+                         "name":  "on_auth_user_created_create_profile",
+                         "schema":  "auth",
+                         "table":  "users"
+                     }
+                 ],
+    "views":  [
 
-                 ]
+              ]
 }
