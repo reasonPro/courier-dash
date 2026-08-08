@@ -31,12 +31,12 @@
 
 | Feature | Web status | Relevant web files | Supabase dependency | Reusable product rule | Web-specific part | Mobile decision required | Known uncertainty |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Authentication | Implemented: email/password login, signup, logout і Web password recovery | <code>app/page.tsx</code>, <code>app/login/page.tsx</code>, <code>app/forgot-password/page.tsx</code>, <code>app/reset-password/page.tsx</code>, <code>lib/supabase.ts</code> | Supabase Auth | Один user identity може володіти user-scoped data; recovery request не розкриває існування акаунта | Forms, modal, browser recovery URL і Next.js redirects | Native screens, deep links, secure token storage | Remote Auth settings, redirect allow-list і email delivery: <code>REMOTE STATE: UNKNOWN</code> |
+| Authentication | Implemented: email/password login, signup, logout і Web password recovery | <code>app/page.tsx</code>, <code>app/login/page.tsx</code>, <code>app/forgot-password/page.tsx</code>, <code>app/reset-password/page.tsx</code>, <code>lib/supabase.ts</code> | Supabase Auth | Один user identity може володіти user-scoped data; recovery request не розкриває існування акаунта | Forms, modal, browser recovery URL і Next.js redirects | Native screens, deep links, secure token storage | Staging provider/confirmation settings verified; redirect allow-list, email delivery and Mobile deep links remain outside this reconciliation |
 | Session behavior | Initial <code>getSession()</code> route policy і scoped <code>PASSWORD_RECOVERY</code> listener implemented | <code>lib/auth-route-policy.ts</code>, <code>app/reset-password/page.tsx</code>, protected pages | Supabase session | Protected content не показується до завершення auth check; normal session не є recovery proof | <code>router.replace</code>, browser client, cleanup subscription | Refresh/expiry, app resume, secure persistence | Native recovery/deep-link lifecycle потребує окремого рішення |
-| Profiles | Read/upsert nickname implemented | <code>app/page.tsx</code>, <code>app/work/page.tsx</code> | <code>profiles</code> | Nickname is user profile data; local snapshot має public SELECT | Nickname modal | Profile UX і privacy presentation | Remote RLS: <code>REMOTE STATE: UNKNOWN</code> |
+| Profiles | Trigger bootstrap plus read/upsert nickname implemented | <code>supabase/migrations/202608020002_reconcile_ownership_profiles_rls.sql</code>, <code>app/page.tsx</code>, <code>app/work/page.tsx</code> | <code>profiles</code> | One Profile per Auth user; nickname nullable until UX completion; anon can read nickname only | Nickname modal | Profile UX і privacy presentation | Verified on Staging; snapshot <code>0.2.0-draft.5</code> Mobile acceptance pending |
 | Work shifts | CRUD implemented | <code>app/work/page.tsx</code>, <code>lib/work-platforms.ts</code> | <code>work_shifts</code> | Platform metrics зберігаються per shift і per platform | Dashboard form, charts, local preferences | Native input UX, sync/error handling | Offline/conflict strategy: <code>UNKNOWN</code> |
 | Annual Report | Current report implemented; 2.0 not implemented | <code>app/work/year/page.tsx</code>, <code>app/work/year/annual-report-calculations.ts</code> | <code>work_shifts</code> | Aggregation includes all supported platforms, tips and bonuses | Chart.js UI, hardcoded year selector | Native report design і performance | Future 2.0 design unresolved |
-| Garage | Rules/history implemented | <code>app/garage/page.tsx</code> | <code>garage_rules</code>, <code>garage_history</code> | Garage is technical history, not total expenses | Browser odometer storage, web forms | Vehicle UX, local/remote odometer model | Nullable model conflict; remote schema unknown |
+| Garage | Rules/history implemented | <code>app/garage/page.tsx</code> | <code>garage_rules</code>, <code>garage_history</code> | Garage is technical history, not total expenses | Browser odometer storage, web forms | Vehicle UX, local/remote odometer model | Staging schema/RLS verified; nullable model conflict remains outside Mobile scope |
 | Tax settings | Read/create/update and presentation implemented | <code>app/work/page.tsx</code> | <code>tax_settings</code> | Не змішувати income after expenses із Netto | Web toggle і inline formulas | Чи підтримувати до завершення tax audit | Формули не підтверджені окремим audit |
 | Expenses/rentals | Planned, not implemented | <code>docs/COURIERDASH_ROADMAP.md</code>, PHASE 8 | Planned <code>expenses</code>, <code>transport_rentals</code>; не знайдені локально | First version: PLN; fuel plus rental; inclusive rental periods | Planned <code>/expenses</code> UI | Mobile UX і storage після shared schema approval | Schema, RPC і UI не існують |
 | Localization | PL/UK/EN/RU implemented | <code>lib/translations.ts</code>, <code>context/LanguageContext.tsx</code> | None in current code | Узгоджені terminology/keys можуть бути reusable | React context, browser detection/localStorage | Mobile i18n framework, device locale rules | Shared key package не існує |
@@ -70,9 +70,9 @@ Mobile може використовувати ті самі Auth identities л�
 | <code>garage_rules</code> | <code>app/garage/page.tsx</code> | Maintenance intervals і last-change odometer. |
 | <code>garage_history</code> | <code>app/garage/page.tsx</code> | Routine/repair history, date, odometer і cost. |
 
-Local snapshot має RLS enabled для всіх п’яти tables. Mutation policies прив’язують user-owned rows до <code>auth.uid()</code>; <code>profiles</code> окремо має public <code>SELECT</code>. Не слід узагальнювати це як owner-only читання всіх tables.
+Verified Staging snapshot має RLS enabled для всіх п’яти tables. Mutation policies прив’язують user-owned rows до <code>auth.uid()</code>; <code>profiles</code> окремо має shared row visibility, а anon SQL privilege обмежено колонкою <code>nickname</code>. Не слід узагальнювати це як owner-only читання всіх tables.
 
-Generated types містять nullable fields, які Mobile має обробляти без unsafe assumptions. Production відповідність має статус <code>REMOTE STATE: UNKNOWN</code>.
+Generated types із Staging revision <code>202608020002</code> роблять <code>work_shifts.user_id</code> required для Row/Insert; інші nullable fields Mobile має обробляти без unsafe assumptions. Production migration ще не застосована.
 
 ## Work і earnings
 
@@ -192,13 +192,13 @@ Local service enablement у <code>supabase/config.toml</code> не означа�
 
 ## Supabase remote-state caveat
 
-Local <code>lib/database.types.ts</code>, <code>supabase/schema.snapshot.json</code> і <code>supabase/migrations/</code> є audit artifacts, а не automatic production truth. Snapshot captured 2026-07-24; remote schema, migration history, grants, Auth configuration, redirects, SMTP, Storage buckets і deployed Functions не перевірялися.
+Local <code>lib/database.types.ts</code>, <code>supabase/schema.snapshot.json</code> і <code>supabase/migrations/</code> відповідають verified Staging revision <code>202608020002</code>, але не є automatic Production truth. Schema, migration history, grants, RLS і profile lifecycle перевірені; redirects, SMTP, Storage і deployed Edge Functions не входили до reconciliation.
 
-Статус: <code>REMOTE STATE: UNKNOWN</code>.
+Статус: <code>STAGING VERIFIED; PRODUCTION NOT APPLIED; MOBILE ACCEPTANCE PENDING</code>.
 
-Перед shared schema changes потрібні окремий read-only remote audit, migration strategy, RLS/grants review, generated type update і compatibility plan для обох applications.
+Наступна shared schema change знову потребує migration strategy, однозначного Staging target, RLS/grants review, generated type update і compatibility plan для обох applications.
 
-До завершення цього audit migration creation і зміни schema, RLS або Auth заблоковані. Mobile compatibility review не замінює окремих дозволів власника проєкту на створення migration та на її Production application.
+Snapshot <code>0.2.0-draft.5</code> і separately verified generated types мають пройти Mobile acceptance. Це не замінює окремого дозволу власника на Production application.
 
 ## Правила сумісності
 

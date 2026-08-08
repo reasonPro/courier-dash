@@ -91,7 +91,7 @@ The existing Web Garage feature is maintenance tracking and is not canonical Exp
 - Fixture IDs: `report-six-platform-summary`, `report-zero-denominator`.
 - Introduced in contract: `0.2.0-draft`.
 
-Mobile pure arithmetic helpers satisfy the supplied report numeric fixtures. Mobile Annual Report itself is not implemented, and implementation remains blocked by timezone-boundary and shared-rounding policy, as well as unresolved Staging schema/RLS evidence.
+Mobile pure arithmetic helpers satisfy the supplied report numeric fixtures. Mobile Annual Report itself is not implemented and remains blocked by timezone-boundary and shared-rounding policy. Staging schema/RLS evidence is verified through revision `202608020002`.
 
 ## TIME-LOCAL-DATE-001 — Calendar-date semantics
 

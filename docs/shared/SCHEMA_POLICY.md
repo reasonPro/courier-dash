@@ -1,7 +1,7 @@
 # Schema Policy
 
 Contract version: `0.2.0-draft`
-Status: `draft_pending_schema_snapshot`
+Status: `partially_verified`
 
 ## Status vocabulary
 
@@ -17,7 +17,7 @@ Only these evidence statuses are used by this contract:
 - CourierDash Web is the sole authoritative repository for Supabase migrations and the canonical `docs/shared` contract.
 - A generated database type file is a client artifact, not a migration and not proof that Staging matches.
 - A local schema snapshot is evidence only. It must record capture context and must not contain project references, credentials, database URLs, user data, or concrete ownership defaults in exported documentation.
-- `schemaRevision` and `latestMigration` stay `null` until an unambiguous Staging target is checked read-only.
+- `schemaRevision` and `latestMigration` stay `null` until an unambiguous Staging target is checked. Snapshot `0.2.0-draft.5` records the verified Staging revision `202608020002`.
 - Production metadata is not used to fill Staging gaps.
 
 ## Supabase governance
@@ -53,34 +53,37 @@ Every future shared change follows this route:
 10. Obtain separate explicit project-owner approval for Production application.
 11. Apply the change to Production.
 
-If Staging cannot be verified and identified unambiguously, no remote Supabase change may be applied. Until the separate read-only Supabase audit is complete, no new migration may be created and no schema, RLS, or Auth change may be made.
+If Staging cannot be verified and identified unambiguously, no remote Supabase change may be applied. The prerequisite read-only audit is complete for the named Staging environment; this does not authorize Production application.
 
-## Observed local public schema
+## Verified Staging public schema
 
-Repository evidence describes five RLS-enabled public tables: `profiles`, `work_shifts`, `tax_settings`, `garage_rules`, and `garage_history`. It describes no public views, RPC functions, triggers, or Postgres enums. This is `partially_verified`, not a Staging inventory.
+The sanitized snapshot at `supabase/schema.snapshot.json` was captured from the unambiguously identified Staging environment after migration `202608020002`. It contains five RLS-enabled public tables: `profiles`, `work_shifts`, `tax_settings`, `garage_rules`, and `garage_history`; 67 public columns; no public views or enums; one trigger-only security-definer helper; and one Auth-user trigger.
 
-The generated types in `lib/database.types.ts` match those five table names and expose no public Functions, Views, or Enums. Nullable database fields must stay nullable in clients unless a verified migration makes them required.
+The helper `public.handle_new_user_profile()` is not an application RPC: `PUBLIC`, `anon`, `authenticated`, and `service_role` have no `EXECUTE` privilege. Consequently `lib/database.types.ts`, generated from the same Staging revision, exposes no callable public Functions. Nullable database fields remain nullable in clients unless a verified migration makes them required.
 
 ## Migration discipline
 
-The repository migration directory currently contains only:
+The repository migration directory and Staging history contain the same ordered revisions:
 
-- `202607230001_add_stuart_and_other_platform.sql`
-- `202607240001_add_cash_tips_per_platform.sql`
+- `202607220000_baseline_production_schema.sql`;
+- `202607230001_add_stuart_and_other_platform.sql`;
+- `202607240001_add_cash_tips_per_platform.sql`;
+- `202608020001_harden_public_api_privileges.sql`;
+- `202608020002_reconcile_ownership_profiles_rls.sql`.
 
-They add platform and cash-tip fields and related checks. They do not create the base tables, base RLS policies, profile model, or the complete set of earlier constraints. Consequently a clean database cannot be reconstructed from the checked-in migrations alone. This is a blocker for a verified mobile schema snapshot.
+The reviewed historical baseline restores the five-table base schema; the two existing additive migrations are unchanged; and the two forward migrations reconcile privileges, required work ownership, profile lifecycle, and RLS. Remote Staging migration history matches these five files. A clean executable bootstrap in an isolated PostgreSQL runtime remains a required pre-Production CI gate because Docker-compatible runtime was not available locally; remote Staging was not reset or used as a bootstrap target.
 
 Migration rollout must follow expand, migrate clients, verify, deprecate, remove within the governance and approval route above. Applying a migration remotely always requires separate explicit approval and is outside this contract-generation task.
 
-## Ownership and nullability
+## Ownership, profile lifecycle, and privileges
 
-User-owned rows use Auth identity as the ownership boundary. The intended invariant is that ownership is present and immutable after insert. Local evidence currently conflicts with that invariant:
+User-owned rows use Auth identity as the ownership boundary. At verified Staging revision `202608020002`, `work_shifts.user_id` is `NOT NULL`, has no default, retains its Auth-user foreign key and `(user_id, date)` uniqueness, and is checked by owner-scoped RLS. Web and Mobile must continue sending the authenticated user identifier explicitly; neither client may depend on a database ownership default.
 
-- `work_shifts.user_id`, `garage_rules.user_id`, and `garage_history.user_id` are reported nullable.
-- `work_shifts.user_id` is reported to have a concrete default value. The value is redacted because it is not contract data.
-- Application models sometimes treat nullable garage fields as required.
+Every inserted `auth.users` row invokes the trigger-only `handle_new_user_profile()` helper. It creates exactly one matching profile, copies a non-empty nickname from Auth metadata when present, permits a `NULL` nickname for the existing confirmation/modal flow, and does not overwrite an existing profile. Existing missing profiles were backfilled without inventing nicknames.
 
-Mobile must not depend on the reported default. It must send the authenticated user identifier where the current direct-CRUD contract requires it and rely on RLS as defense in depth. Schema remediation is Class C and requires a migration plus two-account Staging verification.
+Profile rows remain visible to `anon` and `authenticated` under RLS because nickname availability and the agreed profile surface require shared reads. SQL privileges provide the privacy boundary: `anon` may select only `profiles.nickname`; profile identifiers and every other application table are unavailable to `anon`. Authenticated mutations remain owner-scoped. Two-account rollback-only Staging tests verified own access, cross-user denial, anonymous denial, and the explicitly allowed nickname read.
+
+`garage_rules.user_id` and `garage_history.user_id` remain nullable in the current database model and generated types. Web writes them explicitly, RLS is owner-scoped, and no current rows were present during verification. Their nullability is not silently promoted to a shared required-field rule.
 
 ## Naming and numeric policy
 
