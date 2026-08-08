@@ -4,18 +4,23 @@
 
 Status: `partially_verified`
 
-This Class A documentation snapshot keeps contract version `0.2.0-draft` and records the approved Web–Mobile governance for shared Supabase changes.
+This Class A documentation snapshot keeps contract version `0.2.0-draft` and packages the Web-approved governance for Mobile review. Mobile governance review is `pending`; no new application-code, schema, or Supabase verification was performed.
 
 ### Governance recorded
 
 - Web is the sole authoritative source of Supabase migrations and canonical `docs/shared`.
 - Mobile consumes versioned snapshots, does not independently edit the contract, and neither creates nor applies migrations.
+- Mobile sends cross-side requests for schema, Auth, RLS, RPC, function, trigger, or shared-enum needs; Web performs canonical planning and migration authoring.
 - Web authors shared schema, RLS, Auth, database functions, triggers, and enums; Mobile reviews planned compatibility before migration creation or application.
 - The project owner separately approves migration creation and Production application.
-- The mandatory route now covers Web planning, Mobile compatibility review, verified Staging, canonical contract/snapshot/type updates, Mobile `PASS`, and Production approval.
+- The mandatory route covers Web planning, Mobile compatibility review, verified Staging, canonical contract and snapshot updates, transfer of separately verified generated database types, Mobile `PASS`, and Production approval.
 - No remote change is allowed without an unambiguously identified Staging target.
+- Local Class A work in either repository remains independent of this shared-backend governance route.
 - New migrations and schema, RLS, or Auth changes remain frozen until the separate read-only Supabase audit is complete.
+- Source Web commit: `470b1cafd2715e1998c27eb39f8dd4bc66b2c1a3`.
+- Backend verification status is unchanged; all existing Staging, migration, ownership, Profile, RLS, Auth, timezone, rounding, Garage, Expenses, Rental, error-contract, cache-scoping, and generated-type-parity blockers remain open.
 - Manifest artifact checksums were regenerated automatically with PowerShell `Get-FileHash -Algorithm SHA256`; no runtime artifact or business rule changed.
+- Artifact SHA-256 values are calculated from canonical Git index/commit bytes after Git clean filters; platform-specific working-tree line endings are not checksum inputs.
 
 ## Snapshot 0.2.0-draft.3 finalization — 2026-08-01
 
