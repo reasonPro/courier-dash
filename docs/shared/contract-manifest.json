@@ -2,16 +2,16 @@
   "manifestSchemaVersion": "1.0.0",
   "contractName": "courierdash-shared-contract",
   "contractVersion": "0.2.0-draft",
-  "snapshotId": "courierdash-0.2.0-draft-c4a67d5-20260801t165545z",
+  "snapshotId": "courierdash-0.2.0-draft-470b1ca-20260801t200323z",
   "snapshotVersion": "0.2.0-draft.4",
   "status": "partially_verified",
   "canonicalLocation": "docs/shared",
   "developmentPhase": "mobile_catch_up",
   "generatedFromEnvironment": "staging",
-  "sourceWebCommit": "c4a67d58997b36dc6d4913c226d9cf489c816b2e",
+  "sourceWebCommit": "470b1cafd2715e1998c27eb39f8dd4bc66b2c1a3",
   "schemaRevision": null,
   "latestMigration": null,
-  "generatedAt": "2026-08-01T16:55:45Z",
+  "generatedAt": "2026-08-01T20:03:23Z",
   "compatibility": {
     "semverRangeFormat": "npm-semver",
     "web": ">=0.2.0-draft <0.3.0",
@@ -27,7 +27,7 @@
       "sourceRefs": [
         "docs/shared/SHARED_ARCHITECTURE.md"
       ],
-      "generatedAt": "2026-08-01T16:55:45Z",
+      "generatedAt": "2026-08-01T20:03:23Z",
       "stagingStatus": "not_checked",
       "productionStatus": "not_checked",
       "verificationStatus": "partially_verified"
@@ -39,9 +39,19 @@
       "sourceRefs": [
         "supabase/schema.snapshot.json",
         "lib/database.types.ts",
-        "supabase/migrations"
+        "supabase/migrations",
+        "web-commit:470b1cafd2715e1998c27eb39f8dd4bc66b2c1a3",
+        "docs/MOBILE_INTEGRATION.md",
+        "docs/WORKFLOW.md",
+        "docs/shared/CHANGELOG.md",
+        "docs/shared/COMPATIBILITY_POLICY.md",
+        "docs/shared/SCHEMA_POLICY.md",
+        "docs/shared/SHARED_ARCHITECTURE.md",
+        "docs/shared/contract-manifest.json",
+        "supabase/README.md",
+        "mobile-governance-review:pending"
       ],
-      "generatedAt": "2026-08-01T18:41:48Z",
+      "generatedAt": "2026-08-01T20:03:23Z",
       "stagingStatus": "not_checked",
       "productionStatus": "not_checked",
       "verificationStatus": "draft_pending_schema_snapshot"
@@ -100,19 +110,19 @@
         "docs/shared/SHARED_ARCHITECTURE.md",
         "docs/shared/SCHEMA_POLICY.md"
       ],
-      "generatedAt": "2026-08-01T16:55:45Z",
+      "generatedAt": "2026-08-01T20:03:23Z",
       "stagingStatus": "not_applicable",
       "productionStatus": "not_applicable",
       "verificationStatus": "proposed"
     },
     {
       "path": "docs/shared/CHANGELOG.md",
-      "sha256": "212d8f84cfa49ba51b914431728cd102c7e760d31a5a1a76b8573af5e5c53b65",
+      "sha256": "d21a99824448e9764326966abeeb23d1f9a28fbd24bcaa7b72303cc9ae87f1bb",
       "status": "present",
       "sourceRefs": [
         "docs/shared"
       ],
-      "generatedAt": "2026-08-01T16:55:45Z",
+      "generatedAt": "2026-08-01T20:03:23Z",
       "stagingStatus": "not_checked",
       "productionStatus": "not_checked",
       "verificationStatus": "blocked"
@@ -806,7 +816,7 @@
   "breakingChanges": [],
   "sanitization": {
     "status": "passed",
-    "scannedAt": "2026-08-01T16:58:07Z",
+    "scannedAt": "2026-08-01T20:12:39Z",
     "checks": [
       "credentials",
       "database_urls",
