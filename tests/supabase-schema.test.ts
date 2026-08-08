@@ -97,7 +97,9 @@ describe("Supabase schema snapshot", () => {
           (constraint) =>
             constraint.name ===
               `work_shifts_${columnName}_nonnegative` &&
-            constraint.definition.includes(`${columnName} >= 0`),
+            new RegExp(
+              `${columnName}\\s*>=\\s*\\(?0\\)?(?:::numeric)?`,
+            ).test(constraint.definition),
         ),
       ).toBe(true)
     })
