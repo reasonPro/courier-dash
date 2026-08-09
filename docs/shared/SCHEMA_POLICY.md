@@ -1,6 +1,6 @@
 # Schema Policy
 
-Contract version: `0.2.0-draft`
+Contract version: `0.3.0-draft`
 Status: `partially_verified`
 
 ## Status vocabulary
@@ -17,7 +17,7 @@ Only these evidence statuses are used by this contract:
 - CourierDash Web is the sole authoritative repository for Supabase migrations and the canonical `docs/shared` contract.
 - A generated database type file is a client artifact, not a migration and not proof that Staging matches.
 - A local schema snapshot is evidence only. It must record capture context and must not contain project references, credentials, database URLs, user data, or concrete ownership defaults in exported documentation.
-- `schemaRevision` and `latestMigration` stay `null` until an unambiguous Staging target is checked. Snapshot `0.2.0-draft.5` records the verified Staging revision `202608020002`.
+- `schemaRevision` and `latestMigration` stay `null` until an unambiguous Staging target is checked. Snapshot `0.2.0-draft.5` records historical revision `202608020002`; Garage contract `0.3.0-draft` records the latest verified Staging revision `202608090001`.
 - Production metadata is not used to fill Staging gaps.
 
 ## Supabase governance
@@ -57,9 +57,11 @@ If Staging cannot be verified and identified unambiguously, no remote Supabase c
 
 ## Verified Staging public schema
 
-The sanitized snapshot at `supabase/schema.snapshot.json` was captured from the unambiguously identified Staging environment after migration `202608020002`. It contains five RLS-enabled public tables: `profiles`, `work_shifts`, `tax_settings`, `garage_rules`, and `garage_history`; 67 public columns; no public views or enums; one trigger-only security-definer helper; and one Auth-user trigger.
+The sanitized snapshot at `supabase/schema.snapshot.json` was captured from the unambiguously identified Staging environment after migration `202608020002`. It remains a historical snapshot and contains five RLS-enabled public tables: `profiles`, `work_shifts`, `tax_settings`, `garage_rules`, and `garage_history`; 67 public columns; no public views or enums; one trigger-only security-definer helper; and one Auth-user trigger.
 
-The helper `public.handle_new_user_profile()` is not an application RPC: `PUBLIC`, `anon`, `authenticated`, and `service_role` have no `EXECUTE` privilege. Consequently `lib/database.types.ts`, generated from the same Staging revision, exposes no callable public Functions. Nullable database fields remain nullable in clients unless a verified migration makes them required.
+The helper `public.handle_new_user_profile()` is not an application RPC: `PUBLIC`, `anon`, `authenticated`, and `service_role` have no `EXECUTE` privilege. At revision `202608020002`, generated types therefore exposed no callable public Functions. After the separately approved Garage migration was applied and verified on Staging, `lib/database.types.ts` was regenerated at revision `202608090001` and now exposes `public.complete_garage_routine`. Nullable database fields remain nullable in clients unless a verified migration changes column-level nullability metadata.
+
+Authenticated Garage RPC verification at revision `202608090001` completed with `PASS`; ownership, validation, atomic rollback, stale-conflict behavior, grants, and cleanup of synthetic Staging rows were verified. Production was not accessed or changed.
 
 ## Migration discipline
 
@@ -69,9 +71,10 @@ The repository migration directory and Staging history contain the same ordered 
 - `202607230001_add_stuart_and_other_platform.sql`;
 - `202607240001_add_cash_tips_per_platform.sql`;
 - `202608020001_harden_public_api_privileges.sql`;
-- `202608020002_reconcile_ownership_profiles_rls.sql`.
+- `202608020002_reconcile_ownership_profiles_rls.sql`;
+- `202608090001_expand_garage_contract.sql`.
 
-The reviewed historical baseline restores the five-table base schema; the two existing additive migrations are unchanged; and the two forward migrations reconcile privileges, required work ownership, profile lifecycle, and RLS. Remote Staging migration history matches these five files. A clean executable bootstrap in an isolated PostgreSQL runtime remains a required pre-Production CI gate because Docker-compatible runtime was not available locally; remote Staging was not reset or used as a bootstrap target.
+The reviewed historical baseline restores the five-table base schema; the existing additive migrations remain ordered; the two August 2 migrations reconcile privileges, required work ownership, profile lifecycle, and RLS; and the August 9 migration adds the Garage normalized-write guards, relationship, trigger, and RPC. Remote Staging migration history is verified through `202608090001`. A clean executable bootstrap in an isolated PostgreSQL runtime remains a required pre-Production CI gate because Docker-compatible runtime was not available locally; remote Staging was not reset or used as a bootstrap target.
 
 Migration rollout must follow expand, migrate clients, verify, deprecate, remove within the governance and approval route above. Applying a migration remotely always requires separate explicit approval and is outside this contract-generation task.
 
@@ -83,7 +86,7 @@ Every inserted `auth.users` row invokes the trigger-only `handle_new_user_profil
 
 Profile rows remain visible to `anon` and `authenticated` under RLS because nickname availability and the agreed profile surface require shared reads. SQL privileges provide the privacy boundary: `anon` may select only `profiles.nickname`; profile identifiers and every other application table are unavailable to `anon`. Authenticated mutations remain owner-scoped. Two-account rollback-only Staging tests verified own access, cross-user denial, anonymous denial, and the explicitly allowed nickname read.
 
-`garage_rules.user_id` and `garage_history.user_id` remain nullable in the current database model and generated types. Web writes them explicitly, RLS is owner-scoped, and no current rows were present during verification. Their nullability is not silently promoted to a shared required-field rule.
+`garage_rules.user_id` and `garage_history.user_id` remain nullable at column-metadata level in verified Staging revision `202608090001` and in regenerated database types. Contract `0.3.0-draft` enforces required normalized writes through applied `CHECK ... NOT VALID` constraints while preserving legacy rows. Final `NOT NULL` metadata and constraint/FK validation remain deferred; regenerated types correctly retain nullable legacy representations until that later hardening is approved and applied.
 
 ## Naming and numeric policy
 
@@ -91,8 +94,14 @@ Profile rows remain visible to `anon` and `authenticated` under RLS because nick
 - Mobile property: `appTips`.
 - Current database mapping: platform-specific `tips_uber`, `tips_wolt`, `tips_bolt`, `tips_glovo`, `tips_stuart`, and `tips_other`.
 - Cash tips use corresponding `cash_tips_*` fields.
-- Currency is reported as PLN and is supported by Web labels, but no verified currency column or shared money type exists.
-- Numeric precision and rounding are unresolved. Clients must not introduce silent shared rounding rules. Fixtures compare exact supplied decimal values; presentation formatting is not a persistence rule.
+- Currency is reported as PLN and is supported by Web labels. Garage `0.3.0-draft` is explicitly PLN-only and adds no currency column.
+- Garage costs are non-negative numeric values with at most two decimal places; greater precision is rejected. Garage mileage is an integer in `0…2147483647`. Numeric precision and rounding remain unresolved for other flows.
+
+## Garage Stage 1 migration discipline
+
+`202608090001_expand_garage_contract.sql` was applied only to the approved Staging target and is the latest verified Staging migration. It has not been applied to Production or a local database. It adds lifecycle-safe constraints, a `rule_id` FK with `ON DELETE SET NULL`, an INSERT invariant trigger, and the atomic routine RPC; authenticated Staging RPC verification completed with `PASS` and zero synthetic-data residue.
+
+The migration does not validate `NOT VALID` constraints, backfill legacy rows, or harden the current direct routine INSERT policy. Canonical database types were regenerated separately from Staging revision `202608090001`. Web RPC adoption, Mobile implementation, final hardening, and Production rollout remain separately gated.
 
 ## Compatibility classes
 

@@ -48,7 +48,15 @@ export type Database = {
           service_type?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "garage_history_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "garage_rules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       garage_rules: {
         Row: {
@@ -265,7 +273,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      complete_garage_routine: {
+        Args: {
+          p_cost: number
+          p_date: string
+          p_expected_last_change_km: number
+          p_odometer: number
+          p_rule_id: number
+        }
+        Returns: {
+          cost: number
+          history_created_at: string
+          history_id: number
+          interval_km: number
+          last_change_km: number
+          next_service_odometer: number
+          odometer: number
+          rule_id: number
+          rule_name: string
+          service_date: string
+          service_type: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

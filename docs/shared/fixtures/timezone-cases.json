@@ -1,6 +1,6 @@
 {
   "fixtureType": "timezone",
-  "contractVersion": "0.2.0-draft",
+  "contractVersion": "0.3.0-draft",
   "status": "reported_pending_snapshot",
   "cases": []
 }

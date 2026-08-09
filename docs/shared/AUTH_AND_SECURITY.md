@@ -1,6 +1,6 @@
 # Authentication and Security Contract
 
-Contract version: `0.2.0-draft`
+Contract version: `0.3.0-draft`
 Status: `partially_verified`
 
 UI and navigation may differ between Web and Mobile, but authentication meaning, session lifecycle, ownership, and authorization outcomes must remain compatible.
@@ -71,7 +71,13 @@ Verified Staging evidence reports RLS enabled on all five public tables:
 
 Rollback-only two-account Staging tests passed for profiles, work shifts, tax settings, garage rules, and garage history. Both authenticated identities could perform allowed actions on their own rows; cross-user private reads and mutations were denied; anonymous private access was denied; and anonymous nickname-only read remained available. Test data residue was zero.
 
-Client owner filters remain defense in depth only. They do not replace verified RLS, SQL privileges, ownership constraints, or regression tests. Production still has status `not_applied` for these migrations.
+### Garage RPC Staging verification
+
+`public.complete_garage_routine` is applied to Staging only and its authenticated verification completed with `PASS`. It accepts no `user_id`, derives the caller from `auth.uid()`, selects only that owner's rule under `FOR UPDATE`, uses an empty locked search path and fully qualified object names, and grants execution only to `authenticated`. Not-found and foreign-owned rule IDs share `GARAGE_RULE_NOT_FOUND`, so the RPC does not disclose cross-user existence. Atomic success, rollback, validation, ownership, and stale-conflict paths were verified, and all synthetic Staging rows were removed.
+
+The current direct history INSERT policy remains temporarily unchanged for deployed-Web compatibility. The INSERT invariant trigger verifies that a new routine references a rule with the same `user_id`; a later hardening migration must restrict direct INSERT to manual repair only after both clients use the RPC.
+
+Client owner filters remain defense in depth only. They do not replace verified RLS, SQL privileges, ownership constraints, or regression tests. Production still has status `not_applied`; Web RPC adoption and Mobile implementation remain deferred.
 
 ## Security constraints
 

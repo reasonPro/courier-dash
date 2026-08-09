@@ -1,6 +1,6 @@
 # Shared Business Rules
 
-Contract version: `0.2.0-draft`
+Contract version: `0.3.0-draft`
 
 ## TERM-APP-TIPS-001 — Application tips
 
@@ -103,6 +103,8 @@ Mobile pure arithmetic helpers satisfy the supplied report numeric fixtures. Mob
 - Fixture IDs: none until a platform-neutral boundary oracle is approved.
 - Introduced in contract: `0.2.0-draft`.
 
+For Garage in contract `0.3.0-draft`, the owner-approved rule is narrower and canonical: `garage_history.date` is an exact `YYYY-MM-DD` calendar date chosen on the device and must not pass through UTC conversion. The existing Web Garage runtime does not yet satisfy this rule and is intentionally deferred to the post-review implementation stage.
+
 ## MONEY-ROUNDING-001 — Precision and rounding
 
 - Status: `unresolved`.
@@ -111,3 +113,21 @@ Mobile pure arithmetic helpers satisfy the supplied report numeric fixtures. Mob
 - Source evidence: Web formatting call sites; no schema-level money type policy.
 - Fixture IDs: `income-decimal-values` validates arithmetic inputs only, not rounding.
 - Introduced in contract: `0.2.0-draft`.
+
+Garage now has an approved flow-specific persistence rule: PLN only, cost `>= 0`, at most two decimal places, and rejection rather than silent rounding. Garage mileage is an integer from `0` through `2147483647`. These Garage decisions do not resolve rounding policy for Statistics, Reports, Expenses, or Vehicle Rental.
+
+## GARAGE-HISTORY-001 — Routine and repair history
+
+- Status: `draft_pending_schema_snapshot`.
+- `routine` is planned maintenance and is created canonically through `complete_garage_routine` with the owned rule ID.
+- `repair` is manual repair/fault remediation and has `rule_id = null`.
+- Deleting a rule keeps history and cost and sets `rule_id = null`.
+- Existing legacy nulls are readable but are never silently deleted or backfilled.
+- Source: `docs/shared/GARAGE_CONTRACT.md`, `docs/shared/fixtures/garage-cases.json`.
+
+## GARAGE-ODOMETER-LOCAL-001 — Current odometer
+
+- Status: `proposed` pending Mobile acceptance.
+- Current odometer is a local calculation parameter, not Supabase data.
+- Web and Mobile may remember separate values locally; values may increase or decrease.
+- No backend field, synchronization, or automatic browser-storage import exists.

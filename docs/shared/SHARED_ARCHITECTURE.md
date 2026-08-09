@@ -1,6 +1,6 @@
 # CourierDash Shared Architecture
 
-Contract version: `0.2.0-draft`
+Contract version: `0.3.0-draft`
 Development phase: `mobile_catch_up`
 Contract status: `partially_verified`
 
@@ -39,6 +39,7 @@ Conflicts do not get resolved by choosing the newest-looking file. They become e
 | Work | One dated record per user/day, six platforms, recorded metrics | `verified` on Staging for schema and access |
 | Statistics | Brutto and platform aggregation | `reported_pending_snapshot` for Mobile |
 | Reports | Annual totals and safe averages | `partially_verified` |
+| Garage | Single-vehicle maintenance rules, append-only history, atomic routine completion | `draft_pending_schema_snapshot`; Mobile review pending |
 | Expenses | Fuel and vehicle rental only | `draft_pending_schema_snapshot` |
 | Vehicle rental | Optional dated weekly-price periods | `unresolved` |
 
@@ -49,6 +50,7 @@ Conflicts do not get resolved by choosing the newest-looking file. They become e
 - A dated work record is not an active shift. Start/stop shift semantics are not currently part of the shared contract.
 - Statistics can be complete without Expenses. Expenses and rental do not enter Brutto.
 - Income after expenses is a separate future metric and is not tax Netto.
+- Garage current odometer is deliberately client-local and is not a shared backend field. Garage history remains technical maintenance/repair history; contract `0.3.0-draft` adds no Expenses integration.
 
 ## Evidence and verification
 
@@ -69,6 +71,6 @@ Class C requires a new contract version, migration path, client catch-up gate, f
 
 - Mobile has not yet reviewed snapshot `0.2.0-draft.5` and the separately verified generated database types.
 - A clean executable migration bootstrap still needs a Docker-compatible or isolated PostgreSQL CI runtime before Production rollout.
-- Device-local Mobile date semantics conflict with Web uses of UTC-derived date strings and JavaScript date parsing.
+- Garage calendar-date semantics are approved, but Web runtime adoption is deferred; other flows still have UTC/local-date mismatches.
 - Shared precision and rounding, legacy income precedence, Expenses, and rental remain unresolved outside this schema reconciliation.
-- Garage ownership columns remain nullable and Garage is not promoted to a shared Mobile contract.
+- Garage is promoted to a draft shared flow, but its migration, regenerated types, Web RPC adoption, Staging verification, and Mobile acceptance remain incomplete.

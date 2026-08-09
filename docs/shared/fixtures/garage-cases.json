@@ -1,0 +1,115 @@
+{
+  "fixtureType": "garage",
+  "contractVersion": "0.3.0-draft",
+  "status": "proposed",
+  "cases": [
+    {
+      "ruleId": "GARAGE-ODOMETER-LOCAL-001",
+      "caseId": "odometer-is-client-local",
+      "title": "Current odometer is not shared backend state",
+      "status": "proposed",
+      "input": { "webLocalOdometer": 12000, "mobileLocalOdometer": 11950 },
+      "expected": { "supabaseWrite": false, "valuesMayDiffer": true, "decreaseAllowed": true },
+      "explanation": "Each client may remember a convenience value locally; neither value is canonical Supabase data.",
+      "verifiedAgainst": ["approved-owner-decision"],
+      "evidenceRefs": ["docs/shared/GARAGE_CONTRACT.md"],
+      "introduced": "0.3.0-draft"
+    },
+    {
+      "ruleId": "GARAGE-DATE-001",
+      "caseId": "date-only-preserves-calendar-day",
+      "title": "Date-only values do not cross UTC",
+      "status": "proposed",
+      "input": { "selectedDate": "2026-01-02", "deviceOffset": "+14:00" },
+      "expected": { "databaseDate": "2026-01-02", "displayDate": "2026-01-02", "timestampAdded": false },
+      "explanation": "The selected calendar day is transmitted and stored unchanged as YYYY-MM-DD.",
+      "verifiedAgainst": ["approved-owner-decision"],
+      "evidenceRefs": ["docs/shared/GARAGE_CONTRACT.md"],
+      "introduced": "0.3.0-draft"
+    },
+    {
+      "ruleId": "GARAGE-MILEAGE-001",
+      "caseId": "mileage-boundaries",
+      "title": "Mileage accepts only the canonical integer range",
+      "status": "proposed",
+      "input": { "values": [0, 2147483647, -1, 1.5, 2147483648] },
+      "expected": { "accepted": [0, 2147483647], "rejected": [-1, 1.5, 2147483648], "roundingApplied": false },
+      "explanation": "Negative, fractional, and oversized mileage is rejected without rounding.",
+      "verifiedAgainst": ["approved-owner-decision", "migration-static-contract"],
+      "evidenceRefs": ["docs/shared/GARAGE_CONTRACT.md", "supabase/migrations/202608090001_expand_garage_contract.sql"],
+      "introduced": "0.3.0-draft"
+    },
+    {
+      "ruleId": "GARAGE-PLN-001",
+      "caseId": "pln-precision",
+      "title": "Garage costs are non-negative PLN with at most two decimals",
+      "status": "proposed",
+      "input": { "values": [0, 19.9, 19.99, -0.01, 19.999] },
+      "expected": { "accepted": [0, 19.9, 19.99], "rejected": [-0.01, 19.999], "currency": "PLN", "roundingApplied": false },
+      "explanation": "Greater precision and negative costs are rejected rather than normalized silently.",
+      "verifiedAgainst": ["approved-owner-decision", "migration-static-contract"],
+      "evidenceRefs": ["docs/shared/GARAGE_CONTRACT.md", "supabase/migrations/202608090001_expand_garage_contract.sql"],
+      "introduced": "0.3.0-draft"
+    },
+    {
+      "ruleId": "GARAGE-HISTORY-001",
+      "caseId": "manual-repair-linkage",
+      "title": "Manual history is an unlinked repair",
+      "status": "proposed",
+      "input": { "service_type": "repair", "name": "Synthetic brake repair", "date": "2026-02-03", "odometer": 12500, "cost": 150.25, "rule_id": null },
+      "expected": { "insertAllowed": true, "service_type": "repair", "rule_id": null },
+      "explanation": "A manual repair never points at a routine rule.",
+      "verifiedAgainst": ["approved-owner-decision", "web-behavioral-reference"],
+      "evidenceRefs": ["app/garage/page.tsx", "docs/shared/GARAGE_CONTRACT.md"],
+      "introduced": "0.3.0-draft"
+    },
+    {
+      "ruleId": "GARAGE-ROUTINE-RPC-001",
+      "caseId": "routine-completion-success",
+      "title": "Routine completion writes history and rule atomically",
+      "status": "proposed",
+      "input": { "p_rule_id": 42, "p_expected_last_change_km": 10000, "p_date": "2026-02-03", "p_odometer": 15000, "p_cost": 199.99 },
+      "expected": { "history": { "service_type": "routine", "rule_id": 42, "odometer": 15000 }, "rule": { "last_change_km": 15000 }, "next_service_odometer": 20000, "atomic": true },
+      "explanation": "The synthetic rule interval is 5000 km; either both writes commit or neither does.",
+      "verifiedAgainst": ["migration-static-contract"],
+      "evidenceRefs": ["supabase/migrations/202608090001_expand_garage_contract.sql"],
+      "introduced": "0.3.0-draft"
+    },
+    {
+      "ruleId": "GARAGE-ROUTINE-RPC-002",
+      "caseId": "routine-stale-conflict",
+      "title": "Stale routine completion fails without partial writes",
+      "status": "proposed",
+      "input": { "p_rule_id": 42, "p_expected_last_change_km": 10000, "databaseLastChangeKm": 15000 },
+      "expected": { "error": { "code": "GARAGE_CONFLICT", "sqlstate": "CDG06", "retryable": true }, "historyInserted": false, "ruleUpdated": false },
+      "explanation": "The row lock and null-safe concurrency comparison reject a stale client state.",
+      "verifiedAgainst": ["migration-static-contract"],
+      "evidenceRefs": ["docs/shared/GARAGE_CONTRACT.md", "supabase/migrations/202608090001_expand_garage_contract.sql"],
+      "introduced": "0.3.0-draft"
+    },
+    {
+      "ruleId": "GARAGE-RULE-LIFECYCLE-001",
+      "caseId": "rule-deletion-retains-history",
+      "title": "Deleting a rule detaches but retains routine history",
+      "status": "proposed",
+      "input": { "history": { "service_type": "routine", "rule_id": 42, "cost": 199.99 }, "deleteRuleId": 42 },
+      "expected": { "historyRetained": true, "service_type": "routine", "rule_id": null, "cost": 199.99 },
+      "explanation": "The FK uses ON DELETE SET NULL and history is append-only.",
+      "verifiedAgainst": ["approved-owner-decision", "migration-static-contract"],
+      "evidenceRefs": ["docs/shared/GARAGE_CONTRACT.md", "supabase/migrations/202608090001_expand_garage_contract.sql"],
+      "introduced": "0.3.0-draft"
+    },
+    {
+      "ruleId": "GARAGE-LEGACY-001",
+      "caseId": "legacy-null-row-is-readable",
+      "title": "Legacy null fields are preserved for guarded reads",
+      "status": "proposed",
+      "input": { "service_type": null, "name": null, "date": null, "cost": null, "rule_id": null, "odometer": null, "user_id": null },
+      "expected": { "rowDeleted": false, "rowBackfilled": false, "clientUsesLegacyNullableType": true },
+      "explanation": "NOT VALID constraints do not rewrite historical rows or invent missing business values.",
+      "verifiedAgainst": ["approved-owner-decision", "migration-static-contract"],
+      "evidenceRefs": ["docs/shared/types/garage.ts", "supabase/migrations/202608090001_expand_garage_contract.sql"],
+      "introduced": "0.3.0-draft"
+    }
+  ]
+}

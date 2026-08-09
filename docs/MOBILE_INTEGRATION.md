@@ -36,7 +36,7 @@
 | Profiles | Trigger bootstrap plus read/upsert nickname implemented | <code>supabase/migrations/202608020002_reconcile_ownership_profiles_rls.sql</code>, <code>app/page.tsx</code>, <code>app/work/page.tsx</code> | <code>profiles</code> | One Profile per Auth user; nickname nullable until UX completion; anon can read nickname only | Nickname modal | Profile UX і privacy presentation | Verified on Staging; snapshot <code>0.2.0-draft.5</code> Mobile acceptance pending |
 | Work shifts | CRUD implemented | <code>app/work/page.tsx</code>, <code>lib/work-platforms.ts</code> | <code>work_shifts</code> | Platform metrics зберігаються per shift і per platform | Dashboard form, charts, local preferences | Native input UX, sync/error handling | Offline/conflict strategy: <code>UNKNOWN</code> |
 | Annual Report | Current report implemented; 2.0 not implemented | <code>app/work/year/page.tsx</code>, <code>app/work/year/annual-report-calculations.ts</code> | <code>work_shifts</code> | Aggregation includes all supported platforms, tips and bonuses | Chart.js UI, hardcoded year selector | Native report design і performance | Future 2.0 design unresolved |
-| Garage | Rules/history implemented | <code>app/garage/page.tsx</code> | <code>garage_rules</code>, <code>garage_history</code> | Garage is technical history, not total expenses | Browser odometer storage, web forms | Vehicle UX, local/remote odometer model | Staging schema/RLS verified; nullable model conflict remains outside Mobile scope |
+| Garage | Rules/history implemented; `0.3.0-draft` contract prepared | <code>app/garage/page.tsx</code>, <code>docs/shared/GARAGE_CONTRACT.md</code> | <code>garage_rules</code>, <code>garage_history</code>, <code>complete_garage_routine</code> | Routine/repair rules, date-only, PLN/mileage validation, local-only odometer | Browser odometer storage, web forms | Native UI; contract-owned result type and verified RPC | Staging migration/RPC verification passed and types regenerated; Production, Web adoption, and Mobile implementation deferred |
 | Tax settings | Read/create/update and presentation implemented | <code>app/work/page.tsx</code> | <code>tax_settings</code> | Не змішувати income after expenses із Netto | Web toggle і inline formulas | Чи підтримувати до завершення tax audit | Формули не підтверджені окремим audit |
 | Expenses/rentals | Planned, not implemented | <code>docs/COURIERDASH_ROADMAP.md</code>, PHASE 8 | Planned <code>expenses</code>, <code>transport_rentals</code>; не знайдені локально | First version: PLN; fuel plus rental; inclusive rental periods | Planned <code>/expenses</code> UI | Mobile UX і storage після shared schema approval | Schema, RPC і UI не існують |
 | Localization | PL/UK/EN/RU implemented | <code>lib/translations.ts</code>, <code>context/LanguageContext.tsx</code> | None in current code | Узгоджені terminology/keys можуть бути reusable | React context, browser detection/localStorage | Mobile i18n framework, device locale rules | Shared key package не існує |
@@ -111,9 +111,11 @@ Pure reference — <code>app/work/year/annual-report-calculations.ts</code>. Cur
 
 ## Garage і vehicles
 
-Garage працює з <code>garage_rules</code> та <code>garage_history</code>. Він підтримує maintenance intervals, routine completion, repair records, odometer і cost summaries.
+Garage працює з <code>garage_rules</code> та <code>garage_history</code>. Contract <code>0.3.0-draft</code> фіксує два типи history — <code>routine</code> і <code>repair</code>, calendar-date <code>YYYY-MM-DD</code>, non-negative integer mileage, PLN cost із максимум двома decimals, owner-only access та атомарний Staging-verified RPC <code>complete_garage_routine</code>.
 
-Garage не є expenses module. Погоджене правило: <code>garage_history.cost</code> не входить до planned total expenses, repair/service поки виключені. <code>garage_current_odometer</code> зберігається у browser <code>localStorage</code> і не є спільним backend field.
+Поточний одометр навмисно залишається локальним параметром кожного клієнта. Він не є Supabase field, не синхронізується та не переноситься автоматично з browser <code>localStorage</code>. Garage не є Expenses module; цей Stage не створює Expenses schema або дублікати history costs.
+
+Migration <code>202608090001_expand_garage_contract.sql</code> застосована лише до Staging; authenticated RPC verification завершена з <code>PASS</code>, synthetic rows видалені, а canonical database types перегенеровані зі Staging revision <code>202608090001</code>. Production не застосована; Web RPC adoption і Mobile implementation залишаються deferred. Оскільки runtime <code>next_service_odometer</code> може бути <code>null</code>, Mobile і Web мають використовувати contract-owned <code>CompleteGarageRoutineResult</code>, а не лише generated RPC return type.
 
 ## Expenses і rentals
 
@@ -185,16 +187,16 @@ Mobile repository повинен мати власні:
 | Offline behavior | Not implemented as a confirmed data strategy; <code>UNKNOWN</code>. |
 | Product roles | No role model found; <code>UNKNOWN</code>. |
 | Storage | No application Storage calls found; remote buckets <code>REMOTE STATE: UNKNOWN</code>. |
-| RPC | No <code>.rpc(...)</code> calls or generated public functions found. |
+| RPC | Generated <code>complete_garage_routine</code> exists from verified Staging; no Web <code>.rpc(...)</code> adoption call exists yet. |
 | Edge Functions | No invoke calls or local functions found; deployed state <code>REMOTE STATE: UNKNOWN</code>. |
 
 Local service enablement у <code>supabase/config.toml</code> не означає готову product integration.
 
 ## Supabase remote-state caveat
 
-Local <code>lib/database.types.ts</code>, <code>supabase/schema.snapshot.json</code> і <code>supabase/migrations/</code> відповідають verified Staging revision <code>202608020002</code>, але не є automatic Production truth. Schema, migration history, grants, RLS і profile lifecycle перевірені; redirects, SMTP, Storage і deployed Edge Functions не входили до reconciliation.
+Local <code>lib/database.types.ts</code> і migration history відображають verified Garage Staging revision <code>202608090001</code>; <code>supabase/schema.snapshot.json</code> залишається історичним sanitized snapshot revision <code>202608020002</code>. Жоден із цих artifacts не є automatic Production truth. Garage RPC ownership, grants, validation, atomicity і conflict behavior перевірені на Staging; redirects, SMTP, Storage і deployed Edge Functions не входили до reconciliation.
 
-Статус: <code>STAGING VERIFIED; PRODUCTION NOT APPLIED; MOBILE ACCEPTANCE PENDING</code>.
+Статус: <code>GARAGE STAGING VERIFIED THROUGH 202608090001; PRODUCTION NOT APPLIED; WEB ADOPTION AND MOBILE IMPLEMENTATION DEFERRED</code>.
 
 Наступна shared schema change знову потребує migration strategy, однозначного Staging target, RLS/grants review, generated type update і compatibility plan для обох applications.
 

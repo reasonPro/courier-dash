@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": ["fixtureType", "contractVersion", "status", "cases"],
   "properties": {
-    "fixtureType": { "enum": ["income", "expense", "rental", "report", "timezone"] },
+    "fixtureType": { "enum": ["income", "expense", "rental", "report", "timezone", "garage"] },
     "contractVersion": { "type": "string", "minLength": 1 },
     "status": {
       "enum": ["verified", "reported_pending_snapshot", "proposed", "unresolved", "blocked", "draft_pending_schema_snapshot"]
