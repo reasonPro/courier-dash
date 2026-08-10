@@ -38,7 +38,7 @@
 | Annual Report | Current report implemented; 2.0 not implemented | <code>app/work/year/page.tsx</code>, <code>app/work/year/annual-report-calculations.ts</code> | <code>work_shifts</code> | Aggregation includes all supported platforms, tips and bonuses | Chart.js UI, hardcoded year selector | Native report design і performance | Future 2.0 design unresolved |
 | Garage | Rules/history implemented; `0.3.0-draft` contract prepared | <code>app/garage/page.tsx</code>, <code>docs/shared/GARAGE_CONTRACT.md</code> | <code>garage_rules</code>, <code>garage_history</code>, <code>complete_garage_routine</code> | Routine/repair rules, date-only, PLN/mileage validation, local-only odometer | Browser odometer storage, web forms | Native UI; contract-owned result type and verified RPC | Staging migration/RPC verification passed and types regenerated; Production, Web adoption, and Mobile implementation deferred |
 | Tax settings | Read/create/update and presentation implemented | <code>app/work/page.tsx</code> | <code>tax_settings</code> | Не змішувати income after expenses із Netto | Web toggle і inline formulas | Чи підтримувати до завершення tax audit | Формули не підтверджені окремим audit |
-| Expenses/rentals | Planned, not implemented | <code>docs/COURIERDASH_ROADMAP.md</code>, PHASE 8 | Planned <code>expenses</code>, <code>transport_rentals</code>; не знайдені локально | First version: PLN; fuel plus rental; inclusive rental periods | Planned <code>/expenses</code> UI | Mobile UX і storage після shared schema approval | Schema, RPC і UI не існують |
+| Expenses/rentals | Owner-approved contract draft; not implemented | <code>docs/shared/EXPENSES_CONTRACT.md</code>, <code>docs/shared/types/expenses.ts</code> | Schema/RLS/RPC не визначені й локально не існують | Five PLN categories; source-aware manual/rental/Garage aggregation; actual expense dates; decimal rounding; completeness; non-overlapping rental periods | Planned <code>/expenses</code> UI | Mobile compatibility review after shared schema/API approval | Runtime, schema, RPC і UI не існують |
 | Localization | PL/UK/EN/RU implemented | <code>lib/translations.ts</code>, <code>context/LanguageContext.tsx</code> | None in current code | Узгоджені terminology/keys можуть бути reusable | React context, browser detection/localStorage | Mobile i18n framework, device locale rules | Shared key package не існує |
 
 ## Authentication
@@ -121,16 +121,18 @@ Migration <code>202608090001_expand_garage_contract.sql</code> застосов�
 
 У generated types, snapshot, migrations та application code не знайдено tables <code>expenses</code> або <code>transport_rentals</code>. Route <code>/expenses</code> і rental RPC також не реалізовані.
 
-Погоджені майбутні product rules описано в PHASE 8 [roadmap](./COURIERDASH_ROADMAP.md):
+Owner-approved product rules описано в [Expenses contract](./shared/EXPENSES_CONTRACT.md), DEC-025 і PHASE 8 [roadmap](./COURIERDASH_ROADMAP.md):
 
-- first version використовує PLN;
-- total expenses дорівнює fuel plus rental;
-- rental зберігається periods із weekly amount;
-- <code>valid_from</code> і <code>valid_to</code> мають inclusive semantics;
-- rate change не переписує history;
-- income after expenses не є Netto і не включає taxes.
+- V1 використовує лише PLN і категорії <code>fuel</code>, <code>rental</code>, <code>maintenance</code>, <code>repair</code>, <code>food_on_shift</code>;
+- manual rows зберігаються окремо, а rental periods і Garage history підтягуються за стабільною парою <code>(source, sourceRecordId)</code> без копіювання чи подвійного підрахунку;
+- manual expense може бути внесена заднім числом; actual <code>YYYY-MM-DD</code> expense date відокремлена від technical <code>created_at</code> і визначає filters, history та financial attribution;
+- PLN inputs мають максимум два decimals; decimal arithmetic не округлює rental intermediates і застосовує фінальний <code>ROUND_HALF_UP</code> до <code>0.01 PLN</code>;
+- <code>partial</code> має непорожній missing-component list і не є final; режими з ненадійним <code>T</code> не є <code>available</code> до tax audit;
+- rental periods одного owner не перетинаються; close-and-create є atomic, correction — separate controlled action, retryable creates використовують idempotency keys;
+- Garage-derived expense створюється або виправляється у Garage; rental expense залишається прив'язаною до rental period;
+- income after recorded expenses не є Netto і не включає <code>T</code>.
 
-Ці rules не підтверджують існування schema або готової implementation.
+Ці owner-approved rules не підтверджують існування schema або готової implementation. Concrete schema, RLS, mutation API/errors, tax model і Mobile/Web UI залишаються deferred.
 
 ## Localization
 

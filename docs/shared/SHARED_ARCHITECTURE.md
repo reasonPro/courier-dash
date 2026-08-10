@@ -40,8 +40,8 @@ Conflicts do not get resolved by choosing the newest-looking file. They become e
 | Statistics | Brutto and platform aggregation | `reported_pending_snapshot` for Mobile |
 | Reports | Annual totals and safe averages | `partially_verified` |
 | Garage | Single-vehicle maintenance rules, append-only history, atomic routine completion | `draft_pending_schema_snapshot`; Mobile review pending |
-| Expenses | Fuel and vehicle rental only | `draft_pending_schema_snapshot` |
-| Vehicle rental | Optional dated weekly-price periods | `unresolved` |
+| Expenses | Five PLN categories from manual, rental-period, and Garage sources | `owner_approved_contract_draft`; implementation not started |
+| Vehicle rental | Non-overlapping dated weekly-price periods with owner-approved calculation/mutation boundaries | `reported_pending_snapshot`; implementation not started |
 
 ## Required client boundaries
 
@@ -50,7 +50,7 @@ Conflicts do not get resolved by choosing the newest-looking file. They become e
 - A dated work record is not an active shift. Start/stop shift semantics are not currently part of the shared contract.
 - Statistics can be complete without Expenses. Expenses and rental do not enter Brutto.
 - Income after expenses is a separate future metric and is not tax Netto.
-- Garage current odometer is deliberately client-local and is not a shared backend field. Garage history remains technical maintenance/repair history; contract `0.3.0-draft` adds no Expenses integration.
+- Garage current odometer is deliberately client-local and is not a shared backend field. Expenses consumes eligible Garage history by stable source reference without copying rows or changing the Garage contract/runtime.
 
 ## Evidence and verification
 
@@ -72,5 +72,5 @@ Class C requires a new contract version, migration path, client catch-up gate, f
 - Mobile has not yet reviewed snapshot `0.2.0-draft.5` and the separately verified generated database types.
 - A clean executable migration bootstrap still needs a Docker-compatible or isolated PostgreSQL CI runtime before Production rollout.
 - Garage calendar-date semantics are approved, but Web runtime adoption is deferred; other flows still have UTC/local-date mismatches.
-- Shared precision and rounding, legacy income precedence, Expenses, and rental remain unresolved outside this schema reconciliation.
+- Expenses/rental precision, final rounding, completeness, source identity, actual-date attribution, overlap, atomic close-and-create, correction boundary, and create idempotency are owner approved in the contract draft; schema/RLS/RPC design and implementation remain unresolved.
 - Garage is promoted to a draft shared flow, but its migration, regenerated types, Web RPC adoption, Staging verification, and Mobile acceptance remain incomplete.
