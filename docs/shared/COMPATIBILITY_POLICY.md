@@ -1,6 +1,6 @@
 # Compatibility Policy
 
-Contract version: `0.2.0-draft`
+Contract version: `0.3.0-draft`
 Status: `proposed`
 
 ## Compatibility objective
@@ -40,21 +40,36 @@ The technical review of snapshot `0.2.0-draft.2` completed with `PASS WITH NON-B
 
 The earlier review resolved no shared backend blocker. Staging identity, migration history, privileges, work ownership, profile bootstrap, and RLS were subsequently reconciled at revision `202608020002`. Snapshot `0.2.0-draft.5` and its separately verified generated types now require a new Mobile acceptance pass; that pass is not Production approval.
 
+Garage contract `0.3.0-draft` remains a Class C draft. Its additive migration and authenticated RPC verification passed on Staging revision `202608090001`, and canonical database types were regenerated from that revision. Production rollout, Web RPC adoption, and Mobile implementation remain deferred.
+
 ## Mobile catch-up gate
 
 Mobile cannot be accepted as contract-verified until all applicable items pass:
 
 - Staging identity is unambiguously verified read-only. **Passed for this snapshot.**
 - A fresh schema/type snapshot is generated from that Staging target. **Passed for this snapshot.**
-- Checked-in migrations can explain the applied schema or the migration gap is explicitly repaired. **Passed through `202608020002`.**
+- Checked-in migrations can explain the applied schema or the migration gap is explicitly repaired. **Passed through `202608090001` on Staging.**
 - Auth confirmation, redirect, recovery, and deep-link behavior is verified.
 - One canonical profile creation mechanism is selected and tested. **Passed on Staging; Mobile acceptance pending.**
-- Work ownership nullability/default risks are removed. **Passed on Staging; nullable Garage ownership remains outside Mobile scope.**
+- Work ownership nullability/default risks are removed. **Passed on Staging. Garage normalized-write guards and RPC are applied and verified on Staging; final nullability hardening remains deferred.**
 - Two-account RLS tests pass for every Mobile-accessed table. **Passed on Staging for the current five-table Web surface.**
 - Work and annual-report fixtures pass on both clients.
 - Local-date/week/month boundary semantics are identical.
 - Shared rounding and precision are decided before rental or income-after-expenses ships.
 - Expenses and rental stay disabled until schema and fixtures are accepted.
+- Garage types, date/PLN/mileage rules, RPC signature, stable errors, and local-only odometer behavior pass Mobile review.
+
+## Garage compatibility window
+
+1. Apply only the separately approved additive Garage migration to an unambiguous Staging target. **Completed at Staging revision `202608090001`.**
+2. Regenerate canonical database types from that verified Staging revision. **Completed.**
+3. Move Web routine completion to the RPC without removing the old database path. **Deferred.**
+4. Implement Mobile Garage against the same contract-owned types and verified RPC. **Deferred.**
+5. Verify both clients, then separately approve Production rollout and later hardening that limits direct history INSERT to `repair` with null `rule_id` and validates eligible constraints.
+
+Because the verified runtime may return `next_service_odometer = null`, both clients must use `CompleteGarageRoutineResult` from the shared contract rather than trusting the generated RPC return type alone.
+
+The Stage 1 repository must not contain an automatically pending policy-hardening migration, because a normal migration runner could apply it before the deployed Web adopts the RPC.
 
 ## Deprecation rules
 

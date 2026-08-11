@@ -1,5 +1,27 @@
 # Shared Contract Changelog
 
+## 0.3.0-draft Garage contract preparation — 2026-08-09
+
+Status: `partially_verified`
+
+This Class C draft promotes Garage to the shared Web/Mobile contract. Its additive migration and authenticated RPC verification passed on Staging revision `202608090001`; runtime clients and Production remain unchanged.
+
+### Added
+
+- Platform-neutral Garage schema, ownership, CRUD, legacy-null, date-only, mileage, PLN, service-type, rule-link, and error contracts.
+- Contract-owned TypeScript Garage types and sanitized synthetic fixtures.
+- Forward-only additive migration for normalized-write guards, `rule_id` `ON DELETE SET NULL`, lifecycle-safe INSERT invariants, and atomic `complete_garage_routine`; applied and verified on Staging only.
+- Stable `GARAGE_CONFLICT` optimistic-concurrency behavior using the expected `last_change_km` token and a row lock.
+
+### Compatibility
+
+- Current odometer is explicitly client-local and no backend odometer object exists.
+- Direct routine INSERT remains temporarily available so the deployed Web is not broken before RPC adoption.
+- Authenticated Staging RPC verification passed, synthetic rows were removed, and canonical database types were regenerated from revision `202608090001`.
+- Policy hardening, constraint/FK validation, Web runtime adoption, Mobile implementation, and Production remain deferred and separately gated.
+- Runtime `next_service_odometer` may be `null`; Web and Mobile must use the contract-owned `CompleteGarageRoutineResult` instead of relying only on the generated RPC return type.
+- Legacy rows are not deleted, backfilled, or assigned invented values.
+
 ## Snapshot 0.2.0-draft.5 Staging reconciliation — 2026-08-08
 
 Status: `partially_verified`

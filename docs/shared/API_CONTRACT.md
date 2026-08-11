@@ -1,6 +1,6 @@
 # API Contract
 
-Contract version: `0.2.0-draft`
+Contract version: `0.3.0-draft`
 Status: `partially_verified`
 
 ## Boundary selection
@@ -21,13 +21,13 @@ Introduce a versioned service API when the domain becomes complex, integrations 
 | `profiles` | Trigger bootstrap, select, insert/upsert | `202608020002_reconcile_ownership_profiles_rls.sql`, `app/page.tsx`, `app/work/page.tsx` | `verified` on Staging | Required; Mobile acceptance pending |
 | `work_shifts` | Select, insert, update, delete with explicit required owner | `app/work/page.tsx`, `app/work/year/page.tsx` | `verified` on Staging | Required |
 | `tax_settings` | Select, insert, update | `app/work/page.tsx` | `partially_verified` | Deferred unless Mobile exposes Web tax calculations |
-| `garage_rules` | Select, insert, update, delete | `app/garage/page.tsx` | `partially_verified` | Not equivalent to Expenses |
-| `garage_history` | Select, insert | `app/garage/page.tsx` | `partially_verified` | Not equivalent to Expenses |
-| RPC | No call sites or callable generated functions found | `lib/database.types.ts`, repository search | `not_used` | Trigger helper is not an RPC |
+| `garage_rules` | Select, insert, update, delete | `app/garage/page.tsx`, `docs/shared/GARAGE_CONTRACT.md` | `verified` on Staging | Owner-only; Mobile must not add rule-edit UI absent from Web |
+| `garage_history` | Select, insert | `app/garage/page.tsx`, `docs/shared/GARAGE_CONTRACT.md` | `verified` on Staging | Append-only; manual INSERT is `repair` with null `rule_id` |
+| RPC | `complete_garage_routine` | `supabase/migrations/202608090001_expand_garage_contract.sql` | `verified` on Staging | Authenticated RPC verification passed; Web call-site adoption is deferred |
 | Edge Functions | No invocation or function source found | repository search | `not_used` | None today |
 | Storage | No Storage calls found | repository search | `not_used` | None today |
 
-The public schema and access claims above were verified against the named Staging revision `202608020002`. Production remains unchanged and was not used to fill evidence gaps.
+The public Garage schema, access, and RPC claims above were verified against named Staging revision `202608090001`. Production remains unchanged and was not used to fill evidence gaps.
 
 ## Work record contract
 
@@ -41,6 +41,10 @@ Web reads all owned rows, performs filters and aggregations client-side, and wri
 
 Profile creation is canonical at the Auth-user database trigger. It inserts the Auth identifier and an optional non-empty metadata nickname, never overwrites an existing profile, and lets uniqueness conflicts fail atomically. Client upserts are idempotent recovery/UX paths, not competing bootstrap authorities. A signup without nickname metadata receives a profile with `NULL` nickname and must complete the existing nickname flow.
 
-## Multi-write warning
+## Garage operation contract
 
-Garage history insertion followed by a garage-rule update is implemented as two direct client writes. It can partially fail and therefore meets the RPC criteria if it becomes shared Mobile behavior. It is not part of the current shared Expenses or rental contract.
+The platform-neutral Garage contract is normative in `GARAGE_CONTRACT.md`, with importable contract-owned types in `types/garage.ts` and synthetic cases in `fixtures/garage-cases.json`. Current Web evidence still inserts Garage history and then updates its rule in two client writes. The Staging-verified RPC `public.complete_garage_routine` replaces that pair atomically after a later Web implementation stage.
+
+The verified RPC may return `next_service_odometer = null` for monitoring-only interval `0`. Web and Mobile must use the contract-owned `CompleteGarageRoutineResult` rather than relying only on the generated RPC return type, which currently represents that column as `number`.
+
+The additive migration intentionally leaves the existing owner INSERT policy compatible with deployed Web. A later separately approved hardening migration restricts direct history INSERT to `repair` with `rule_id = null` only after Web adopts the RPC. Garage is not an Expenses implementation.

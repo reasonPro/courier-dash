@@ -49,7 +49,7 @@
     "sharedFlows": {
       "type": "array",
       "items": { "$ref": "#/$defs/flow" },
-      "minItems": 7
+      "minItems": 8
     },
     "blockers": {
       "type": "array",
@@ -109,7 +109,7 @@
       "additionalProperties": false,
       "required": ["id", "implementationStatus", "implementationCommit", "reviewStatus", "acceptanceStatus", "contractVersion", "verificationStatus", "supportedCapabilities", "missingCapabilities", "blockers", "evidenceRefs"],
       "properties": {
-        "id": { "enum": ["auth", "profile", "work", "statistics", "reports", "expenses", "vehicle_rental"] },
+        "id": { "enum": ["auth", "profile", "work", "statistics", "reports", "garage", "expenses", "vehicle_rental"] },
         "implementationStatus": { "$ref": "#/$defs/implementationStatus" },
         "implementationCommit": { "type": ["string", "null"], "pattern": "^[0-9a-f]{40}$" },
         "reviewStatus": { "$ref": "#/$defs/reviewStatus" },
