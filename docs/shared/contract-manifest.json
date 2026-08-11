@@ -22,7 +22,7 @@
   "artifacts": [
     {
       "path": "docs/shared/SHARED_ARCHITECTURE.md",
-      "sha256": "16a3b7cb93a5b1740045de023ff4077b6e8b406ae30e32cab9f65b7998b28843",
+      "sha256": "58d5875b9aea764d153bd1e546475e7ab2cb16d8316ee479cd30700e4bb4fb8f",
       "status": "present",
       "sourceRefs": [
         "docs/shared/SHARED_ARCHITECTURE.md"
@@ -34,7 +34,7 @@
     },
     {
       "path": "docs/shared/SCHEMA_POLICY.md",
-      "sha256": "e4ca69d3314544703e65572577a6f37cd65d153ebd080f481f1ef890661485dc",
+      "sha256": "6f0df56c43908a54f8b8c5f7893f29639fefd24291b2e3ccb94f5f60913e3171",
       "status": "present",
       "sourceRefs": [
         "supabase/schema.snapshot.json",
@@ -58,7 +58,7 @@
     },
     {
       "path": "docs/shared/API_CONTRACT.md",
-      "sha256": "e867a5fbb1d039b5045cd9332671cd5abcde43c7dfb37effc43bd60b93e71778",
+      "sha256": "12172e9d6483b9a8931b1e07b9fc987c0d6de4ff3309c936312e7da239c9b279",
       "status": "present",
       "sourceRefs": [
         "app",
@@ -72,7 +72,7 @@
     },
     {
       "path": "docs/shared/AUTH_AND_SECURITY.md",
-      "sha256": "a7bad20df4f624dc201f0d3dc8bfea82b7fe895109d07a41b368b410852bf22b",
+      "sha256": "19471aa824eaa9540a9632cbc0221559df634294552aacba84e5ed10eb041575",
       "status": "present",
       "sourceRefs": [
         "app/login/page.tsx",
@@ -90,7 +90,7 @@
     },
     {
       "path": "docs/shared/BUSINESS_RULES.md",
-      "sha256": "65a61e6a3eba673ca592139d02c291ffe5f32d7e7a48651e94c6c7301dbef766",
+      "sha256": "1204a9e4a074977a6fd4a449e74db450b2ed8f26657b07e324c92e236424263f",
       "status": "present",
       "sourceRefs": [
         "lib/work-platforms.ts",
@@ -104,7 +104,7 @@
     },
     {
       "path": "docs/shared/COMPATIBILITY_POLICY.md",
-      "sha256": "d4f7cf8a96f2ba1fd1ce0ec5719aff7d79a1b1f86cabf2718e3a0ca6f7dc11c6",
+      "sha256": "aa53857e526fad2e4aface7ba858a7a2f8d94f682ddbd40e7ead5060c555a332",
       "status": "present",
       "sourceRefs": [
         "docs/shared/SHARED_ARCHITECTURE.md",
@@ -117,7 +117,7 @@
     },
     {
       "path": "docs/shared/CHANGELOG.md",
-      "sha256": "bfa20773607849cbe178295bce43e883eb5b912329ff1e90a80f22aec782a1f5",
+      "sha256": "421c7b3720b5989c32eeabd3ed829abf133c2efdfff78bf46487b964f175305b",
       "status": "present",
       "sourceRefs": [
         "docs/shared"
@@ -274,7 +274,7 @@
     },
     {
       "path": "docs/MOBILE_INTEGRATION.md",
-      "sha256": "6575e3952671df31e704f1b4b3aef3542553fed6d05d950a4579cd77c7dc1149",
+      "sha256": "fd45f8bb7811454b17157c497957c016e8789d8aa316a6b4aae216c42a482073",
       "status": "present",
       "sourceRefs": [
         "docs/shared/GARAGE_CONTRACT.md",
