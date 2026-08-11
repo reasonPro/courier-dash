@@ -95,7 +95,8 @@ Profile rows remain visible to `anon` and `authenticated` under RLS because nick
 - Current database mapping: platform-specific `tips_uber`, `tips_wolt`, `tips_bolt`, `tips_glovo`, `tips_stuart`, and `tips_other`.
 - Cash tips use corresponding `cash_tips_*` fields.
 - Currency is reported as PLN and is supported by Web labels. Garage `0.3.0-draft` is explicitly PLN-only and adds no currency column.
-- Garage costs are non-negative numeric values with at most two decimal places; greater precision is rejected. Garage mileage is an integer in `0…2147483647`. Numeric precision and rounding remain unresolved for other flows.
+- Garage costs are non-negative numeric values with at most two decimal places; greater precision is rejected. Garage mileage is an integer in `0…2147483647`.
+- Expenses and Vehicle Rental have a separate owner-approved contract rule: non-negative PLN inputs with at most two decimal places, decimal arithmetic without intermediate rental rounding, and final `ROUND_HALF_UP` to `0.01 PLN`. This is a contract rule only; no Expenses/rental schema or runtime exists. Precision and rounding remain unresolved for Statistics and Reports.
 
 ## Garage Stage 1 migration discipline
 

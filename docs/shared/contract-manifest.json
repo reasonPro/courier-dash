@@ -11,7 +11,7 @@
   "sourceWebCommit": "5073e64249292e4fec044ca17383a9852bef058e",
   "schemaRevision": "202608090001",
   "latestMigration": "202608090001",
-  "generatedAt": "2026-08-09T20:30:02Z",
+  "generatedAt": "2026-08-10T18:18:06Z",
   "compatibility": {
     "semverRangeFormat": "npm-semver",
     "web": ">=0.2.0-draft <0.4.0",
@@ -22,19 +22,19 @@
   "artifacts": [
     {
       "path": "docs/shared/SHARED_ARCHITECTURE.md",
-      "sha256": "58d5875b9aea764d153bd1e546475e7ab2cb16d8316ee479cd30700e4bb4fb8f",
+      "sha256": "6349d99b9642dca975c981f2e3721ea32aed22742ac4c5671168fd09c004141b",
       "status": "present",
       "sourceRefs": [
         "docs/shared/SHARED_ARCHITECTURE.md"
       ],
-      "generatedAt": "2026-08-09T12:10:54Z",
+      "generatedAt": "2026-08-10T17:19:11Z",
       "stagingStatus": "not_checked",
       "productionStatus": "not_applied",
       "verificationStatus": "draft_pending_schema_snapshot"
     },
     {
       "path": "docs/shared/SCHEMA_POLICY.md",
-      "sha256": "6f0df56c43908a54f8b8c5f7893f29639fefd24291b2e3ccb94f5f60913e3171",
+      "sha256": "0e26e4c34cb306962bc881f395f7caea8a3437dc82faea872af617f60b314cad",
       "status": "present",
       "sourceRefs": [
         "supabase/schema.snapshot.json",
@@ -51,7 +51,7 @@
         "supabase/README.md",
         "mobile-governance-review:pending"
       ],
-      "generatedAt": "2026-08-09T12:10:54Z",
+      "generatedAt": "2026-08-10T17:19:11Z",
       "stagingStatus": "not_checked",
       "productionStatus": "not_applied",
       "verificationStatus": "draft_pending_schema_snapshot"
@@ -90,39 +90,70 @@
     },
     {
       "path": "docs/shared/BUSINESS_RULES.md",
-      "sha256": "1204a9e4a074977a6fd4a449e74db450b2ed8f26657b07e324c92e236424263f",
+      "sha256": "d16899e9a7778f32b58e6f11be6aaccda32e6bc704371b0aaf44f933a78fcc96",
       "status": "present",
       "sourceRefs": [
         "lib/work-platforms.ts",
         "app/work/year/annual-report-calculations.ts",
-        "reported:mobile-statistics"
+        "reported:mobile-statistics",
+        "docs/shared/EXPENSES_CONTRACT.md"
       ],
-      "generatedAt": "2026-08-09T12:10:54Z",
+      "generatedAt": "2026-08-10T17:19:11Z",
       "stagingStatus": "not_checked",
       "productionStatus": "not_applied",
-      "verificationStatus": "draft_pending_schema_snapshot"
+      "verificationStatus": "reported_pending_snapshot"
+    },
+    {
+      "path": "docs/shared/EXPENSES_CONTRACT.md",
+      "sha256": "7b662e003f11c28fb6714bd518fec1e4eeb22b463335e11868a0a357e5a1b5bd",
+      "status": "present",
+      "sourceRefs": [
+        "docs/DECISIONS.md",
+        "docs/COURIERDASH_ROADMAP.md",
+        "docs/shared/BUSINESS_RULES.md",
+        "app/work/page.tsx",
+        "app/work/year/annual-report-calculations.ts",
+        "docs/shared/GARAGE_CONTRACT.md"
+      ],
+      "generatedAt": "2026-08-10T17:19:11Z",
+      "stagingStatus": "not_checked",
+      "productionStatus": "not_applied",
+      "verificationStatus": "reported_pending_snapshot"
+    },
+    {
+      "path": "docs/shared/types/expenses.ts",
+      "sha256": "b7701557c316a5e3a411db926393ff7f6b0f7a0709e9171b16e3157a94800c40",
+      "status": "present",
+      "sourceRefs": [
+        "docs/shared/EXPENSES_CONTRACT.md",
+        "docs/shared/fixtures/expense-calculations.json"
+      ],
+      "generatedAt": "2026-08-10T17:19:11Z",
+      "stagingStatus": "not_checked",
+      "productionStatus": "not_applied",
+      "verificationStatus": "reported_pending_snapshot"
     },
     {
       "path": "docs/shared/COMPATIBILITY_POLICY.md",
-      "sha256": "aa53857e526fad2e4aface7ba858a7a2f8d94f682ddbd40e7ead5060c555a332",
+      "sha256": "07d373d39006cec5d12bb64179eb2d27a970e55ed39e5dc0ef11f06f89bfcc71",
       "status": "present",
       "sourceRefs": [
         "docs/shared/SHARED_ARCHITECTURE.md",
         "docs/shared/SCHEMA_POLICY.md"
       ],
-      "generatedAt": "2026-08-09T20:30:02Z",
+      "generatedAt": "2026-08-10T17:19:11Z",
       "stagingStatus": "not_applicable",
       "productionStatus": "not_applicable",
       "verificationStatus": "proposed"
     },
     {
       "path": "docs/shared/CHANGELOG.md",
-      "sha256": "421c7b3720b5989c32eeabd3ed829abf133c2efdfff78bf46487b964f175305b",
+      "sha256": "1b0bbb2759ca2c2fdbd6870e3a54d415af591a0852cb0dc0c6c5ed59867fa98e",
       "status": "present",
       "sourceRefs": [
         "docs/shared"
       ],
-      "generatedAt": "2026-08-09T12:10:54Z",
+      "generatedAt": "2026-08-10T17:19:11Z",
       "stagingStatus": "not_checked",
       "productionStatus": "not_applied",
       "verificationStatus": "draft_pending_schema_snapshot"
@@ -167,15 +198,17 @@
     },
     {
       "path": "docs/shared/fixtures/expense-calculations.json",
-      "sha256": "1167238d55cb17aa62ca2171ff2175746be2d75716302dd22d3a33e4e969df66",
+      "sha256": "57b23d7a6f74bd3877695f42ec00a903ebf45b953f64f1676c68bda54ab87ce9",
       "status": "present",
       "sourceRefs": [
-        "reported:expense-scope"
+        "docs/shared/EXPENSES_CONTRACT.md",
+        "docs/shared/types/expenses.ts",
+        "owner-approved:DEC-025:2026-08-10"
       ],
-      "generatedAt": "2026-08-09T12:10:54Z",
+      "generatedAt": "2026-08-10T18:18:06Z",
       "stagingStatus": "not_checked",
       "productionStatus": "not_checked",
-      "verificationStatus": "draft_pending_schema_snapshot"
+      "verificationStatus": "reported_pending_snapshot"
     },
     {
       "path": "docs/shared/fixtures/rental-calculations.json",
@@ -274,13 +307,16 @@
     },
     {
       "path": "docs/MOBILE_INTEGRATION.md",
-      "sha256": "fd45f8bb7811454b17157c497957c016e8789d8aa316a6b4aae216c42a482073",
+      "sha256": "e1361d9f2d3b27bdb0091c24a4cc6cca0bd62f1a87b4314b15ce08fe19034b67",
       "status": "present",
       "sourceRefs": [
         "docs/shared/GARAGE_CONTRACT.md",
-        "docs/shared/types/garage.ts"
+        "docs/shared/types/garage.ts",
+        "docs/shared/EXPENSES_CONTRACT.md",
+        "docs/shared/types/expenses.ts",
+        "owner-approved:DEC-025:2026-08-10"
       ],
-      "generatedAt": "2026-08-09T20:30:02Z",
+      "generatedAt": "2026-08-10T17:19:11Z",
       "stagingStatus": "verified",
       "productionStatus": "not_applied",
       "verificationStatus": "partially_verified"
@@ -486,55 +522,78 @@
       "id": "expenses",
       "implementationStatus": "planned",
       "implementationCommit": null,
-      "reviewStatus": "not_reviewed",
-      "acceptanceStatus": "not_assessed",
+      "reviewStatus": "passed",
+      "acceptanceStatus": "accepted_by_web",
       "contractVersion": "0.3.0-draft",
-      "verificationStatus": "draft_pending_schema_snapshot",
+      "verificationStatus": "reported_pending_snapshot",
       "supportedCapabilities": [
-        "scope_definition_fuel_and_vehicle_rental"
+        "pln_only_v1_vocabulary",
+        "five_category_source_matrix",
+        "four_calculation_modes",
+        "owner_approved_completeness_contract",
+        "t_dependent_mode_gate",
+        "actual_expense_date_attribution",
+        "pln_decimal_round_half_up",
+        "stable_source_reference",
+        "garage_reference_without_copying",
+        "rental_non_overlap_atomicity_and_idempotency",
+        "synthetic_contract_fixtures"
       ],
       "missingCapabilities": [
         "schema",
         "rls",
-        "crud_contract",
-        "calculation_fixtures",
+        "concrete_mutation_and_error_contract",
+        "manual_deletion_and_audit_policy",
+        "audited_tax_and_fee_component",
+        "web_implementation",
         "mobile_implementation"
       ],
       "blockers": [
+        "RISK-007",
         "RISK-014"
       ],
       "evidenceRefs": [
-        "reported:expense-scope",
-        "docs/shared/BUSINESS_RULES.md"
+        "owner-approved:DEC-025:2026-08-10",
+        "docs/shared/EXPENSES_CONTRACT.md",
+        "docs/shared/BUSINESS_RULES.md",
+        "docs/shared/types/expenses.ts",
+        "docs/shared/fixtures/expense-calculations.json"
       ]
     },
     {
       "id": "vehicle_rental",
       "implementationStatus": "deferred",
       "implementationCommit": null,
-      "reviewStatus": "not_reviewed",
-      "acceptanceStatus": "not_assessed",
+      "reviewStatus": "passed",
+      "acceptanceStatus": "accepted_by_web",
       "contractVersion": "0.3.0-draft",
-      "verificationStatus": "unresolved",
+      "verificationStatus": "reported_pending_snapshot",
       "supportedCapabilities": [
-        "draft_period_history_model"
+        "draft_period_history_model",
+        "inclusive_calendar_dates",
+        "pln_decimal_round_half_up",
+        "owner_non_overlap_rule",
+        "atomic_close_and_create_boundary",
+        "separate_controlled_correction",
+        "retryable_create_idempotency"
       ],
       "missingCapabilities": [
         "schema",
         "rls",
-        "proration",
-        "rounding",
-        "overlap_policy",
-        "boundary_rules",
-        "correction_flow"
+        "concrete_mutation_and_error_contract",
+        "idempotency_key_storage",
+        "correction_audit_policy",
+        "web_implementation",
+        "mobile_implementation"
       ],
       "blockers": [
-        "RISK-008",
         "RISK-014"
       ],
       "evidenceRefs": [
-        "reported:rental-requirements",
-        "docs/shared/BUSINESS_RULES.md"
+        "owner-approved:DEC-025:2026-08-10",
+        "docs/shared/BUSINESS_RULES.md",
+        "docs/shared/EXPENSES_CONTRACT.md",
+        "docs/shared/fixtures/expense-calculations.json"
       ]
     }
   ],
@@ -627,6 +686,7 @@
         "work",
         "statistics",
         "reports",
+        "expenses",
         "vehicle_rental"
       ],
       "evidenceRefs": [
@@ -642,18 +702,18 @@
       "area": "rounding",
       "severity": "medium",
       "status": "open",
-      "description": "No shared precision or rounding rule is established.",
+      "description": "Expenses and Vehicle Rental now have an owner-approved decimal and ROUND_HALF_UP contract, but shared precision and rounding remain unresolved for Statistics and Reports.",
       "blocksFlows": [
         "statistics",
-        "reports",
-        "expenses",
-        "vehicle_rental"
+        "reports"
       ],
       "evidenceRefs": [
         "app/work/page.tsx",
-        "app/work/year/page.tsx"
+        "app/work/year/page.tsx",
+        "docs/shared/EXPENSES_CONTRACT.md",
+        "docs/shared/fixtures/expense-calculations.json"
       ],
-      "requiredResolution": "Choose numeric precision and rounding per operation and add cross-client fixtures."
+      "requiredResolution": "Choose numeric precision and rounding for Statistics and Reports. Expenses and Rental must later pass cross-client execution parity against their approved fixture."
     },
     {
       "id": "RISK-009",
@@ -736,16 +796,18 @@
       "area": "expenses_and_rental",
       "severity": "high",
       "status": "open",
-      "description": "Expenses and rental have no verified schema, RLS, API, or calculation fixtures.",
+      "description": "Expenses has owner-approved product gates, contract-owned types, and sanitized boundary fixtures, but Expenses and Rental still have no verified schema, RLS, concrete mutation/error API, audited tax input, or implementation-level parity evidence.",
       "blocksFlows": [
         "expenses",
         "vehicle_rental"
       ],
       "evidenceRefs": [
         "docs/shared/BUSINESS_RULES.md",
+        "docs/shared/EXPENSES_CONTRACT.md",
+        "docs/shared/fixtures/expense-calculations.json",
         "lib/database.types.ts"
       ],
-      "requiredResolution": "Approve domain decisions, create migrations and fixtures, then verify on Staging before implementation."
+      "requiredResolution": "Resolve manual deletion/audit retention, audit the target schema, review a separate schema/mutation compatibility plan and migration, then verify RLS and cross-client calculation parity on Staging before implementation."
     },
     {
       "id": "RISK-015",

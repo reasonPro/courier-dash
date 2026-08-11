@@ -1,5 +1,35 @@
 # Shared Contract Changelog
 
+## 0.3.0-draft Expenses product reconciliation — 2026-08-10
+
+Status: `owner_approved_contract_draft`
+
+This documentation-only stage records the owner-approved Expenses V1 product basis and all five decision gates. Expenses Production implementation has not started.
+
+### Added
+
+- `EXPENSES_CONTRACT.md` with scope, non-goals, PLN categories and sources, four calculation modes, owner-approved completeness and tax gates, calendar/rental semantics, source identity, ownership expectations, correction/idempotency boundaries, Garage integration, and five owner-approved decision gates.
+- Contract-owned Expenses vocabulary and boundary types plus sanitized fixtures for source identity, decimal rounding, completeness, backdated manual attribution, and rental mutation rules.
+- Repository contract tests for the category/source matrix, calculation formulas, decimal `ROUND_HALF_UP`, completeness, actual-date attribution, Garage no-copy boundary, rental rules, owner approval, and manifest hashes.
+
+### Reconciled
+
+- DEC-025 supersedes DEC-009 and DEC-010 and amends DEC-015.
+- Expenses V1 now includes `fuel`, `rental`, `maintenance`, `repair`, and `food_on_shift` with only the confirmed permitted sources.
+- `G` always includes base income, app tips, cash tips, and bonuses independently of presentation toggles.
+- Garage remains an accepted separate source contract; Garage rows are referenced, never copied into manual expenses, and counted at most once.
+- Manual rows are the only persisted Expenses records; Rental and Garage remain distinct sources identified by `(source, sourceRecordId)`.
+- Manual expenses may be backdated and are attributed by actual `YYYY-MM-DD` expense date, never technical `created_at`.
+- PLN inputs allow at most two decimal places; decimal calculations keep rental intermediates unrounded and apply final `ROUND_HALF_UP` to `0.01 PLN`.
+- `partial` results have non-empty missing components and are not final; modes requiring unreliable `T` are not `available`.
+- Rental periods cannot overlap per owner; normal close-and-create is atomic, correction is separate, and retryable creates require idempotency keys.
+
+### Not implemented
+
+- No `/expenses` route, UI, finance refactor, schema, migration, generated database type, Supabase operation, DDL, DML, RPC, Staging change, or Production change was introduced.
+- Concrete schema/RLS/RPC/error design, idempotency-key storage, manual deletion/audit retention, audited `T`, and implementation remain deferred despite the approved product gates.
+- Garage Contract `0.3.0-draft` runtime, acceptance, provenance, schema, and RPC semantics are unchanged.
+
 ## 0.3.0-draft Garage contract preparation — 2026-08-09
 
 Status: `partially_verified`

@@ -55,8 +55,8 @@ Mobile cannot be accepted as contract-verified until all applicable items pass:
 - Two-account RLS tests pass for every Mobile-accessed table. **Passed on Staging for the current five-table Web surface.**
 - Work and annual-report fixtures pass on both clients.
 - Local-date/week/month boundary semantics are identical.
-- Shared rounding and precision are decided before rental or income-after-expenses ships.
-- Expenses and rental stay disabled until schema and fixtures are accepted.
+- Expenses/rental rounding and precision are owner approved and covered by synthetic fixtures; cross-client execution parity remains required before either flow ships.
+- Expenses and rental stay disabled until their schema, RLS, mutation contract, fixtures, and Web/Mobile compatibility are separately accepted.
 - Garage types, date/PLN/mileage rules, RPC signature, stable errors, and local-only odometer behavior pass Mobile review.
 
 ## Garage compatibility window
