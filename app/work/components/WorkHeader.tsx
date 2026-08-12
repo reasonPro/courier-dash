@@ -7,6 +7,7 @@ import type {
 
 type WorkHeaderProps = {
   editingId: number | null;
+  expensesLabel: string;
   lang: WorkLanguage;
   onLanguageChange: (lang: WorkLanguage) => void;
   onLogout: () => void;
@@ -17,6 +18,7 @@ type WorkHeaderProps = {
 
 export function WorkHeader({
   editingId,
+  expensesLabel,
   lang,
   onLanguageChange,
   onLogout,
@@ -50,7 +52,7 @@ export function WorkHeader({
       </div>
 
       {/* ACTION BUTTONS & DESKTOP LANG SWITCHER */}
-      <div className="grid grid-cols-3 sm:flex sm:flex-row items-center gap-2.5 w-full sm:w-auto mt-1 sm:mt-0">
+      <div className="grid grid-cols-4 sm:flex sm:flex-row items-center gap-2.5 w-full sm:w-auto mt-1 sm:mt-0">
         {/* ПК перемикач мов */}
         <div className="hidden sm:block relative">
           <select
@@ -85,6 +87,13 @@ export function WorkHeader({
           className="bg-gray-800 border border-gray-700 text-white text-[11px] sm:text-xs font-medium px-1.5 sm:px-3 py-2 rounded-lg flex items-center justify-center gap-1 sm:gap-1.5 h-[36px] w-full transition hover:bg-gray-700 shadow-sm truncate"
         >
           {t.work.garageBtn}
+        </Link>
+
+        <Link
+          href="/expenses"
+          className="bg-red-950/25 border border-red-500/25 text-red-300 text-[11px] sm:text-xs font-medium px-1.5 sm:px-3 py-2 rounded-lg flex items-center justify-center gap-1 sm:gap-1.5 h-[36px] w-full transition hover:bg-red-950/45 shadow-sm truncate"
+        >
+          {expensesLabel}
         </Link>
 
         {/* Кнопка Вихід */}

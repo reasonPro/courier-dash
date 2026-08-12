@@ -8,6 +8,10 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "../../context/LanguageContext";
 import { calculateWorkedHours } from "../../lib/work-hours";
 import { AUTH_ROUTES, checkAuthRoute } from "../../lib/auth-route-policy";
+import type { ManualExpenseCategory } from "../../docs/shared/types/expenses";
+import { MANUAL_EXPENSE_CATEGORIES } from "../../lib/expenses-prototype";
+import { expensesTranslations } from "../../lib/expenses-translations";
+import { useExpensesPrototype } from "../../lib/use-expenses-prototype";
 import {
   PLATFORM_KEYS,
   PLATFORM_LABELS,
@@ -42,6 +46,8 @@ import { WorkHistory } from "./components/WorkHistory";
 import { WorkModals } from "./components/WorkModals";
 import { WorkSummary } from "./components/WorkSummary";
 import { WorkToast } from "./components/WorkToast";
+import { ExpensesMonthSummary } from "./components/ExpensesMonthSummary";
+import { ExpenseFormModal } from "../expenses/components/ExpenseFormModal";
 import {
   FIELD_TEXTS,
   FIRST_RUN_PLATFORMS,
@@ -58,6 +64,8 @@ import type {
 export default function WorkDashboard() {
   const router = useRouter();
   const { lang, setLanguage, t } = useLanguage();
+  const expenseCopy = expensesTranslations[lang];
+  const expensesPrototype = useExpensesPrototype();
   const [userId, setUserId] = useState<string | null>(null);
   
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
@@ -92,6 +100,7 @@ export default function WorkDashboard() {
 
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [shiftLoadFailed, setShiftLoadFailed] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
 
   const [userNickname, setUserNickname] = useState<string | null>(null);
@@ -111,6 +120,7 @@ export default function WorkDashboard() {
 
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [showExpenseModal, setShowExpenseModal] = useState(false);
 
   // === НАЛАШТУВАННЯ ВВОДУ ДАНИХ (ПРОБІГ, ГОДИНИ) ===
   const [showFieldSettings, setShowFieldSettings] = useState(false);
@@ -152,8 +162,10 @@ export default function WorkDashboard() {
 
   const fetchShifts = async (uid: string) => {
     setIsLoading(true);
+    setShiftLoadFailed(false);
     const { data, error } = await supabase.from("work_shifts").select("*").eq("user_id", uid).order("date", { ascending: false });
     if (!error && data) setShifts(data as Shift[]);
+    if (error) setShiftLoadFailed(true);
     setIsLoading(false);
   };
 
@@ -684,6 +696,14 @@ export default function WorkDashboard() {
     plugins: { legend: { labels: { color: '#a0a0a0', boxWidth: 12 } } }
   };
 
+  const activeManualExpenseCategories =
+    expensesPrototype.state.activeCategories.filter(
+      (category): category is ManualExpenseCategory =>
+        MANUAL_EXPENSE_CATEGORIES.includes(
+          category as ManualExpenseCategory,
+        ),
+    );
+
   return (
     <div className="min-h-screen bg-[#121212] text-white p-4 md:p-10 relative">
       <WorkToast toast={toast} />
@@ -691,6 +711,7 @@ export default function WorkDashboard() {
       <div className="max-w-6xl mx-auto">
         <WorkHeader
           editingId={editingId}
+          expensesLabel={expenseCopy.navLabel}
           lang={lang}
           onLanguageChange={setLanguage}
           onLogout={handleLogout}
@@ -701,22 +722,51 @@ export default function WorkDashboard() {
 
         {/* Кнопка додавання зміни (ДЛЯ ПК) */}
         {!isFormOpen && (
-          <button onClick={() => setIsFormOpen(true)} className="hidden md:block w-full mb-8 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-bold px-6 py-4 rounded-xl transition shadow-lg text-lg">
-            {t.work.addShiftBtn}
-          </button>
+          <div className="mb-8 hidden gap-3 md:flex">
+            <button
+              className="min-w-0 flex-1 rounded-xl bg-gradient-to-r from-green-600 to-green-500 px-6 py-4 text-lg font-bold text-white shadow-lg transition hover:from-green-500 hover:to-green-400"
+              onClick={() => setIsFormOpen(true)}
+              type="button"
+            >
+              {t.work.addShiftBtn}
+            </button>
+            {expensesPrototype.state.enabled && activeManualExpenseCategories.length > 0 && (
+              <button
+                aria-label={expenseCopy.addExpenseAria}
+                className="shrink-0 rounded-xl border border-red-400/40 bg-gradient-to-r from-red-500 to-rose-600 px-6 py-4 text-lg font-bold text-white shadow-lg shadow-red-950/30 transition hover:brightness-110"
+                onClick={() => setShowExpenseModal(true)}
+                type="button"
+              >
+                <span aria-hidden="true">+</span> {expenseCopy.addExpense}
+              </button>
+            )}
+          </div>
         )}
 
         {/* ПЛАВАЮЧА АНІМОВАНА КНОПКА (ДЛЯ ТЕЛЕФОНІВ) */}
         {!isFormOpen && (
-          <div className="md:hidden fixed bottom-6 right-6 z-[90] flex items-center justify-center">
+          <div className="md:hidden fixed bottom-6 right-6 z-[90] flex flex-col items-center gap-3">
+            {expensesPrototype.state.enabled && activeManualExpenseCategories.length > 0 && (
+              <button
+                aria-label={expenseCopy.addExpenseAria}
+                className="relative flex h-14 w-14 items-center justify-center rounded-full border border-red-400/50 bg-gradient-to-br from-red-400 to-rose-600 text-white shadow-[0_4px_20px_rgba(244,63,94,0.45)] transition active:scale-95"
+                onClick={() => setShowExpenseModal(true)}
+                type="button"
+              >
+                <span className="absolute inset-0 animate-ping rounded-full bg-red-500 opacity-35" />
+                <span aria-hidden="true" className="relative text-4xl font-light leading-none">−</span>
+              </button>
+            )}
             {/* Анімація "хвильки" */}
-            <div className="absolute w-full h-full bg-green-500 rounded-full animate-ping opacity-60"></div>
             {/* Сама кнопка */}
             <button 
+              aria-label={expenseCopy.addShiftAria}
               onClick={() => { setIsFormOpen(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} 
               className="relative bg-gradient-to-br from-green-400 to-green-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-[0_4px_20px_rgba(34,197,94,0.5)] border border-green-400/50 transition active:scale-95"
+              type="button"
             >
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span className="absolute inset-0 animate-ping rounded-full bg-green-500 opacity-40" />
+              <svg className="relative w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"></path>
               </svg>
             </button>
@@ -808,6 +858,14 @@ export default function WorkDashboard() {
           translations={t}
         />
 
+        <ExpensesMonthSummary
+          copy={expenseCopy}
+          grossIncome={absoluteTotalIncome.toFixed(2)}
+          grossKnown={!isLoading && !shiftLoadFailed}
+          selectedMonth={selectedMonth}
+          state={expensesPrototype.state}
+        />
+
         {filteredShifts.length > 0 && (
           <WorkChart
             data={monthlyChartData}
@@ -854,6 +912,19 @@ export default function WorkDashboard() {
         showTaxModal={showTaxModal}
         taxForm={taxForm}
         translations={t}
+      />
+      <ExpenseFormModal
+        activeCategories={activeManualExpenseCategories}
+        copy={expenseCopy}
+        editing={null}
+        key={`work-expense-form-${showExpenseModal}`}
+        onClose={() => setShowExpenseModal(false)}
+        onSave={(value) => {
+          expensesPrototype.addManualExpense(value);
+          setShowExpenseModal(false);
+          showToast(expenseCopy.expenseAdded, "success");
+        }}
+        open={showExpenseModal}
       />
     </div>
   );
