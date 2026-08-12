@@ -4,18 +4,14 @@ import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 
 import { useLanguage } from "../../context/LanguageContext"
-import type {
-  ExpenseCategory,
-  ManualExpenseCategory,
-} from "../../docs/shared/types/expenses"
+import type { ExpenseCategory } from "../../docs/shared/types/expenses"
 import {
-  MANUAL_EXPENSE_CATEGORIES,
+  PROTOTYPE_EXPENSE_ENTRY_CATEGORIES,
   calculateExpensesForRange,
-  calculateRentalForRange,
+  getExpensesForRange,
   getLocalCalendarDate,
   getMonthRange,
-  plnToMinorUnits,
-  type PrototypeManualExpense,
+  type PrototypeExpenseRecord,
 } from "../../lib/expenses-prototype"
 import { expensesTranslations } from "../../lib/expenses-translations"
 import { useExpensesPrototype } from "../../lib/use-expenses-prototype"
@@ -30,7 +26,6 @@ import {
 } from "./components/ExpenseFormModal"
 import { ExpenseModalShell } from "./components/ExpenseModalShell"
 import { ExpenseSettingsModal } from "./components/ExpenseSettingsModal"
-import { RentalManagerModal } from "./components/RentalManagerModal"
 
 const CATEGORY_ICONS: Record<ExpenseCategory, string> = {
   fuel: "⛽",
@@ -47,16 +42,6 @@ const LANGUAGE_LOCALES = {
   ru: "ru-RU",
 } as const
 
-type ExpenseListItem =
-  | { kind: "manual"; record: PrototypeManualExpense }
-  | {
-      amount: string
-      date: string
-      from: string
-      kind: "rental"
-      to: string
-    }
-
 export default function ExpensesPage() {
   const { lang, setLanguage } = useLanguage()
   const copy = expensesTranslations[lang]
@@ -67,9 +52,8 @@ export default function ExpensesPage() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
-  const [rentalOpen, setRentalOpen] = useState(false)
-  const [editing, setEditing] = useState<PrototypeManualExpense | null>(null)
-  const [deleting, setDeleting] = useState<PrototypeManualExpense | null>(null)
+  const [editing, setEditing] = useState<PrototypeExpenseRecord | null>(null)
+  const [deleting, setDeleting] = useState<PrototypeExpenseRecord | null>(null)
   const [filters, setFilters] = useState<ExpenseFilters>(EMPTY_EXPENSE_FILTERS)
   const [toast, setToast] = useState<string | null>(null)
 
@@ -79,9 +63,8 @@ export default function ExpensesPage() {
     return () => window.clearTimeout(timeout)
   }, [toast])
 
-  const manualCategories = prototype.state.activeCategories.filter(
-    (category): category is ManualExpenseCategory =>
-      MANUAL_EXPENSE_CATEGORIES.includes(category as ManualExpenseCategory),
+  const entryCategories = prototype.state.activeCategories.filter((category) =>
+    PROTOTYPE_EXPENSE_ENTRY_CATEGORIES.includes(category),
   )
   const monthRange = useMemo(() => getMonthRange(selectedMonth), [selectedMonth])
   const monthTotals = useMemo(
@@ -93,72 +76,24 @@ export default function ExpensesPage() {
       ),
     [monthRange, prototype.state],
   )
-  const listRange = {
-    from: filters.from || monthRange.from,
-    to: filters.to || monthRange.to,
-  }
-  const activeFilterCount = [
-    filters.category !== "all",
-    filters.source !== "all",
-    filters.from !== "",
-    filters.to !== "",
-  ].filter(Boolean).length
+  const activeFilterCount = filters.category !== "all" ? 1 : 0
   const hasGarageGap = prototype.state.activeCategories.some(
     (category) => category === "repair" || category === "maintenance",
   )
 
-  const listItems = useMemo<ExpenseListItem[]>(() => {
-    const manual: ExpenseListItem[] = prototype.state.manualExpenses
-      .filter(
-        (record) =>
-          record.expenseDate >= listRange.from &&
-          record.expenseDate <= listRange.to &&
-          (filters.category === "all" || filters.category === record.category) &&
-          (filters.source === "all" || filters.source === "manual"),
+  const listItems = useMemo(() => {
+    return getExpensesForRange(
+      prototype.state,
+      monthRange.from,
+      monthRange.to,
+      filters.category,
       )
-      .map((record) => ({ kind: "manual", record }))
-
-    const canShowRental =
-      prototype.state.activeCategories.includes("rental") &&
-      (filters.category === "all" || filters.category === "rental") &&
-      (filters.source === "all" || filters.source === "rental_period")
-    if (canShowRental) {
-      const amount = calculateRentalForRange(
-        prototype.state.rentalPeriods,
-        listRange.from,
-        listRange.to,
-      )
-      if (plnToMinorUnits(amount) > BigInt("0")) {
-        manual.push({
-          amount,
-          date: listRange.to,
-          from: listRange.from,
-          kind: "rental",
-          to: listRange.to,
-        })
-      }
-    }
-
-    return manual.sort((left, right) => {
-      const leftDate = left.kind === "manual" ? left.record.expenseDate : left.date
-      const rightDate =
-        right.kind === "manual" ? right.record.expenseDate : right.date
-      return rightDate.localeCompare(leftDate)
-    })
-  }, [filters, listRange.from, listRange.to, prototype.state])
+      .sort((left, right) => right.expenseDate.localeCompare(left.expenseDate))
+  }, [filters.category, monthRange.from, monthRange.to, prototype.state])
 
   const dateLocale = LANGUAGE_LOCALES[lang]
   const formatDate = (value: string) =>
     new Date(`${value}T00:00:00`).toLocaleDateString(dateLocale)
-  const formatMonth = (value: string) =>
-    new Date(`${value}-01T00:00:00`).toLocaleDateString(dateLocale, {
-      month: "long",
-      year: "numeric",
-    })
-  const rentalEntryTitle = filters.from || filters.to
-    ? copy.rentalForSelectedPeriod
-    : copy.rentalForMonth.replace("{month}", formatMonth(selectedMonth))
-
   const saveExpense = (value: ExpenseFormValue) => {
     if (editing) {
       prototype.updateManualExpense(editing.id, value)
@@ -223,7 +158,7 @@ export default function ExpensesPage() {
                 ⚙ {copy.settings}
               </button>
             )}
-            {manualCategories.length > 0 && prototype.state.enabled && (
+            {entryCategories.length > 0 && prototype.state.enabled && (
               <button
                 className="hidden h-10 rounded-lg bg-gradient-to-r from-red-500 to-rose-500 px-4 text-sm font-bold text-white shadow-lg shadow-red-950/30 transition hover:brightness-110 md:block"
                 onClick={() => {
@@ -268,7 +203,9 @@ export default function ExpensesPage() {
                 {copy.selectedMonth}
                 <input
                   className="mt-1 block rounded-xl border border-gray-700 bg-[#1e1e24] px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-500"
-                  onChange={(event) => setSelectedMonth(event.target.value)}
+                  onInput={(event) =>
+                    setSelectedMonth(event.currentTarget.value)
+                  }
                   type="month"
                   value={selectedMonth}
                 />
@@ -322,35 +259,6 @@ export default function ExpensesPage() {
               </div>
             </section>
 
-            {prototype.state.activeCategories.includes("rental") && (
-              <section className="mb-5 flex flex-col gap-4 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="font-bold text-white">🚗 {copy.rentalTitle}</h2>
-                  {prototype.state.rentalPeriods.find(
-                    (period) => period.validTo === null,
-                  ) ? (
-                    <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-400">
-                      <span>
-                        {copy.currentWeeklyRate}: {prototype.state.rentalPeriods.find((period) => period.validTo === null)?.weeklyAmount} PLN
-                      </span>
-                      <span>
-                        {copy.selectedMonthRental}: {monthTotals.byCategory.rental} PLN
-                      </span>
-                    </div>
-                  ) : (
-                    <p className="mt-1 text-sm text-gray-400">{copy.noRentalPeriod}</p>
-                  )}
-                </div>
-                <button
-                  className="shrink-0 rounded-xl border border-cyan-500/40 px-4 py-2.5 text-sm font-bold text-cyan-300 transition hover:bg-cyan-500/10"
-                  onClick={() => setRentalOpen(true)}
-                  type="button"
-                >
-                  {copy.manageRental}
-                </button>
-              </section>
-            )}
-
             <section>
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-lg font-bold">{copy.historyTitle}</h2>
@@ -370,20 +278,15 @@ export default function ExpensesPage() {
                 </div>
               ) : (
                 <div className="overflow-hidden rounded-2xl border border-gray-800 bg-[#19191f]">
-                  {listItems.map((item) => {
-                    const category = item.kind === "manual" ? item.record.category : "rental"
-                    const amount = item.kind === "manual" ? item.record.amount : item.amount
+                  {listItems.map((record) => {
+                    const category = record.category
                     return (
                       <button
                         className="flex w-full items-center gap-3 border-b border-gray-800 p-4 text-left transition last:border-0 hover:bg-[#202028]"
-                        key={item.kind === "manual" ? item.record.id : `rental-${item.from}-${item.to}`}
+                        key={record.id}
                         onClick={() => {
-                          if (item.kind === "manual") {
-                            setEditing(item.record)
-                            setFormOpen(true)
-                          } else {
-                            setRentalOpen(true)
-                          }
+                          setEditing(record)
+                          setFormOpen(true)
                         }}
                         type="button"
                       >
@@ -392,22 +295,20 @@ export default function ExpensesPage() {
                         </span>
                         <span className="min-w-0 flex-1">
                           <span className="block font-semibold text-white">
-                            {item.kind === "rental"
-                              ? rentalEntryTitle
-                              : copy.categories[category].name}
+                            {copy.categories[category].name}
                           </span>
                           <span className="mt-0.5 block text-xs text-gray-500">
-                            {item.kind === "rental"
-                              ? `${copy.rentalCalculationPeriod}: ${formatDate(item.from)} – ${formatDate(item.to)} · ${copy.sourceRental}`
-                              : formatDate(item.record.expenseDate)}
+                            {category === "rental" && record.paidPeriodFrom && record.paidPeriodTo
+                              ? `${copy.paymentDate}: ${formatDate(record.expenseDate)} · ${copy.paidPeriod}: ${formatDate(record.paidPeriodFrom)} – ${formatDate(record.paidPeriodTo)}`
+                              : formatDate(record.expenseDate)}
                           </span>
                         </span>
                         <span className="text-right">
                           <span className="block font-bold text-rose-300">
-                            {amount} PLN
+                            {record.amount} PLN
                           </span>
                           <span className="text-xs text-gray-500">
-                            {item.kind === "manual" ? copy.edit : copy.manageRental}
+                            {copy.edit}
                           </span>
                         </span>
                       </button>
@@ -420,7 +321,7 @@ export default function ExpensesPage() {
         )}
       </div>
 
-      {prototype.state.enabled && manualCategories.length > 0 && (
+      {prototype.state.enabled && entryCategories.length > 0 && (
         <button
           aria-label={copy.addExpenseAria}
           className="fixed bottom-24 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-rose-600 text-3xl font-light text-white shadow-xl shadow-red-950/50 transition hover:scale-105 md:hidden"
@@ -447,7 +348,7 @@ export default function ExpensesPage() {
         open={settingsOpen}
       />
       <ExpenseFormModal
-        activeCategories={manualCategories}
+        activeCategories={entryCategories}
         copy={copy}
         editing={editing}
         key={`expense-form-${formOpen}-${editing?.id ?? "new"}`}
@@ -476,17 +377,6 @@ export default function ExpensesPage() {
         }}
         onClose={() => setFilterOpen(false)}
         open={filterOpen}
-      />
-      <RentalManagerModal
-        copy={copy}
-        key={`rental-${rentalOpen}`}
-        onChangeRate={prototype.changeRentalRate}
-        onClose={() => setRentalOpen(false)}
-        onCorrect={prototype.correctRentalPeriod}
-        onCreate={prototype.createRentalPeriod}
-        onSuccess={setToast}
-        open={rentalOpen}
-        periods={prototype.state.rentalPeriods}
       />
       {deleting && (
         <ExpenseModalShell

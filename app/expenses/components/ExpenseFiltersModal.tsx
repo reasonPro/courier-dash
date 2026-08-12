@@ -2,19 +2,13 @@
 
 import { useState } from "react"
 
-import type {
-  ExpenseCategory,
-  ExpenseSource,
-} from "../../../docs/shared/types/expenses"
+import type { ExpenseCategory } from "../../../docs/shared/types/expenses"
 import { EXPENSE_CATEGORIES } from "../../../lib/expenses-prototype"
 import type { ExpensesCopy } from "../../../lib/expenses-translations"
 import { ExpenseModalShell } from "./ExpenseModalShell"
 
 export type ExpenseFilters = {
   category: ExpenseCategory | "all"
-  from: string
-  source: ExpenseSource | "all"
-  to: string
 }
 
 type ExpenseFiltersModalProps = {
@@ -27,9 +21,6 @@ type ExpenseFiltersModalProps = {
 
 export const EMPTY_EXPENSE_FILTERS: ExpenseFilters = {
   category: "all",
-  from: "",
-  source: "all",
-  to: "",
 }
 
 export function ExpenseFiltersModal({
@@ -66,56 +57,6 @@ export function ExpenseFiltersModal({
             ))}
           </select>
         </label>
-        <label className="block text-sm font-medium text-gray-300">
-          {copy.source}
-          <select
-            className="mt-1.5 w-full rounded-xl border border-gray-700 bg-[#22222b] px-3 py-3 text-white outline-none focus:border-cyan-500"
-            onChange={(event) =>
-              setDraft((current) => ({
-                ...current,
-                source: event.target.value as ExpenseFilters["source"],
-              }))
-            }
-            value={draft.source}
-          >
-            <option value="all">{copy.allSources}</option>
-            <option value="manual">{copy.sourceManual}</option>
-            <option value="garage">{copy.sourceGarage}</option>
-            <option value="rental_period">{copy.sourceRental}</option>
-          </select>
-        </label>
-        <div className="grid grid-cols-2 gap-3">
-          <label className="block text-sm font-medium text-gray-300">
-            {copy.fromDate}
-            <input
-              className="mt-1.5 w-full rounded-xl border border-gray-700 bg-[#22222b] px-3 py-3 text-white outline-none focus:border-cyan-500"
-              onInput={(event) => {
-                const value = event.currentTarget.value
-                setDraft((current) => ({
-                  ...current,
-                  from: value,
-                }))
-              }}
-              type="date"
-              value={draft.from}
-            />
-          </label>
-          <label className="block text-sm font-medium text-gray-300">
-            {copy.toDate}
-            <input
-              className="mt-1.5 w-full rounded-xl border border-gray-700 bg-[#22222b] px-3 py-3 text-white outline-none focus:border-cyan-500"
-              onInput={(event) => {
-                const value = event.currentTarget.value
-                setDraft((current) => ({
-                  ...current,
-                  to: value,
-                }))
-              }}
-              type="date"
-              value={draft.to}
-            />
-          </label>
-        </div>
       </div>
       <div className="mt-5 flex gap-3">
         <button

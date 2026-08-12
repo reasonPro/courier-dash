@@ -28,13 +28,6 @@ export type ExpensesCopy = {
   resetFilters: string
   applyFilters: string
   allCategories: string
-  allSources: string
-  source: string
-  sourceManual: string
-  sourceGarage: string
-  sourceRental: string
-  fromDate: string
-  toDate: string
   summaryTitle: string
   totalExpenses: string
   categoryBreakdown: string
@@ -46,6 +39,11 @@ export type ExpensesCopy = {
   readError: string
   category: string
   expenseDate: string
+  paymentDate: string
+  paidPeriod: string
+  paidPeriodStart: string
+  paidPeriodEnd: string
+  paidPeriodHint: string
   amountPln: string
   addExpenseTitle: string
   editExpenseTitle: string
@@ -62,31 +60,6 @@ export type ExpensesCopy = {
   close: string
   deleteTitle: string
   deleteQuestion: string
-  rentalTitle: string
-  currentWeeklyRate: string
-  activePeriod: string
-  selectedMonthRental: string
-  rentalForMonth: string
-  rentalForSelectedPeriod: string
-  rentalCalculationPeriod: string
-  manageRental: string
-  noRentalPeriod: string
-  createRental: string
-  weeklyRate: string
-  startDate: string
-  endDate: string
-  endInclusive: string
-  currentPeriod: string
-  rateHistory: string
-  changeRate: string
-  newRateStart: string
-  correctHistory: string
-  correctionWarning: string
-  continueCorrection: string
-  saveCorrection: string
-  rentalSaved: string
-  rentalCorrected: string
-  rentalOverlap: string
   invalidRentalRange: string
   afterExpensesTitle: string
   afterExpensesDescription: string
@@ -111,7 +84,7 @@ const pl: ExpensesCopy = {
   updateSettings: "Zapisz ustawienia",
   categories: {
     fuel: { name: "Paliwo", description: "Tankowanie podczas pracy kurierskiej" },
-    rental: { name: "Wynajem", description: "Koszt pojazdu liczony z tygodniowej stawki" },
+    rental: { name: "Wynajem", description: "Rzeczywista płatność za opłacony okres" },
     food_on_shift: { name: "Przekąski w pracy", description: "Jedzenie kupione podczas zmiany" },
     repair: { name: "Naprawy", description: "Usuwanie awarii pojazdu" },
     maintenance: { name: "Serwis", description: "Planowy serwis i obsługa pojazdu" },
@@ -126,13 +99,6 @@ const pl: ExpensesCopy = {
   resetFilters: "Wyczyść filtry",
   applyFilters: "Zastosuj",
   allCategories: "Wszystkie kategorie",
-  allSources: "Wszystkie źródła",
-  source: "Źródło",
-  sourceManual: "Ręczne",
-  sourceGarage: "Garaż",
-  sourceRental: "Wynajem",
-  fromDate: "Od",
-  toDate: "Do",
   summaryTitle: "Podsumowanie miesiąca",
   totalExpenses: "Łączne wydatki",
   categoryBreakdown: "Według kategorii",
@@ -144,6 +110,11 @@ const pl: ExpensesCopy = {
   readError: "Nie udało się odczytać lokalnych danych prototypu.",
   category: "Kategoria",
   expenseDate: "Data wydatku",
+  paymentDate: "Data płatności",
+  paidPeriod: "Opłacony okres",
+  paidPeriodStart: "Początek opłaconego okresu",
+  paidPeriodEnd: "Koniec opłaconego okresu",
+  paidPeriodHint: "Podaj faktyczny okres opłacony tą płatnością. Data końcowa jest wliczona.",
   amountPln: "Kwota (PLN)",
   addExpenseTitle: "Nowy wydatek",
   editExpenseTitle: "Edytuj wydatek",
@@ -160,36 +131,11 @@ const pl: ExpensesCopy = {
   close: "Zamknij",
   deleteTitle: "Usunąć wydatek?",
   deleteQuestion: "Usunąć {category} w kwocie {amount} PLN?",
-  rentalTitle: "Wynajem pojazdu",
-  currentWeeklyRate: "Aktualna stawka tygodniowa",
-  activePeriod: "Aktywny okres",
-  selectedMonthRental: "Za wybrany miesiąc",
-  rentalForMonth: "Wynajem za {month}",
-  rentalForSelectedPeriod: "Wynajem za wybrany okres",
-  rentalCalculationPeriod: "Okres rozliczenia",
-  manageRental: "Zarządzaj wynajmem",
-  noRentalPeriod: "Nie ustawiono jeszcze okresu wynajmu.",
-  createRental: "Utwórz okres wynajmu",
-  weeklyRate: "Stawka tygodniowa (PLN)",
-  startDate: "Data rozpoczęcia",
-  endDate: "Data zakończenia",
-  endInclusive: "Ostatni opłacony dzień, włącznie. Pozostaw puste dla aktywnego okresu.",
-  currentPeriod: "Aktualny okres",
-  rateHistory: "Historia stawek",
-  changeRate: "Zmień stawkę",
-  newRateStart: "Nowa stawka od",
-  correctHistory: "Popraw historię",
-  correctionWarning: "Zmiana historii może przeliczyć wcześniejsze miesięczne podsumowania.",
-  continueCorrection: "Rozumiem, popraw historię",
-  saveCorrection: "Zapisz poprawkę",
-  rentalSaved: "Okres wynajmu zapisany.",
-  rentalCorrected: "Historia wynajmu poprawiona.",
-  rentalOverlap: "Okresy wynajmu nie mogą się nakładać.",
   invalidRentalRange: "Data zakończenia nie może być wcześniejsza od rozpoczęcia.",
   afterExpensesTitle: "Dochód po wydatkach",
   afterExpensesDescription: "Przychód z napiwkami i bonusami minus zapisane wydatki. To nie jest netto.",
   openExpenses: "Przejdź do wydatków",
-  incompleteResult: "Niektóre wydatki nie są jeszcze uwzględnione — część źródeł jest niedostępna.",
+  incompleteResult: "Niektóre wydatki nie są jeszcze uwzględnione — część danych jest niedostępna.",
   incompleteIncome: "Nie można teraz wiarygodnie obliczyć dochodu po wydatkach.",
 }
 
@@ -209,7 +155,7 @@ const uk: ExpensesCopy = {
   updateSettings: "Зберегти налаштування",
   categories: {
     fuel: { name: "Бензин", description: "Заправки під час кур’єрської роботи" },
-    rental: { name: "Оренда", description: "Вартість транспорту за тижневою ставкою" },
+    rental: { name: "Оренда", description: "Фактична оплата за оплачений період" },
     food_on_shift: { name: "Перекуси під час зміни", description: "Їжа, придбана під час роботи" },
     repair: { name: "Ремонт транспорту", description: "Усунення поломок транспортного засобу" },
     maintenance: { name: "Сервіс транспорту", description: "Планове обслуговування та сервіс" },
@@ -224,13 +170,6 @@ const uk: ExpensesCopy = {
   resetFilters: "Скинути фільтри",
   applyFilters: "Застосувати",
   allCategories: "Усі категорії",
-  allSources: "Усі джерела",
-  source: "Джерело",
-  sourceManual: "Ручні",
-  sourceGarage: "Garage",
-  sourceRental: "Оренда",
-  fromDate: "Від",
-  toDate: "До",
   summaryTitle: "Підсумок за місяць",
   totalExpenses: "Загальна сума витрат",
   categoryBreakdown: "За категоріями",
@@ -242,6 +181,11 @@ const uk: ExpensesCopy = {
   readError: "Не вдалося прочитати локальні дані прототипу.",
   category: "Категорія",
   expenseDate: "Фактична дата витрати",
+  paymentDate: "Дата оплати",
+  paidPeriod: "Оплачений період",
+  paidPeriodStart: "Початок оплаченого періоду",
+  paidPeriodEnd: "Кінець оплаченого періоду",
+  paidPeriodHint: "Вкажіть фактичний період, оплачений цим платежем. Дата завершення входить у період.",
   amountPln: "Сума (PLN)",
   addExpenseTitle: "Нова витрата",
   editExpenseTitle: "Редагування витрати",
@@ -258,36 +202,11 @@ const uk: ExpensesCopy = {
   close: "Закрити",
   deleteTitle: "Видалити витрату?",
   deleteQuestion: "Видалити {category} на суму {amount} PLN?",
-  rentalTitle: "Оренда транспорту",
-  currentWeeklyRate: "Поточна тижнева ставка",
-  activePeriod: "Активний період",
-  selectedMonthRental: "За вибраний місяць",
-  rentalForMonth: "Оренда за {month}",
-  rentalForSelectedPeriod: "Оренда за вибраний період",
-  rentalCalculationPeriod: "Період розрахунку",
-  manageRental: "Керувати орендою",
-  noRentalPeriod: "Період оренди ще не налаштовано.",
-  createRental: "Створити період оренди",
-  weeklyRate: "Тижнева ставка (PLN)",
-  startDate: "Дата початку",
-  endDate: "Дата завершення",
-  endInclusive: "Останній оплачений день включно. Залиште порожнім для активного періоду.",
-  currentPeriod: "Поточний період",
-  rateHistory: "Історія ставок",
-  changeRate: "Змінити ставку",
-  newRateStart: "Нова ставка з",
-  correctHistory: "Виправити історію",
-  correctionWarning: "Зміна історії може перерахувати попередні місячні підсумки.",
-  continueCorrection: "Розумію, виправити історію",
-  saveCorrection: "Зберегти виправлення",
-  rentalSaved: "Період оренди збережено.",
-  rentalCorrected: "Історію оренди виправлено.",
-  rentalOverlap: "Періоди оренди не можуть перетинатися.",
   invalidRentalRange: "Дата завершення не може бути раніше дати початку.",
   afterExpensesTitle: "Дохід після витрат",
   afterExpensesDescription: "Увесь дохід із чайовими й бонусами мінус записані витрати. Це не Netto.",
   openExpenses: "Перейти до витрат",
-  incompleteResult: "Деякі витрати ще не враховані — частина джерел недоступна.",
+  incompleteResult: "Деякі витрати ще не враховані — частина даних недоступна.",
   incompleteIncome: "Зараз неможливо надійно розрахувати дохід після витрат.",
 }
 
@@ -307,7 +226,7 @@ const en: ExpensesCopy = {
   updateSettings: "Save settings",
   categories: {
     fuel: { name: "Fuel", description: "Fuel bought for courier work" },
-    rental: { name: "Vehicle rental", description: "Vehicle cost based on a weekly rate" },
+    rental: { name: "Vehicle rental", description: "Actual payment for a paid period" },
     food_on_shift: { name: "Snacks on shift", description: "Food bought while working" },
     repair: { name: "Vehicle repair", description: "Fixing vehicle faults" },
     maintenance: { name: "Vehicle service", description: "Routine service and maintenance" },
@@ -322,13 +241,6 @@ const en: ExpensesCopy = {
   resetFilters: "Reset filters",
   applyFilters: "Apply",
   allCategories: "All categories",
-  allSources: "All sources",
-  source: "Source",
-  sourceManual: "Manual",
-  sourceGarage: "Garage",
-  sourceRental: "Rental",
-  fromDate: "From",
-  toDate: "To",
   summaryTitle: "Monthly summary",
   totalExpenses: "Total expenses",
   categoryBreakdown: "By category",
@@ -340,6 +252,11 @@ const en: ExpensesCopy = {
   readError: "The local prototype data could not be read.",
   category: "Category",
   expenseDate: "Actual expense date",
+  paymentDate: "Payment date",
+  paidPeriod: "Paid period",
+  paidPeriodStart: "Paid period start",
+  paidPeriodEnd: "Paid period end",
+  paidPeriodHint: "Enter the actual period covered by this payment. The end date is inclusive.",
   amountPln: "Amount (PLN)",
   addExpenseTitle: "New expense",
   editExpenseTitle: "Edit expense",
@@ -356,36 +273,11 @@ const en: ExpensesCopy = {
   close: "Close",
   deleteTitle: "Delete expense?",
   deleteQuestion: "Delete {category} for {amount} PLN?",
-  rentalTitle: "Vehicle rental",
-  currentWeeklyRate: "Current weekly rate",
-  activePeriod: "Active period",
-  selectedMonthRental: "For selected month",
-  rentalForMonth: "Rental for {month}",
-  rentalForSelectedPeriod: "Rental for the selected period",
-  rentalCalculationPeriod: "Calculation period",
-  manageRental: "Manage rental",
-  noRentalPeriod: "No rental period has been set up yet.",
-  createRental: "Create rental period",
-  weeklyRate: "Weekly rate (PLN)",
-  startDate: "Start date",
-  endDate: "End date",
-  endInclusive: "Last paid day, inclusive. Leave blank for an active period.",
-  currentPeriod: "Current period",
-  rateHistory: "Rate history",
-  changeRate: "Change rate",
-  newRateStart: "New rate from",
-  correctHistory: "Correct history",
-  correctionWarning: "Changing history may recalculate earlier monthly totals.",
-  continueCorrection: "I understand, correct history",
-  saveCorrection: "Save correction",
-  rentalSaved: "Rental period saved.",
-  rentalCorrected: "Rental history corrected.",
-  rentalOverlap: "Rental periods cannot overlap.",
   invalidRentalRange: "The end date cannot be before the start date.",
   afterExpensesTitle: "Income after expenses",
   afterExpensesDescription: "All income including tips and bonuses, minus recorded expenses. This is not net income.",
   openExpenses: "Open expenses",
-  incompleteResult: "Some expenses are not included yet — some sources are unavailable.",
+  incompleteResult: "Some expenses are not included yet — some data is unavailable.",
   incompleteIncome: "Income after expenses cannot be calculated reliably right now.",
 }
 
@@ -405,7 +297,7 @@ const ru: ExpensesCopy = {
   updateSettings: "Сохранить настройки",
   categories: {
     fuel: { name: "Бензин", description: "Заправки во время курьерской работы" },
-    rental: { name: "Аренда", description: "Стоимость транспорта по недельной ставке" },
+    rental: { name: "Аренда", description: "Фактическая оплата за оплаченный период" },
     food_on_shift: { name: "Перекусы на смене", description: "Еда, купленная во время работы" },
     repair: { name: "Ремонт транспорта", description: "Устранение поломок транспорта" },
     maintenance: { name: "Сервис транспорта", description: "Плановый сервис и обслуживание" },
@@ -420,13 +312,6 @@ const ru: ExpensesCopy = {
   resetFilters: "Сбросить фильтры",
   applyFilters: "Применить",
   allCategories: "Все категории",
-  allSources: "Все источники",
-  source: "Источник",
-  sourceManual: "Ручные",
-  sourceGarage: "Garage",
-  sourceRental: "Аренда",
-  fromDate: "От",
-  toDate: "До",
   summaryTitle: "Итоги за месяц",
   totalExpenses: "Общая сумма расходов",
   categoryBreakdown: "По категориям",
@@ -438,6 +323,11 @@ const ru: ExpensesCopy = {
   readError: "Не удалось прочитать локальные данные прототипа.",
   category: "Категория",
   expenseDate: "Фактическая дата расхода",
+  paymentDate: "Дата оплаты",
+  paidPeriod: "Оплаченный период",
+  paidPeriodStart: "Начало оплаченного периода",
+  paidPeriodEnd: "Конец оплаченного периода",
+  paidPeriodHint: "Укажите фактический период, оплаченный этим платежом. Дата окончания входит в период.",
   amountPln: "Сумма (PLN)",
   addExpenseTitle: "Новый расход",
   editExpenseTitle: "Редактирование расхода",
@@ -454,36 +344,11 @@ const ru: ExpensesCopy = {
   close: "Закрыть",
   deleteTitle: "Удалить расход?",
   deleteQuestion: "Удалить {category} на сумму {amount} PLN?",
-  rentalTitle: "Аренда транспорта",
-  currentWeeklyRate: "Текущая недельная ставка",
-  activePeriod: "Активный период",
-  selectedMonthRental: "За выбранный месяц",
-  rentalForMonth: "Аренда за {month}",
-  rentalForSelectedPeriod: "Аренда за выбранный период",
-  rentalCalculationPeriod: "Период расчёта",
-  manageRental: "Управлять арендой",
-  noRentalPeriod: "Период аренды ещё не настроен.",
-  createRental: "Создать период аренды",
-  weeklyRate: "Недельная ставка (PLN)",
-  startDate: "Дата начала",
-  endDate: "Дата завершения",
-  endInclusive: "Последний оплаченный день включительно. Оставьте пустым для активного периода.",
-  currentPeriod: "Текущий период",
-  rateHistory: "История ставок",
-  changeRate: "Изменить ставку",
-  newRateStart: "Новая ставка с",
-  correctHistory: "Исправить историю",
-  correctionWarning: "Изменение истории может пересчитать прошлые месячные итоги.",
-  continueCorrection: "Понимаю, исправить историю",
-  saveCorrection: "Сохранить исправление",
-  rentalSaved: "Период аренды сохранён.",
-  rentalCorrected: "История аренды исправлена.",
-  rentalOverlap: "Периоды аренды не могут пересекаться.",
   invalidRentalRange: "Дата завершения не может быть раньше даты начала.",
   afterExpensesTitle: "Доход после расходов",
   afterExpensesDescription: "Весь доход с чаевыми и бонусами минус записанные расходы. Это не Netto.",
   openExpenses: "Перейти к расходам",
-  incompleteResult: "Некоторые расходы пока не учтены — часть источников недоступна.",
+  incompleteResult: "Некоторые расходы пока не учтены — часть данных недоступна.",
   incompleteIncome: "Сейчас невозможно надёжно рассчитать доход после расходов.",
 }
 

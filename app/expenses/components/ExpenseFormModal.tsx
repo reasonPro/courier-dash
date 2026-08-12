@@ -2,27 +2,29 @@
 
 import { useMemo, useState } from "react"
 
-import type { ManualExpenseCategory } from "../../../docs/shared/types/expenses"
+import type { ExpenseCategory } from "../../../docs/shared/types/expenses"
 import {
-  MANUAL_EXPENSE_CATEGORIES,
+  PROTOTYPE_EXPENSE_ENTRY_CATEGORIES,
   getLocalCalendarDate,
   isCalendarDate,
   isValidPlnInput,
-  type PrototypeManualExpense,
+  type PrototypeExpenseRecord,
 } from "../../../lib/expenses-prototype"
 import type { ExpensesCopy } from "../../../lib/expenses-translations"
 import { ExpenseModalShell } from "./ExpenseModalShell"
 
 export type ExpenseFormValue = {
   amount: string
-  category: ManualExpenseCategory
+  category: ExpenseCategory
   expenseDate: string
+  paidPeriodFrom: string | null
+  paidPeriodTo: string | null
 }
 
 type ExpenseFormModalProps = {
-  activeCategories: ManualExpenseCategory[]
+  activeCategories: ExpenseCategory[]
   copy: ExpensesCopy
-  editing: PrototypeManualExpense | null
+  editing: PrototypeExpenseRecord | null
   onClose: () => void
   onDelete?: () => void
   onSave: (value: ExpenseFormValue) => void
@@ -44,11 +46,20 @@ export function ExpenseFormModal({
     }
     return [editing.category, ...activeCategories]
   }, [activeCategories, editing])
-  const [category, setCategory] = useState<ManualExpenseCategory>(
-    options[0] ?? "fuel",
+  const today = getLocalCalendarDate()
+  const [category, setCategory] = useState<ExpenseCategory>(
+    editing?.category ?? options[0] ?? "fuel",
   )
-  const [expenseDate, setExpenseDate] = useState(getLocalCalendarDate())
-  const [amount, setAmount] = useState("")
+  const [expenseDate, setExpenseDate] = useState(
+    editing?.expenseDate ?? today,
+  )
+  const [amount, setAmount] = useState(editing?.amount ?? "")
+  const [paidPeriodFrom, setPaidPeriodFrom] = useState(
+    editing?.paidPeriodFrom ?? today,
+  )
+  const [paidPeriodTo, setPaidPeriodTo] = useState(
+    editing?.paidPeriodTo ?? today,
+  )
   const [error, setError] = useState<string | null>(null)
 
   if (!open || options.length === 0) return null
@@ -62,7 +73,22 @@ export function ExpenseFormModal({
       setError(copy.amountInvalid)
       return
     }
-    onSave({ amount, category, expenseDate })
+    if (
+      category === "rental" &&
+      (!isCalendarDate(paidPeriodFrom) ||
+        !isCalendarDate(paidPeriodTo) ||
+        paidPeriodTo < paidPeriodFrom)
+    ) {
+      setError(copy.invalidRentalRange)
+      return
+    }
+    onSave({
+      amount,
+      category,
+      expenseDate,
+      paidPeriodFrom: category === "rental" ? paidPeriodFrom : null,
+      paidPeriodTo: category === "rental" ? paidPeriodTo : null,
+    })
   }
 
   return (
@@ -76,11 +102,11 @@ export function ExpenseFormModal({
           <select
             className="mt-1.5 w-full rounded-xl border border-gray-700 bg-[#22222b] px-3 py-3 text-white outline-none transition focus:border-cyan-500"
             onChange={(event) =>
-              setCategory(event.target.value as ManualExpenseCategory)
+              setCategory(event.target.value as ExpenseCategory)
             }
             value={category}
           >
-            {MANUAL_EXPENSE_CATEGORIES.filter((item) =>
+            {PROTOTYPE_EXPENSE_ENTRY_CATEGORIES.filter((item) =>
               options.includes(item),
             ).map((item) => (
               <option key={item} value={item}>
@@ -90,7 +116,7 @@ export function ExpenseFormModal({
           </select>
         </label>
         <label className="block text-sm font-medium text-gray-300">
-          {copy.expenseDate}
+          {category === "rental" ? copy.paymentDate : copy.expenseDate}
           <input
             className="mt-1.5 w-full rounded-xl border border-gray-700 bg-[#22222b] px-3 py-3 text-white outline-none transition focus:border-cyan-500"
             onInput={(event) => setExpenseDate(event.currentTarget.value)}
@@ -98,6 +124,39 @@ export function ExpenseFormModal({
             value={expenseDate}
           />
         </label>
+        {category === "rental" && (
+          <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3">
+            <p className="mb-3 text-xs leading-5 text-gray-400">
+              {copy.paidPeriodHint}
+            </p>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className="block text-sm font-medium text-gray-300">
+                {copy.paidPeriodStart}
+                <input
+                  className="mt-1.5 w-full rounded-xl border border-gray-700 bg-[#22222b] px-3 py-3 text-white outline-none transition focus:border-cyan-500"
+                  onInput={(event) => {
+                    setPaidPeriodFrom(event.currentTarget.value)
+                    setError(null)
+                  }}
+                  type="date"
+                  value={paidPeriodFrom}
+                />
+              </label>
+              <label className="block text-sm font-medium text-gray-300">
+                {copy.paidPeriodEnd}
+                <input
+                  className="mt-1.5 w-full rounded-xl border border-gray-700 bg-[#22222b] px-3 py-3 text-white outline-none transition focus:border-cyan-500"
+                  onInput={(event) => {
+                    setPaidPeriodTo(event.currentTarget.value)
+                    setError(null)
+                  }}
+                  type="date"
+                  value={paidPeriodTo}
+                />
+              </label>
+            </div>
+          </div>
+        )}
         <label className="block text-sm font-medium text-gray-300">
           {copy.amountPln}
           <div className="relative mt-1.5">

@@ -1,7 +1,4 @@
-import type {
-  ExpenseCategory,
-  ManualExpenseCategory,
-} from "../docs/shared/types/expenses"
+import type { ExpenseCategory } from "../docs/shared/types/expenses"
 
 export const EXPENSES_PROTOTYPE_STORAGE_KEY =
   "courierdash.expenses.prototype.v1"
@@ -15,45 +12,32 @@ export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   "maintenance",
 ]
 
-export const MANUAL_EXPENSE_CATEGORIES: ManualExpenseCategory[] = [
-  "fuel",
-  "food_on_shift",
-  "repair",
-  "maintenance",
+export const PROTOTYPE_EXPENSE_ENTRY_CATEGORIES: ExpenseCategory[] = [
+  ...EXPENSE_CATEGORIES,
 ]
 
 const BIGINT_ZERO = BigInt("0")
-const BIGINT_ONE = BigInt("1")
-const BIGINT_TWO = BigInt("2")
 const PLN_MINOR_UNITS = BigInt("100")
-const DAYS_PER_WEEK = BigInt("7")
 
-export type PrototypeManualExpense = {
+export type PrototypeExpenseRecord = {
   id: string
   source: "manual"
-  category: ManualExpenseCategory
+  category: ExpenseCategory
   expenseDate: string
   amount: string
+  paidPeriodFrom: string | null
+  paidPeriodTo: string | null
   createdAt: string
   updatedAt: string
 }
 
-export type PrototypeRentalPeriod = {
-  id: string
-  source: "rental_period"
-  weeklyAmount: string
-  validFrom: string
-  validTo: string | null
-  createdAt: string
-  updatedAt: string
-}
+export type PrototypeManualExpense = PrototypeExpenseRecord
 
 export type ExpensesPrototypeState = {
-  version: 1
+  version: 2
   enabled: boolean
   activeCategories: ExpenseCategory[]
-  manualExpenses: PrototypeManualExpense[]
-  rentalPeriods: PrototypeRentalPeriod[]
+  manualExpenses: PrototypeExpenseRecord[]
 }
 
 export type ExpensesPrototypeReadResult = {
@@ -61,29 +45,19 @@ export type ExpensesPrototypeReadResult = {
   error: string | null
 }
 
-export type StorageReaderWriter = Pick<
-  Storage,
-  "getItem" | "setItem"
->
+export type StorageReaderWriter = Pick<Storage, "getItem" | "setItem">
 
 export function createEmptyExpensesPrototypeState(): ExpensesPrototypeState {
   return {
-    version: 1,
+    version: 2,
     enabled: false,
     activeCategories: [],
     manualExpenses: [],
-    rentalPeriods: [],
   }
 }
 
 function isExpenseCategory(value: unknown): value is ExpenseCategory {
   return EXPENSE_CATEGORIES.includes(value as ExpenseCategory)
-}
-
-function isManualExpenseCategory(
-  value: unknown,
-): value is ManualExpenseCategory {
-  return MANUAL_EXPENSE_CATEGORIES.includes(value as ManualExpenseCategory)
 }
 
 export function isCalendarDate(value: unknown): value is string {
@@ -119,9 +93,7 @@ export function isValidPlnInput(value: string): boolean {
 
 export function plnToMinorUnits(value: string): bigint {
   const normalized = normalizePlnInput(value)
-  if (!isValidPlnInput(normalized)) {
-    throw new Error("INVALID_PLN")
-  }
+  if (!isValidPlnInput(normalized)) throw new Error("INVALID_PLN")
   const [whole, fraction = ""] = normalized.split(".")
   return BigInt(whole) * PLN_MINOR_UNITS + BigInt(fraction.padEnd(2, "0"))
 }
@@ -206,63 +178,23 @@ export function getMonthRange(month: string): { from: string; to: string } {
   return { from, to: addCalendarDays(next, -1) }
 }
 
-export function countInclusiveDays(
-  from: string,
-  to: string,
-): number {
-  return calendarDateToOrdinal(to) - calendarDateToOrdinal(from) + 1
-}
-
-export function getRangeIntersection(
-  leftFrom: string,
-  leftTo: string,
-  rightFrom: string,
-  rightTo: string,
-): { from: string; to: string; days: number } | null {
-  const from = leftFrom > rightFrom ? leftFrom : rightFrom
-  const to = leftTo < rightTo ? leftTo : rightTo
-  if (from > to) return null
-  return { from, to, days: countInclusiveDays(from, to) }
-}
-
-function roundPositiveRationalHalfUp(
-  numerator: bigint,
-  denominator: bigint,
-): bigint {
-  if (numerator < BIGINT_ZERO || denominator <= BIGINT_ZERO) {
-    throw new Error("INVALID_RATIONAL")
-  }
-  const quotient = numerator / denominator
-  const remainder = numerator % denominator
-  return remainder * BIGINT_TWO >= denominator
-    ? quotient + BIGINT_ONE
-    : quotient
-}
-
-export function calculateRentalForRange(
-  periods: PrototypeRentalPeriod[],
-  from: string,
-  to: string,
-): string {
-  const numerator = periods.reduce((total, period) => {
-    const overlap = getRangeIntersection(
-      period.validFrom,
-      period.validTo ?? to,
-      from,
-      to,
-    )
-    if (!overlap) return total
-    return total + plnToMinorUnits(period.weeklyAmount) * BigInt(overlap.days)
-  }, BIGINT_ZERO)
-
-  return formatMinorUnits(
-    roundPositiveRationalHalfUp(numerator, DAYS_PER_WEEK),
-  )
-}
-
 export type ExpensesRangeTotals = {
   total: string
   byCategory: Record<ExpenseCategory, string>
+}
+
+export function getExpensesForRange(
+  state: ExpensesPrototypeState,
+  from: string,
+  to: string,
+  category: ExpenseCategory | "all" = "all",
+): PrototypeExpenseRecord[] {
+  return state.manualExpenses.filter(
+    (expense) =>
+      expense.expenseDate >= from &&
+      expense.expenseDate <= to &&
+      (category === "all" || expense.category === category),
+  )
 }
 
 export function calculateExpensesForRange(
@@ -270,34 +202,25 @@ export function calculateExpensesForRange(
   from: string,
   to: string,
 ): ExpensesRangeTotals {
-  const manualByCategory = new Map<ManualExpenseCategory, bigint>()
-  MANUAL_EXPENSE_CATEGORIES.forEach((category) => {
-    manualByCategory.set(category, BIGINT_ZERO)
+  const byCategoryMinor = new Map<ExpenseCategory, bigint>()
+  EXPENSE_CATEGORIES.forEach((category) => {
+    byCategoryMinor.set(category, BIGINT_ZERO)
   })
 
-  state.manualExpenses.forEach((expense) => {
-    if (expense.expenseDate < from || expense.expenseDate > to) return
-    manualByCategory.set(
+  getExpensesForRange(state, from, to).forEach((expense) => {
+    byCategoryMinor.set(
       expense.category,
-      (manualByCategory.get(expense.category) ?? BIGINT_ZERO) +
+      (byCategoryMinor.get(expense.category) ?? BIGINT_ZERO) +
         plnToMinorUnits(expense.amount),
     )
   })
 
-  const rental = calculateRentalForRange(state.rentalPeriods, from, to)
-  const byCategory: Record<ExpenseCategory, string> = {
-    fuel: formatMinorUnits(manualByCategory.get("fuel") ?? BIGINT_ZERO),
-    rental,
-    food_on_shift: formatMinorUnits(
-      manualByCategory.get("food_on_shift") ?? BIGINT_ZERO,
-    ),
-    repair: formatMinorUnits(
-      manualByCategory.get("repair") ?? BIGINT_ZERO,
-    ),
-    maintenance: formatMinorUnits(
-      manualByCategory.get("maintenance") ?? BIGINT_ZERO,
-    ),
-  }
+  const byCategory = Object.fromEntries(
+    EXPENSE_CATEGORIES.map((category) => [
+      category,
+      formatMinorUnits(byCategoryMinor.get(category) ?? BIGINT_ZERO),
+    ]),
+  ) as Record<ExpenseCategory, string>
 
   return {
     byCategory,
@@ -305,59 +228,87 @@ export function calculateExpensesForRange(
   }
 }
 
-function isManualExpense(value: unknown): value is PrototypeManualExpense {
-  if (!value || typeof value !== "object") return false
-  const record = value as Partial<PrototypeManualExpense>
-  return (
-    typeof record.id === "string" &&
-    record.source === "manual" &&
-    isManualExpenseCategory(record.category) &&
-    isCalendarDate(record.expenseDate) &&
-    typeof record.amount === "string" &&
-    isValidPlnInput(record.amount) &&
-    typeof record.createdAt === "string" &&
-    typeof record.updatedAt === "string"
-  )
-}
+function normalizeExpenseRecord(
+  value: unknown,
+  legacy: boolean,
+): PrototypeExpenseRecord | null {
+  if (!value || typeof value !== "object") return null
+  const record = value as Partial<PrototypeExpenseRecord>
+  if (
+    typeof record.id !== "string" ||
+    record.source !== "manual" ||
+    !isExpenseCategory(record.category) ||
+    !isCalendarDate(record.expenseDate) ||
+    typeof record.amount !== "string" ||
+    !isValidPlnInput(record.amount) ||
+    typeof record.createdAt !== "string" ||
+    typeof record.updatedAt !== "string"
+  ) {
+    return null
+  }
+  if (legacy && record.category === "rental") return null
 
-function isRentalPeriod(value: unknown): value is PrototypeRentalPeriod {
-  if (!value || typeof value !== "object") return false
-  const record = value as Partial<PrototypeRentalPeriod>
-  return (
-    typeof record.id === "string" &&
-    record.source === "rental_period" &&
-    typeof record.weeklyAmount === "string" &&
-    isValidPlnInput(record.weeklyAmount) &&
-    isCalendarDate(record.validFrom) &&
-    (record.validTo === null || isCalendarDate(record.validTo)) &&
-    (record.validTo === null || record.validTo >= record.validFrom) &&
-    typeof record.createdAt === "string" &&
-    typeof record.updatedAt === "string"
-  )
+  const paidPeriodFrom = record.paidPeriodFrom ?? null
+  const paidPeriodTo = record.paidPeriodTo ?? null
+  if (
+    record.category === "rental" &&
+    (!isCalendarDate(paidPeriodFrom) ||
+      !isCalendarDate(paidPeriodTo) ||
+      paidPeriodTo < paidPeriodFrom)
+  ) {
+    return null
+  }
+  if (
+    record.category !== "rental" &&
+    (paidPeriodFrom !== null || paidPeriodTo !== null)
+  ) {
+    return null
+  }
+
+  return {
+    id: record.id,
+    source: "manual",
+    category: record.category,
+    expenseDate: record.expenseDate,
+    amount: normalizePlnForStorage(record.amount),
+    paidPeriodFrom,
+    paidPeriodTo,
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
+  }
 }
 
 function parseExpensesPrototypeState(value: unknown): ExpensesPrototypeState {
   if (!value || typeof value !== "object") throw new Error("INVALID_STATE")
-  const state = value as Partial<ExpensesPrototypeState>
+  const state = value as {
+    version?: unknown
+    enabled?: unknown
+    activeCategories?: unknown
+    manualExpenses?: unknown
+  }
+  const legacy = state.version === 1
   if (
-    state.version !== 1 ||
+    (!legacy && state.version !== 2) ||
     typeof state.enabled !== "boolean" ||
     !Array.isArray(state.activeCategories) ||
     !state.activeCategories.every(isExpenseCategory) ||
-    !Array.isArray(state.manualExpenses) ||
-    !state.manualExpenses.every(isManualExpense) ||
-    !Array.isArray(state.rentalPeriods) ||
-    !state.rentalPeriods.every(isRentalPeriod)
+    !Array.isArray(state.manualExpenses)
   ) {
     throw new Error("INVALID_STATE")
   }
 
+  const manualExpenses = state.manualExpenses.map((record) =>
+    normalizeExpenseRecord(record, legacy),
+  )
+  if (manualExpenses.some((record) => record === null)) {
+    throw new Error("INVALID_STATE")
+  }
+
   return {
-    version: 1,
+    version: 2,
     enabled: state.enabled,
     activeCategories: [...new Set(state.activeCategories)],
-    manualExpenses: state.manualExpenses,
-    rentalPeriods: state.rentalPeriods,
+    manualExpenses: manualExpenses as PrototypeExpenseRecord[],
   }
 }
 
@@ -384,19 +335,6 @@ export function writeExpensesPrototype(
 ): void {
   const validated = parseExpensesPrototypeState(state)
   storage.setItem(EXPENSES_PROTOTYPE_STORAGE_KEY, JSON.stringify(validated))
-}
-
-export function hasOverlappingRentalPeriods(
-  periods: PrototypeRentalPeriod[],
-): boolean {
-  const sorted = [...periods].sort((a, b) =>
-    a.validFrom.localeCompare(b.validFrom),
-  )
-  return sorted.some((period, index) => {
-    if (index === 0) return false
-    const previous = sorted[index - 1]
-    return previous.validTo === null || previous.validTo >= period.validFrom
-  })
 }
 
 export function createPrototypeId(prefix: string): string {

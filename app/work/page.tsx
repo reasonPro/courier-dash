@@ -8,8 +8,7 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "../../context/LanguageContext";
 import { calculateWorkedHours } from "../../lib/work-hours";
 import { AUTH_ROUTES, checkAuthRoute } from "../../lib/auth-route-policy";
-import type { ManualExpenseCategory } from "../../docs/shared/types/expenses";
-import { MANUAL_EXPENSE_CATEGORIES } from "../../lib/expenses-prototype";
+import { PROTOTYPE_EXPENSE_ENTRY_CATEGORIES } from "../../lib/expenses-prototype";
 import { expensesTranslations } from "../../lib/expenses-translations";
 import { useExpensesPrototype } from "../../lib/use-expenses-prototype";
 import {
@@ -696,13 +695,10 @@ export default function WorkDashboard() {
     plugins: { legend: { labels: { color: '#a0a0a0', boxWidth: 12 } } }
   };
 
-  const activeManualExpenseCategories =
-    expensesPrototype.state.activeCategories.filter(
-      (category): category is ManualExpenseCategory =>
-        MANUAL_EXPENSE_CATEGORIES.includes(
-          category as ManualExpenseCategory,
-        ),
-    );
+    const activeExpenseCategories =
+      expensesPrototype.state.activeCategories.filter(
+        (category) => PROTOTYPE_EXPENSE_ENTRY_CATEGORIES.includes(category),
+      );
 
   return (
     <div className="min-h-screen bg-[#121212] text-white p-4 md:p-10 relative">
@@ -730,7 +726,7 @@ export default function WorkDashboard() {
             >
               {t.work.addShiftBtn}
             </button>
-            {expensesPrototype.state.enabled && activeManualExpenseCategories.length > 0 && (
+            {expensesPrototype.state.enabled && activeExpenseCategories.length > 0 && (
               <button
                 aria-label={expenseCopy.addExpenseAria}
                 className="shrink-0 rounded-xl border border-red-400/40 bg-gradient-to-r from-red-500 to-rose-600 px-6 py-4 text-lg font-bold text-white shadow-lg shadow-red-950/30 transition hover:brightness-110"
@@ -746,7 +742,7 @@ export default function WorkDashboard() {
         {/* ПЛАВАЮЧА АНІМОВАНА КНОПКА (ДЛЯ ТЕЛЕФОНІВ) */}
         {!isFormOpen && (
           <div className="md:hidden fixed bottom-6 right-6 z-[90] flex flex-col items-center gap-3">
-            {expensesPrototype.state.enabled && activeManualExpenseCategories.length > 0 && (
+            {expensesPrototype.state.enabled && activeExpenseCategories.length > 0 && (
               <button
                 aria-label={expenseCopy.addExpenseAria}
                 className="relative flex h-14 w-14 items-center justify-center rounded-full border border-red-400/50 bg-gradient-to-br from-red-400 to-rose-600 text-white shadow-[0_4px_20px_rgba(244,63,94,0.45)] transition active:scale-95"
@@ -914,7 +910,7 @@ export default function WorkDashboard() {
         translations={t}
       />
       <ExpenseFormModal
-        activeCategories={activeManualExpenseCategories}
+          activeCategories={activeExpenseCategories}
         copy={expenseCopy}
         editing={null}
         key={`work-expense-form-${showExpenseModal}`}
