@@ -12,6 +12,10 @@ import { PROTOTYPE_EXPENSE_ENTRY_CATEGORIES } from "../../lib/expenses-prototype
 import { expensesTranslations } from "../../lib/expenses-translations";
 import { useExpensesPrototype } from "../../lib/use-expenses-prototype";
 import {
+  areTaxesConfigured,
+  calculateMonthlyWorkFinance,
+} from "../../lib/work-finance";
+import {
   PLATFORM_KEYS,
   PLATFORM_LABELS,
   STANDARD_PLATFORM_KEYS,
@@ -47,6 +51,7 @@ import { WorkSummary } from "./components/WorkSummary";
 import { WorkToast } from "./components/WorkToast";
 import { ExpensesMonthSummary } from "./components/ExpensesMonthSummary";
 import { ExpenseFormModal } from "../expenses/components/ExpenseFormModal";
+import { ExpenseSettingsModal } from "../expenses/components/ExpenseSettingsModal";
 import {
   FIELD_TEXTS,
   FIRST_RUN_PLATFORMS,
@@ -120,6 +125,7 @@ export default function WorkDashboard() {
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
+  const [showExpenseSettings, setShowExpenseSettings] = useState(false);
 
   // === НАЛАШТУВАННЯ ВВОДУ ДАНИХ (ПРОБІГ, ГОДИНИ) ===
   const [showFieldSettings, setShowFieldSettings] = useState(false);
@@ -457,12 +463,7 @@ export default function WorkDashboard() {
   };
 
   const hasTaxesConfigured = () => {
-    if (!taxSettings) return false;
-    return TAX_PLATFORM_KEYS.some(p => {
-       const type = taxSettings[`${p}_type` as keyof TaxSettings];
-       const val = Number(taxSettings[`${p}_val` as keyof TaxSettings]) || 0;
-       return type !== 'none' && val > 0;
-    });
+    return areTaxesConfigured(taxSettings);
   };
 
   const handleNettoToggle = () => {
@@ -481,6 +482,7 @@ export default function WorkDashboard() {
     platform === "other" ? t.work.otherPlatform : PLATFORM_LABELS[platform];
   const availableToAdd = PLATFORM_KEYS.filter(p => !activePlatforms.includes(p));
   const filteredShifts = shifts.filter(shift => shift.date.startsWith(selectedMonth));
+  const expensesFinance = calculateMonthlyWorkFinance(filteredShifts, taxSettings);
   const getMetricTooltip = (shift: Shift, metric: keyof PlatformMetrics) =>
     PLATFORM_KEYS
       .filter((platform) => platform !== "other" || isPlatformActive(shift, platform))
@@ -733,7 +735,7 @@ export default function WorkDashboard() {
                 onClick={() => setShowExpenseModal(true)}
                 type="button"
               >
-                <span aria-hidden="true">+</span> {expenseCopy.addExpense}
+                {expenseCopy.addExpenseButton}
               </button>
             )}
           </div>
@@ -856,8 +858,11 @@ export default function WorkDashboard() {
 
         <ExpensesMonthSummary
           copy={expenseCopy}
-          grossIncome={absoluteTotalIncome.toFixed(2)}
+          grossIncome={expensesFinance.grossIncome}
           grossKnown={!isLoading && !shiftLoadFailed}
+          mode={isNetto ? "netto" : "brutto"}
+          netIncome={expensesFinance.netIncome}
+          onSetupCategories={() => setShowExpenseSettings(true)}
           selectedMonth={selectedMonth}
           state={expensesPrototype.state}
         />
@@ -921,6 +926,17 @@ export default function WorkDashboard() {
           showToast(expenseCopy.expenseAdded, "success");
         }}
         open={showExpenseModal}
+      />
+      <ExpenseSettingsModal
+        activeCategories={expensesPrototype.state.activeCategories}
+        copy={expenseCopy}
+        key={`work-expense-settings-${showExpenseSettings}-${expensesPrototype.state.activeCategories.join("-")}`}
+        onClose={() => setShowExpenseSettings(false)}
+        onSave={(categories) => {
+          expensesPrototype.saveCategories(categories);
+          setShowExpenseSettings(false);
+        }}
+        open={showExpenseSettings}
       />
     </div>
   );

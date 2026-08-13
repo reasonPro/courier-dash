@@ -6,15 +6,19 @@ import Link from "next/link"
 import {
   calculateExpensesForRange,
   getMonthRange,
-  subtractPlnValues,
   type ExpensesPrototypeState,
 } from "../../../lib/expenses-prototype"
 import type { ExpensesCopy } from "../../../lib/expenses-translations"
+import type { AfterExpensesMode } from "../../../lib/after-expenses"
+import { AfterExpensesResult } from "../../expenses/components/AfterExpensesResult"
 
 type ExpensesMonthSummaryProps = {
   copy: ExpensesCopy
   grossIncome: string
   grossKnown: boolean
+  mode: AfterExpensesMode
+  netIncome: string | null
+  onSetupCategories: () => void
   selectedMonth: string
   state: ExpensesPrototypeState
 }
@@ -23,22 +27,46 @@ export function ExpensesMonthSummary({
   copy,
   grossIncome,
   grossKnown,
+  mode,
+  netIncome,
+  onSetupCategories,
   selectedMonth,
   state,
 }: ExpensesMonthSummaryProps) {
   const [isExpanded, setIsExpanded] = useState(false)
-
-  if (!state.enabled) return null
 
   const range = getMonthRange(selectedMonth)
   const totals = calculateExpensesForRange(state, range.from, range.to)
   const garageIncomplete = state.activeCategories.some(
     (category) => category === "repair" || category === "maintenance",
   )
-  const canShowResult = grossKnown && !garageIncomplete
-  const afterExpenses = canShowResult
-    ? subtractPlnValues(grossIncome, totals.total)
-    : null
+
+  if (!state.enabled) {
+    return (
+      <section className="relative mb-8 overflow-hidden rounded-2xl border border-red-500/20 bg-gradient-to-br from-red-950/15 to-[#1b1b22]">
+        <div aria-hidden="true" className="select-none px-5 py-5 opacity-35 blur-[3px]">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <span className="block text-sm font-bold text-white">{copy.pageTitle}</span>
+              <span className="mt-1 block text-xs text-gray-500">{copy.totalExpenses}</span>
+            </div>
+            <span className="text-xl font-black text-rose-300">0.00 PLN</span>
+          </div>
+        </div>
+        <button
+          aria-label={copy.setupExpenses}
+          className="absolute inset-0 flex w-full items-center justify-center bg-black/20 px-5 text-center transition hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-inset"
+          onClick={onSetupCategories}
+          type="button"
+        >
+          <span className="rounded-xl border border-cyan-400/30 bg-[#17171d]/95 px-4 py-3 shadow-xl">
+            <span className="block text-sm font-black text-white">{copy.activationTitle}</span>
+            <span className="mt-1 block text-xs font-semibold text-cyan-300">{copy.setupExpenses} →</span>
+          </span>
+        </button>
+      </section>
+    )
+  }
 
   return (
     <section className="mb-8 overflow-hidden rounded-2xl border border-red-500/20 bg-gradient-to-br from-red-950/15 to-[#1b1b22]">
@@ -69,22 +97,17 @@ export function ExpensesMonthSummary({
       {isExpanded && (
         <div className="border-t border-gray-800/80 px-4 py-3.5 sm:px-5" id="work-expenses-details">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="max-w-xl text-xs leading-5 text-gray-400">
-              {copy.afterExpensesDescription}
-            </p>
-            <div className="shrink-0 rounded-xl border border-gray-800 bg-black/15 px-4 py-2.5 text-left sm:text-right">
-              <p className="text-[10px] uppercase text-gray-500">{copy.afterExpensesTitle}</p>
-              <p className="mt-1 font-black text-emerald-400">
-                {afterExpenses === null ? "—" : `${afterExpenses} PLN`}
-              </p>
-            </div>
+            <AfterExpensesResult
+              compact
+              copy={copy}
+              expensesComplete={!garageIncomplete}
+              expensesTotal={totals.total}
+              grossIncome={grossIncome}
+              incomeKnown={grossKnown}
+              mode={mode}
+              netIncome={netIncome}
+            />
           </div>
-          {!grossKnown && (
-            <p className="mt-3 text-xs text-amber-300">{copy.incompleteIncome}</p>
-          )}
-          {garageIncomplete && (
-            <p className="mt-3 text-xs text-amber-300">{copy.incompleteResult}</p>
-          )}
           <Link
             className="mt-3 inline-flex text-sm font-bold text-cyan-400 transition hover:text-cyan-300"
             href="/expenses"

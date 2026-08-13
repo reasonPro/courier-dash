@@ -19,6 +19,7 @@ export type ExpensesCopy = {
   updateSettings: string
   categories: CategoryCopy
   addExpense: string
+  addExpenseButton: string
   addExpenseAria: string
   addShiftAria: string
   settings: string
@@ -61,8 +62,13 @@ export type ExpensesCopy = {
   deleteTitle: string
   deleteQuestion: string
   invalidRentalRange: string
-  afterExpensesTitle: string
-  afterExpensesDescription: string
+  brutto: string
+  netto: string
+  afterExpensesBruttoTitle: string
+  afterExpensesBruttoDescription: string
+  afterExpensesNettoTitle: string
+  afterExpensesNettoDescription: string
+  nettoUnavailable: string
   openExpenses: string
   incompleteResult: string
   incompleteIncome: string
@@ -74,7 +80,7 @@ const pl: ExpensesCopy = {
   backToWork: "Praca",
   prototypeBadge: "Prototyp lokalny",
   localOnly: "Dane są zapisane tylko w tej przeglądarce.",
-  activationTitle: "Zobacz realny zarobek po kosztach pracy",
+  activationTitle: "Śledź realny zarobek po kosztach pracy",
   activationDescription: "Włącz tylko te kategorie, które chcesz prowadzić. Ustawienia możesz później zmienić.",
   setupExpenses: "Skonfiguruj wydatki",
   settingsTitle: "Kategorie wydatków",
@@ -90,6 +96,7 @@ const pl: ExpensesCopy = {
     maintenance: { name: "Serwis", description: "Planowy serwis i obsługa pojazdu" },
   },
   addExpense: "Dodaj wydatek",
+  addExpenseButton: "− Dodaj wydatek",
   addExpenseAria: "Dodaj wydatek",
   addShiftAria: "Dodaj zmianę roboczą",
   settings: "Kategorie wydatków",
@@ -132,8 +139,13 @@ const pl: ExpensesCopy = {
   deleteTitle: "Usunąć wydatek?",
   deleteQuestion: "Usunąć {category} w kwocie {amount} PLN?",
   invalidRentalRange: "Data zakończenia nie może być wcześniejsza od rozpoczęcia.",
-  afterExpensesTitle: "Dochód po wydatkach",
-  afterExpensesDescription: "Przychód z napiwkami i bonusami minus zapisane wydatki. To nie jest netto.",
+  brutto: "BRUTTO",
+  netto: "NETTO",
+  afterExpensesBruttoTitle: "Dochód po wydatkach — BRUTTO",
+  afterExpensesBruttoDescription: "Cały zapisany przychód minus zapisane wydatki.",
+  afterExpensesNettoTitle: "Dochód po wydatkach — NETTO",
+  afterExpensesNettoDescription: "Cały zapisany przychód minus podatki i zapisane wydatki.",
+  nettoUnavailable: "Skonfiguruj podatki na stronie Praca, aby zobaczyć wynik NETTO.",
   openExpenses: "Przejdź do wydatków",
   incompleteResult: "Niektóre wydatki nie są jeszcze uwzględnione — część danych jest niedostępna.",
   incompleteIncome: "Nie można teraz wiarygodnie obliczyć dochodu po wydatkach.",
@@ -145,7 +157,7 @@ const uk: ExpensesCopy = {
   backToWork: "Робота",
   prototypeBadge: "Локальний прототип",
   localOnly: "Дані зберігаються лише в цьому браузері.",
-  activationTitle: "Побачте реальний заробіток після робочих витрат",
+  activationTitle: "Відстежуйте реальний заробіток після робочих витрат",
   activationDescription: "Увімкніть лише потрібні категорії. Набір можна змінити пізніше.",
   setupExpenses: "Налаштувати витрати",
   settingsTitle: "Категорії витрат",
@@ -161,6 +173,7 @@ const uk: ExpensesCopy = {
     maintenance: { name: "Сервіс транспорту", description: "Планове обслуговування та сервіс" },
   },
   addExpense: "Додати витрату",
+  addExpenseButton: "− Додати витрату",
   addExpenseAria: "Додати витрату",
   addShiftAria: "Додати робочу зміну",
   settings: "Категорії витрат",
@@ -203,8 +216,13 @@ const uk: ExpensesCopy = {
   deleteTitle: "Видалити витрату?",
   deleteQuestion: "Видалити {category} на суму {amount} PLN?",
   invalidRentalRange: "Дата завершення не може бути раніше дати початку.",
-  afterExpensesTitle: "Дохід після витрат",
-  afterExpensesDescription: "Увесь дохід із чайовими й бонусами мінус записані витрати. Це не Netto.",
+  brutto: "BRUTTO",
+  netto: "NETTO",
+  afterExpensesBruttoTitle: "Дохід після витрат — BRUTTO",
+  afterExpensesBruttoDescription: "Увесь записаний дохід мінус записані витрати.",
+  afterExpensesNettoTitle: "Дохід після витрат — NETTO",
+  afterExpensesNettoDescription: "Увесь записаний дохід мінус податки та записані витрати.",
+  nettoUnavailable: "Налаштуйте податки на сторінці «Робота», щоб побачити результат NETTO.",
   openExpenses: "Перейти до витрат",
   incompleteResult: "Деякі витрати ще не враховані — частина даних недоступна.",
   incompleteIncome: "Зараз неможливо надійно розрахувати дохід після витрат.",
@@ -216,7 +234,7 @@ const en: ExpensesCopy = {
   backToWork: "Work",
   prototypeBadge: "Local prototype",
   localOnly: "Data is stored only in this browser.",
-  activationTitle: "See what you really earn after work expenses",
+  activationTitle: "Track your real earnings after work expenses",
   activationDescription: "Enable only the categories you want to track. You can change them later.",
   setupExpenses: "Set up expenses",
   settingsTitle: "Expense categories",
@@ -232,6 +250,7 @@ const en: ExpensesCopy = {
     maintenance: { name: "Vehicle service", description: "Routine service and maintenance" },
   },
   addExpense: "Add expense",
+  addExpenseButton: "− Add expense",
   addExpenseAria: "Add an expense",
   addShiftAria: "Add a work shift",
   settings: "Expense categories",
@@ -274,8 +293,13 @@ const en: ExpensesCopy = {
   deleteTitle: "Delete expense?",
   deleteQuestion: "Delete {category} for {amount} PLN?",
   invalidRentalRange: "The end date cannot be before the start date.",
-  afterExpensesTitle: "Income after expenses",
-  afterExpensesDescription: "All income including tips and bonuses, minus recorded expenses. This is not net income.",
+  brutto: "GROSS",
+  netto: "NET",
+  afterExpensesBruttoTitle: "Income after expenses — GROSS",
+  afterExpensesBruttoDescription: "All recorded income minus recorded expenses.",
+  afterExpensesNettoTitle: "Income after expenses — NET",
+  afterExpensesNettoDescription: "All recorded income minus taxes and recorded expenses.",
+  nettoUnavailable: "Set up taxes on the Work page to see the NET result.",
   openExpenses: "Open expenses",
   incompleteResult: "Some expenses are not included yet — some data is unavailable.",
   incompleteIncome: "Income after expenses cannot be calculated reliably right now.",
@@ -287,7 +311,7 @@ const ru: ExpensesCopy = {
   backToWork: "Работа",
   prototypeBadge: "Локальный прототип",
   localOnly: "Данные сохраняются только в этом браузере.",
-  activationTitle: "Узнайте реальный доход после рабочих расходов",
+  activationTitle: "Отслеживайте реальный заработок после рабочих расходов",
   activationDescription: "Включите только нужные категории. Их можно изменить позже.",
   setupExpenses: "Настроить расходы",
   settingsTitle: "Категории расходов",
@@ -303,6 +327,7 @@ const ru: ExpensesCopy = {
     maintenance: { name: "Сервис транспорта", description: "Плановый сервис и обслуживание" },
   },
   addExpense: "Добавить расход",
+  addExpenseButton: "− Добавить расход",
   addExpenseAria: "Добавить расход",
   addShiftAria: "Добавить рабочую смену",
   settings: "Категории расходов",
@@ -345,8 +370,13 @@ const ru: ExpensesCopy = {
   deleteTitle: "Удалить расход?",
   deleteQuestion: "Удалить {category} на сумму {amount} PLN?",
   invalidRentalRange: "Дата завершения не может быть раньше даты начала.",
-  afterExpensesTitle: "Доход после расходов",
-  afterExpensesDescription: "Весь доход с чаевыми и бонусами минус записанные расходы. Это не Netto.",
+  brutto: "БРУТТО",
+  netto: "НЕТТО",
+  afterExpensesBruttoTitle: "Доход после расходов — БРУТТО",
+  afterExpensesBruttoDescription: "Весь записанный доход минус записанные расходы.",
+  afterExpensesNettoTitle: "Доход после расходов — НЕТТО",
+  afterExpensesNettoDescription: "Весь записанный доход минус налоги и записанные расходы.",
+  nettoUnavailable: "Настройте налоги на странице «Работа», чтобы увидеть результат НЕТТО.",
   openExpenses: "Перейти к расходам",
   incompleteResult: "Некоторые расходы пока не учтены — часть данных недоступна.",
   incompleteIncome: "Сейчас невозможно надёжно рассчитать доход после расходов.",

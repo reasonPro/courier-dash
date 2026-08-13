@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react"
 
 import { useLanguage } from "../../context/LanguageContext"
 import type { ExpenseCategory } from "../../docs/shared/types/expenses"
+import type { Tables } from "../../lib/database.types"
+import type { AfterExpensesMode } from "../../lib/after-expenses"
 import {
   PROTOTYPE_EXPENSE_ENTRY_CATEGORIES,
   calculateExpensesForRange,
@@ -14,7 +16,10 @@ import {
   type PrototypeExpenseRecord,
 } from "../../lib/expenses-prototype"
 import { expensesTranslations } from "../../lib/expenses-translations"
+import { supabase } from "../../lib/supabase"
 import { useExpensesPrototype } from "../../lib/use-expenses-prototype"
+import { calculateMonthlyWorkFinance } from "../../lib/work-finance"
+import { AfterExpensesResult } from "./components/AfterExpensesResult"
 import {
   EMPTY_EXPENSE_FILTERS,
   ExpenseFiltersModal,
@@ -42,6 +47,20 @@ const LANGUAGE_LOCALES = {
   ru: "ru-RU",
 } as const
 
+type ExpensesFinanceState = {
+  error: boolean
+  grossIncome: string
+  isLoading: boolean
+  netIncome: string | null
+}
+
+const INITIAL_FINANCE_STATE: ExpensesFinanceState = {
+  error: false,
+  grossIncome: "0.00",
+  isLoading: true,
+  netIncome: null,
+}
+
 export default function ExpensesPage() {
   const { lang, setLanguage } = useLanguage()
   const copy = expensesTranslations[lang]
@@ -56,6 +75,10 @@ export default function ExpensesPage() {
   const [deleting, setDeleting] = useState<PrototypeExpenseRecord | null>(null)
   const [filters, setFilters] = useState<ExpenseFilters>(EMPTY_EXPENSE_FILTERS)
   const [toast, setToast] = useState<string | null>(null)
+  const [financeMode, setFinanceMode] = useState<AfterExpensesMode>("brutto")
+  const [finance, setFinance] = useState<ExpensesFinanceState>(
+    INITIAL_FINANCE_STATE,
+  )
 
   useEffect(() => {
     if (!toast) return
@@ -80,6 +103,73 @@ export default function ExpensesPage() {
   const hasGarageGap = prototype.state.activeCategories.some(
     (category) => category === "repair" || category === "maintenance",
   )
+
+  useEffect(() => {
+    let active = true
+
+    async function loadMonthlyFinance() {
+      setFinance((current) => ({ ...current, error: false, isLoading: true }))
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser()
+
+      if (!active) return
+      if (authError || !user) {
+        setFinance({ ...INITIAL_FINANCE_STATE, error: true, isLoading: false })
+        return
+      }
+
+      const range = getMonthRange(selectedMonth)
+      const [shiftsResult, taxResult] = await Promise.all([
+        supabase
+          .from("work_shifts")
+          .select("*")
+          .eq("user_id", user.id)
+          .gte("date", range.from)
+          .lte("date", range.to),
+        supabase
+          .from("tax_settings")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle(),
+      ])
+
+      if (!active) return
+      if (shiftsResult.error || taxResult.error) {
+        setFinance({ ...INITIAL_FINANCE_STATE, error: true, isLoading: false })
+        return
+      }
+
+      const taxRow = taxResult.data
+      const monthlyFinance = calculateMonthlyWorkFinance(
+        (shiftsResult.data ?? []) as Tables<"work_shifts">[],
+        taxRow
+          ? {
+              bolt_type: taxRow.bolt_type ?? "none",
+              bolt_val: taxRow.bolt_val ?? 0,
+              glovo_type: taxRow.glovo_type ?? "none",
+              glovo_val: taxRow.glovo_val ?? 0,
+              uber_type: taxRow.uber_type ?? "none",
+              uber_val: taxRow.uber_val ?? 0,
+              wolt_type: taxRow.wolt_type ?? "none",
+              wolt_val: taxRow.wolt_val ?? 0,
+            }
+          : null,
+      )
+      setFinance({
+        error: false,
+        grossIncome: monthlyFinance.grossIncome,
+        isLoading: false,
+        netIncome: monthlyFinance.netIncome,
+      })
+    }
+
+    loadMonthlyFinance()
+    return () => {
+      active = false
+    }
+  }, [selectedMonth])
 
   const listItems = useMemo(() => {
     return getExpensesForRange(
@@ -167,7 +257,7 @@ export default function ExpensesPage() {
                 }}
                 type="button"
               >
-                − {copy.addExpense}
+                {copy.addExpenseButton}
               </button>
             )}
           </div>
@@ -257,6 +347,20 @@ export default function ExpensesPage() {
                   </div>
                 ))}
               </div>
+            </section>
+
+            <section className="mb-5">
+              <AfterExpensesResult
+                copy={copy}
+                expensesComplete={!hasGarageGap}
+                expensesTotal={monthTotals.total}
+                grossIncome={finance.grossIncome}
+                incomeKnown={!finance.isLoading && !finance.error}
+                mode={financeMode}
+                netIncome={finance.netIncome}
+                onModeChange={setFinanceMode}
+                showModeToggle
+              />
             </section>
 
             <section>
