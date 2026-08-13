@@ -17,7 +17,7 @@ import {
 } from "../../lib/expenses-prototype"
 import { expensesTranslations } from "../../lib/expenses-translations"
 import { supabase } from "../../lib/supabase"
-import { useExpensesPrototype } from "../../lib/use-expenses-prototype"
+import { useExpenses } from "../../lib/use-expenses"
 import { calculateMonthlyWorkFinance } from "../../lib/work-finance"
 import { AfterExpensesResult } from "./components/AfterExpensesResult"
 import {
@@ -64,7 +64,7 @@ const INITIAL_FINANCE_STATE: ExpensesFinanceState = {
 export default function ExpensesPage() {
   const { lang, setLanguage } = useLanguage()
   const copy = expensesTranslations[lang]
-  const prototype = useExpensesPrototype()
+  const prototype = useExpenses()
   const [selectedMonth, setSelectedMonth] = useState(
     getLocalCalendarDate().slice(0, 7),
   )
@@ -184,16 +184,20 @@ export default function ExpensesPage() {
   const dateLocale = LANGUAGE_LOCALES[lang]
   const formatDate = (value: string) =>
     new Date(`${value}T00:00:00`).toLocaleDateString(dateLocale)
-  const saveExpense = (value: ExpenseFormValue) => {
-    if (editing) {
-      prototype.updateManualExpense(editing.id, value)
-      setToast(copy.expenseUpdated)
-    } else {
-      prototype.addManualExpense(value)
-      setToast(copy.expenseAdded)
+  const saveExpense = async (value: ExpenseFormValue) => {
+    try {
+      if (editing) {
+        await prototype.updateManualExpense(editing.id, value)
+        setToast(copy.expenseUpdated)
+      } else {
+        await prototype.addManualExpense(value)
+        setToast(copy.expenseAdded)
+      }
+      setEditing(null)
+      setFormOpen(false)
+    } catch {
+      // The shared data hook exposes the localized error state on the page.
     }
-    setEditing(null)
-    setFormOpen(false)
   }
 
   if (prototype.isLoading) {
@@ -445,9 +449,13 @@ export default function ExpensesPage() {
         copy={copy}
         key={`settings-${settingsOpen}-${prototype.state.activeCategories.join("-")}`}
         onClose={() => setSettingsOpen(false)}
-        onSave={(categories) => {
-          prototype.saveCategories(categories)
-          setSettingsOpen(false)
+        onSave={async (categories) => {
+          try {
+            await prototype.saveCategories(categories)
+            setSettingsOpen(false)
+          } catch {
+            // Keep the modal open so the user can retry.
+          }
         }}
         open={settingsOpen}
       />
@@ -502,12 +510,16 @@ export default function ExpensesPage() {
             </button>
             <button
               className="flex-1 rounded-xl bg-red-500 px-4 py-3 font-bold text-white"
-              onClick={() => {
-                prototype.deleteManualExpense(deleting.id)
-                setDeleting(null)
-                setFormOpen(false)
-                setEditing(null)
-                setToast(copy.expenseDeleted)
+              onClick={async () => {
+                try {
+                  await prototype.deleteManualExpense(deleting.id)
+                  setDeleting(null)
+                  setFormOpen(false)
+                  setEditing(null)
+                  setToast(copy.expenseDeleted)
+                } catch {
+                  // Keep confirmation visible when the Staging write fails.
+                }
               }}
               type="button"
             >

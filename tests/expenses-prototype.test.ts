@@ -11,6 +11,7 @@ import {
   getExpensesForRange,
   getMonthRange,
   isCalendarDate,
+  isPositivePlnInput,
   isValidPlnInput,
   plnToMinorUnits,
   readExpensesPrototype,
@@ -39,6 +40,8 @@ function expense(
 describe("Expenses local prototype data layer", () => {
   it("validates exact PLN strings without a JavaScript safe-integer cap", () => {
     expect(isValidPlnInput("9007199254740993.00")).toBe(true)
+    expect(isPositivePlnInput("0.00")).toBe(false)
+    expect(isPositivePlnInput("0.01")).toBe(true)
     expect(isValidPlnInput("19.999")).toBe(false)
     expect(isValidPlnInput("-0.01")).toBe(false)
     expect(

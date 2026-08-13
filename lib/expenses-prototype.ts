@@ -91,6 +91,16 @@ export function isValidPlnInput(value: string): boolean {
   return /^\d+(?:\.\d{1,2})?$/.test(normalizePlnInput(value))
 }
 
+export function isPositivePlnInput(value: string): boolean {
+  const normalized = normalizePlnInput(value)
+  if (!isValidPlnInput(normalized)) return false
+  const [whole, fraction = ""] = normalized.split(".")
+  return (
+    BigInt(whole) * PLN_MINOR_UNITS + BigInt(fraction.padEnd(2, "0")) >
+    BIGINT_ZERO
+  )
+}
+
 export function plnToMinorUnits(value: string): bigint {
   const normalized = normalizePlnInput(value)
   if (!isValidPlnInput(normalized)) throw new Error("INVALID_PLN")

@@ -10,7 +10,7 @@ import { calculateWorkedHours } from "../../lib/work-hours";
 import { AUTH_ROUTES, checkAuthRoute } from "../../lib/auth-route-policy";
 import { PROTOTYPE_EXPENSE_ENTRY_CATEGORIES } from "../../lib/expenses-prototype";
 import { expensesTranslations } from "../../lib/expenses-translations";
-import { useExpensesPrototype } from "../../lib/use-expenses-prototype";
+import { useExpenses } from "../../lib/use-expenses";
 import {
   areTaxesConfigured,
   calculateMonthlyWorkFinance,
@@ -69,7 +69,7 @@ export default function WorkDashboard() {
   const router = useRouter();
   const { lang, setLanguage, t } = useLanguage();
   const expenseCopy = expensesTranslations[lang];
-  const expensesPrototype = useExpensesPrototype();
+  const expensesPrototype = useExpenses();
   const [userId, setUserId] = useState<string | null>(null);
   
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
@@ -920,10 +920,14 @@ export default function WorkDashboard() {
         editing={null}
         key={`work-expense-form-${showExpenseModal}`}
         onClose={() => setShowExpenseModal(false)}
-        onSave={(value) => {
-          expensesPrototype.addManualExpense(value);
-          setShowExpenseModal(false);
-          showToast(expenseCopy.expenseAdded, "success");
+        onSave={async (value) => {
+          try {
+            await expensesPrototype.addManualExpense(value);
+            setShowExpenseModal(false);
+            showToast(expenseCopy.expenseAdded, "success");
+          } catch {
+            showToast(expenseCopy.readError, "error");
+          }
         }}
         open={showExpenseModal}
       />
@@ -932,9 +936,13 @@ export default function WorkDashboard() {
         copy={expenseCopy}
         key={`work-expense-settings-${showExpenseSettings}-${expensesPrototype.state.activeCategories.join("-")}`}
         onClose={() => setShowExpenseSettings(false)}
-        onSave={(categories) => {
-          expensesPrototype.saveCategories(categories);
-          setShowExpenseSettings(false);
+        onSave={async (categories) => {
+          try {
+            await expensesPrototype.saveCategories(categories);
+            setShowExpenseSettings(false);
+          } catch {
+            showToast(expenseCopy.readError, "error");
+          }
         }}
         open={showExpenseSettings}
       />

@@ -7,7 +7,7 @@ import {
   PROTOTYPE_EXPENSE_ENTRY_CATEGORIES,
   getLocalCalendarDate,
   isCalendarDate,
-  isValidPlnInput,
+  isPositivePlnInput,
   type PrototypeExpenseRecord,
 } from "../../../lib/expenses-prototype"
 import type { ExpensesCopy } from "../../../lib/expenses-translations"
@@ -69,7 +69,7 @@ export function ExpenseFormModal({
       setError(copy.dateInvalid)
       return
     }
-    if (!isValidPlnInput(amount)) {
+    if (!isPositivePlnInput(amount)) {
       setError(copy.amountInvalid)
       return
     }
