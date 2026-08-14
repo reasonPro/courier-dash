@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      expense_settings: {
+        Row: {
+          active_categories: string[]
+          created_at: string
+          enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active_categories?: string[]
+          created_at?: string
+          enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          active_categories?: string[]
+          created_at?: string
+          enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          currency: string
+          expense_date: string
+          id: string
+          paid_period_from: string | null
+          paid_period_to: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          currency?: string
+          expense_date: string
+          id?: string
+          paid_period_from?: string | null
+          paid_period_to?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          currency?: string
+          expense_date?: string
+          id?: string
+          paid_period_from?: string | null
+          paid_period_to?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       garage_history: {
         Row: {
           cost: number | null

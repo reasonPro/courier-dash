@@ -17,7 +17,7 @@ Only these evidence statuses are used by this contract:
 - CourierDash Web is the sole authoritative repository for Supabase migrations and the canonical `docs/shared` contract.
 - A generated database type file is a client artifact, not a migration and not proof that Staging matches.
 - A local schema snapshot is evidence only. It must record capture context and must not contain project references, credentials, database URLs, user data, or concrete ownership defaults in exported documentation.
-- `schemaRevision` and `latestMigration` stay `null` until an unambiguous Staging target is checked. Snapshot `0.2.0-draft.5` records historical revision `202608020002`; Garage contract `0.3.0-draft` records the latest verified Staging revision `202608090001`.
+- `schemaRevision` records the latest verified target revision and `latestMigration` records the latest canonical local migration. Staging and Production are verified through Expenses revision `202608140001`.
 - Production metadata is not used to fill Staging gaps.
 
 ## Supabase governance
@@ -30,7 +30,7 @@ This section is the canonical governance rule for shared Supabase changes across
 - Only Web may plan, create, review, and store Supabase migrations. Parallel or independent migration creation in Web and Mobile is forbidden.
 - Mobile must not create or apply Supabase migrations. It may describe a need or propose a schema change, but planning and migration authoring take place in Web.
 - Web maintains the canonical `docs/shared`. Mobile consumes a versioned snapshot and must not edit it into an independent contract version.
-- Mobile must review the planned change against its code and report compatibility before a migration is created or applied.
+- Mobile normally reviews shared changes before rollout. For the explicitly owner-approved Expenses Web rollout, Mobile is paused and will catch up to the canonical Web contract later; it does not author or apply migrations and is not a gate for this Web rollout.
 
 ### Approval and rollout gate
 
@@ -53,15 +53,17 @@ Every future shared change follows this route:
 10. Obtain separate explicit project-owner approval for Production application.
 11. Apply the change to Production.
 
+Expenses V1 is an explicit owner-approved rollout exception to the Mobile timing gates in steps 3, 8, and 9: Web remains the sole canonical migration/contract owner, Production still requires the separate approval in step 10, and paused Mobile catches up later without creating a parallel schema.
+
 If Staging cannot be verified and identified unambiguously, no remote Supabase change may be applied. The prerequisite read-only audit is complete for the named Staging environment; this does not authorize Production application.
 
 ## Verified Staging public schema
 
-The sanitized snapshot at `supabase/schema.snapshot.json` was captured from the unambiguously identified Staging environment after migration `202608020002`. It remains a historical snapshot and contains five RLS-enabled public tables: `profiles`, `work_shifts`, `tax_settings`, `garage_rules`, and `garage_history`; 67 public columns; no public views or enums; one trigger-only security-definer helper; and one Auth-user trigger.
+The sanitized snapshot at `supabase/schema.snapshot.json` remains historical evidence from revision `202608020002`. Later read-only verification confirmed Garage revision `202608090001` and Expenses revision `202608130001` on the same unambiguously identified Staging target. Staging now includes the five existing application tables plus RLS-enabled `expense_settings` and `expenses`; the checked-in snapshot file is not silently presented as that newer schema.
 
 The helper `public.handle_new_user_profile()` is not an application RPC: `PUBLIC`, `anon`, `authenticated`, and `service_role` have no `EXECUTE` privilege. At revision `202608020002`, generated types therefore exposed no callable public Functions. After the separately approved Garage migration was applied and verified on Staging, `lib/database.types.ts` was regenerated at revision `202608090001` and now exposes `public.complete_garage_routine`. Nullable database fields remain nullable in clients unless a verified migration changes column-level nullability metadata.
 
-Authenticated Garage RPC verification at revision `202608090001` completed with `PASS`; ownership, validation, atomic rollback, stale-conflict behavior, grants, and cleanup of synthetic Staging rows were verified. Production was not accessed or changed.
+Authenticated Garage RPC verification at revision `202608090001` completed with `PASS`; ownership, validation, atomic rollback, stale-conflict behavior, grants, and cleanup of synthetic Staging rows were verified. The same canonical Garage migration is now present in Production history and schema; Web RPC adoption remains deferred.
 
 ## Migration discipline
 
@@ -72,9 +74,11 @@ The repository migration directory and Staging history contain the same ordered 
 - `202607240001_add_cash_tips_per_platform.sql`;
 - `202608020001_harden_public_api_privileges.sql`;
 - `202608020002_reconcile_ownership_profiles_rls.sql`;
-- `202608090001_expand_garage_contract.sql`.
+- `202608090001_expand_garage_contract.sql`;
+- `202608130001_create_expenses_schema.sql`;
+- `202608140001_limit_expenses_amount.sql`.
 
-The reviewed historical baseline restores the five-table base schema; the existing additive migrations remain ordered; the two August 2 migrations reconcile privileges, required work ownership, profile lifecycle, and RLS; and the August 9 migration adds the Garage normalized-write guards, relationship, trigger, and RPC. Remote Staging migration history is verified through `202608090001`. A clean executable bootstrap in an isolated PostgreSQL runtime remains a required pre-Production CI gate because Docker-compatible runtime was not available locally; remote Staging was not reset or used as a bootstrap target.
+The reviewed historical baseline restores the five-table base schema; the two August 2 migrations reconcile privileges, required work ownership, profile lifecycle, and RLS; the August 9 migration adds Garage guards and RPC; and the August 13 migration adds owner-scoped Expenses settings/rows, constraints, indexes, triggers, RLS, policies, and grants. Staging and Production migration histories are verified through `202608140001`. The August 14 migration adds only the validated `expenses.amount <= 999999.99` check and changed no row.
 
 Migration rollout must follow expand, migrate clients, verify, deprecate, remove within the governance and approval route above. Applying a migration remotely always requires separate explicit approval and is outside this contract-generation task.
 
@@ -96,13 +100,21 @@ Profile rows remain visible to `anon` and `authenticated` under RLS because nick
 - Cash tips use corresponding `cash_tips_*` fields.
 - Currency is reported as PLN and is supported by Web labels. Garage `0.3.0-draft` is explicitly PLN-only and adds no currency column.
 - Garage costs are non-negative numeric values with at most two decimal places; greater precision is rejected. Garage mileage is an integer in `0…2147483647`.
-- Expenses and Vehicle Rental have a separate owner-approved contract rule: non-negative PLN inputs with at most two decimal places, decimal arithmetic without intermediate rental rounding, and final `ROUND_HALF_UP` to `0.01 PLN`. This is a contract rule only; no Expenses/rental schema or runtime exists. Precision and rounding remain unresolved for Statistics and Reports.
+- Expenses accepts `0.01…999999.99` PLN with at most two decimals and uses exact client string/minor-unit arithmetic. Rental is an ordinary payment row counted wholly in the payment month; no weekly proration exists. Precision and rounding remain unresolved for Statistics and Reports.
 
 ## Garage Stage 1 migration discipline
 
-`202608090001_expand_garage_contract.sql` was applied only to the approved Staging target and is the latest verified Staging migration. It has not been applied to Production or a local database. It adds lifecycle-safe constraints, a `rule_id` FK with `ON DELETE SET NULL`, an INSERT invariant trigger, and the atomic routine RPC; authenticated Staging RPC verification completed with `PASS` and zero synthetic-data residue.
+`202608090001_expand_garage_contract.sql` is applied to Staging and Production. It adds lifecycle-safe constraints, a `rule_id` FK with `ON DELETE SET NULL`, an INSERT invariant trigger, and the atomic routine RPC; authenticated Staging RPC verification completed with `PASS` and zero synthetic-data residue.
 
-The migration does not validate `NOT VALID` constraints, backfill legacy rows, or harden the current direct routine INSERT policy. Canonical database types were regenerated separately from Staging revision `202608090001`. Web RPC adoption, Mobile implementation, final hardening, and Production rollout remain separately gated.
+The migration does not validate `NOT VALID` constraints, backfill legacy rows, or harden the current direct routine INSERT policy. Canonical database types were regenerated from the verified Production public schema. Web RPC adoption, Mobile implementation, and final hardening remain separately gated.
+
+## Expenses V1 migration discipline
+
+`202608130001_create_expenses_schema.sql` is immutable because it is applied and verified on Staging and Production. It creates `expense_settings` and `expenses`, owner-only RLS policies, required constraints/indexes, and timestamp triggers without changing Garage or Work data.
+
+The amount maximum is a separate forward-only migration, `202608140001_limit_expenses_amount.sql`. It adds and validates only `expenses_amount_max_check`; validation fails rather than rewriting an incompatible row. It passed Staging before the same canonical file was applied and verified on Production with explicit owner approval.
+
+`lib/database.types.ts` was regenerated from the verified Production `public` schema. Existing Work, Tax, Profile, Garage, and Expenses surfaces remain present; the platform-only `graphql_public` schema is intentionally outside this canonical client artifact. Mobile remains paused and consumes a later versioned Web snapshot.
 
 ## Compatibility classes
 

@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto"
+import { execFileSync } from "node:child_process"
 import { readFileSync, readdirSync } from "node:fs"
 import { resolve } from "node:path"
 
@@ -46,7 +47,10 @@ describe("Garage shared contract 0.3 draft", () => {
         expect(artifact).toHaveProperty(property)
       })
 
-      const artifactBytes = readFileSync(resolve(process.cwd(), artifact.path))
+      const artifactBytes = execFileSync("git", ["show", `:${artifact.path}`], {
+        cwd: process.cwd(),
+        encoding: "buffer",
+      })
       const actualHash = createHash("sha256")
         .update(artifactBytes)
         .digest("hex")
@@ -57,7 +61,7 @@ describe("Garage shared contract 0.3 draft", () => {
   it("registers Garage in the canonical manifest", () => {
     expect(GARAGE_CONTRACT_VERSION).toBe("0.3.0-draft")
     expect(manifest.contractVersion).toBe(GARAGE_CONTRACT_VERSION)
-    expect(manifest.snapshotVersion).toBe("0.3.0-draft.1")
+    expect(manifest.snapshotVersion).toBe("0.3.0-draft.2")
     expect(manifest.sharedFlows.some((flow) => flow.id === "garage")).toBe(true)
   })
 

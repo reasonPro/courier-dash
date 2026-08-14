@@ -1,18 +1,17 @@
 export const EXPENSES_CONTRACT_VERSION = "0.3.0-draft" as const
 
 export const EXPENSES_CONTRACT_STATUS =
-  "owner_approved_contract_draft" as const
+  "owner_approved_web_implemented_production_schema_verified" as const
 
 export const EXPENSES_CURRENCY = "PLN" as const
-
 export const EXPENSE_MONEY_DECIMAL_PLACES = 2 as const
-export const EXPENSE_FINAL_ROUNDING_INCREMENT = "0.01" as const
-export const EXPENSE_FINAL_ROUNDING_MODE = "ROUND_HALF_UP" as const
+export const EXPENSE_MIN_AMOUNT = "0.01" as const
+export const EXPENSE_MAX_AMOUNT = "999999.99" as const
 
-/** Canonical base-10 PLN text; clients validate non-negative scale <= 2. */
+/** Canonical base-10 PLN text. Clients must not use binary floating point. */
 export type ExpensePlnDecimal = string
 
-/** Exact device-local calendar date in YYYY-MM-DD form; never UTC-converted. */
+/** Device-local calendar date in YYYY-MM-DD form; never UTC-converted. */
 export type ExpenseCalendarDate = string
 
 export const EXPENSE_CATEGORIES = [
@@ -25,27 +24,39 @@ export const EXPENSE_CATEGORIES = [
 
 export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number]
 
-export const MANUAL_EXPENSE_CATEGORIES = [
-  "fuel",
-  "maintenance",
-  "repair",
-  "food_on_shift",
-] as const
+/** All Expenses V1 categories are entered as user-owned expense rows. */
+export const MANUAL_EXPENSE_CATEGORIES = EXPENSE_CATEGORIES
+export type ManualExpenseCategory = ExpenseCategory
 
-export type ManualExpenseCategory =
-  (typeof MANUAL_EXPENSE_CATEGORIES)[number]
+export interface ExpenseSettingsRow {
+  userId: string
+  enabled: boolean
+  activeCategories: ExpenseCategory[]
+  createdAt: string
+  updatedAt: string
+}
 
-export const EXPENSE_SOURCES = ["manual", "rental_period", "garage"] as const
+export interface ExpenseInput {
+  category: ExpenseCategory
+  expenseDate: ExpenseCalendarDate
+  amount: ExpensePlnDecimal
+  /** Required only for rental and inclusive at both ends. */
+  paidPeriodFrom: ExpenseCalendarDate | null
+  /** Required only for rental and inclusive at both ends. */
+  paidPeriodTo: ExpenseCalendarDate | null
+}
 
-export type ExpenseSource = (typeof EXPENSE_SOURCES)[number]
+export type CreateExpenseInput = ExpenseInput
+export type UpdateExpenseInput = ExpenseInput
 
-export const EXPENSE_CATEGORY_SOURCES = {
-  fuel: ["manual"],
-  rental: ["rental_period"],
-  maintenance: ["manual", "garage"],
-  repair: ["manual", "garage"],
-  food_on_shift: ["manual"],
-} as const satisfies Record<ExpenseCategory, readonly ExpenseSource[]>
+export interface ExpenseRow extends ExpenseInput {
+  id: string
+  userId: string
+  currency: typeof EXPENSES_CURRENCY
+  /** Technical timestamp; never used for financial month attribution. */
+  createdAt: string
+  updatedAt: string
+}
 
 export const EXPENSE_CALCULATION_MODES = [
   "gross",
@@ -83,44 +94,6 @@ export const EXPENSE_CALCULATION_COMPONENTS = [
 
 export type ExpenseCalculationComponent =
   (typeof EXPENSE_CALCULATION_COMPONENTS)[number]
-
-export interface ExpenseSourceReference {
-  source: ExpenseSource
-  sourceRecordId: string
-}
-
-export interface ManualExpenseInput {
-  category: ManualExpenseCategory
-  expenseDate: ExpenseCalendarDate
-  amount: ExpensePlnDecimal
-}
-
-export interface ManualExpenseRecord extends ManualExpenseInput {
-  source: "manual"
-  sourceRecordId: string
-  /** Technical record-creation instant; never used for financial attribution. */
-  createdAt: string
-}
-
-export interface RentalPeriodSourceRecord {
-  source: "rental_period"
-  sourceRecordId: string
-  weeklyAmount: ExpensePlnDecimal
-  validFrom: ExpenseCalendarDate
-  validTo: ExpenseCalendarDate | null
-}
-
-export interface CreateRentalPeriodInput {
-  weeklyAmount: ExpensePlnDecimal
-  validFrom: ExpenseCalendarDate
-  validTo: ExpenseCalendarDate | null
-  idempotencyKey: string
-}
-
-export interface CloseAndCreateRentalPeriodInput {
-  currentSourceRecordId: string
-  replacement: CreateRentalPeriodInput
-}
 
 export interface ExpenseGrossComponents {
   baseIncome: ExpensePlnDecimal
@@ -172,3 +145,16 @@ export type ExpenseCalculationResult =
   | AvailableExpenseCalculationResult
   | PartialExpenseCalculationResult
   | UnavailableExpenseCalculationResult
+
+export const EXPENSE_DOMAIN_ERROR_CODES = [
+  "EXPENSES_AUTH_REQUIRED",
+  "EXPENSES_READ_FAILED",
+  "EXPENSES_WRITE_FAILED",
+  "EXPENSES_INVALID_CATEGORY",
+  "EXPENSES_INVALID_AMOUNT",
+  "EXPENSES_INVALID_DATE",
+  "EXPENSES_INVALID_RENTAL_PERIOD",
+] as const
+
+export type ExpenseDomainErrorCode =
+  (typeof EXPENSE_DOMAIN_ERROR_CODES)[number]

@@ -2,84 +2,111 @@
 
 Contract version: `0.3.0-draft`
 
-Status: `owner_approved_contract_draft`
+Status: `owner_approved_web_implemented_production_schema_verified`
 
-This document is a documentation and shared-contract artifact. Expenses is not implemented. Nothing in this draft authorizes a database migration, production rollout, `/expenses` route, UI, finance refactor, or change to Garage Contract `0.3.0-draft`.
-
-## Decision language
-
-- `OWNER APPROVED` means the product owner explicitly approved the rule on 2026-08-10. It is normative for future Expenses implementation while this contract remains a draft.
-- `CONFIRMED` means the product owner supplied the rule for this draft before the decision-gate approval.
-- `EXISTING DECISION` means the rule is already recorded as active in `docs/DECISIONS.md`.
-- `PROPOSED` means a recommended unresolved choice. It is non-normative until the owner approves it.
-- Repository runtime behavior is evidence, not an automatic shared-contract decision.
+This is the canonical Web-owned Expenses V1 contract. Web runtime and the
+owner-scoped Supabase schema through `202608140001_limit_expenses_amount.sql`
+are implemented and verified on Staging and Production. The Web feature branch
+still requires Preview acceptance and merge before the runtime becomes the
+deployed `main` behavior. Mobile is paused and may catch up to a later immutable
+snapshot; it does not author schema or migrations.
 
 ## Scope
 
-The future Expenses V1 contract covers:
+Expenses V1 provides:
 
-- PLN-only expense classification;
-- source-aware expense history and date-range aggregation;
-- recorded manual, rental-period, and Garage costs;
-- gross, tax/fee, and recorded-expense calculation boundaries;
-- explicit availability/completeness results shared by Web and Mobile;
-- owner isolation and the approved product gates that future persistence work must preserve.
+- optional per-user activation and category selection;
+- owner-scoped CRUD for expense rows;
+- five PLN-only categories;
+- actual calendar-date attribution, including backdated entry;
+- a manual rental payment with an inclusive paid period;
+- monthly totals and income-after-expenses calculations;
+- explicit unavailable/partial behavior when required data cannot be trusted.
 
-## Non-goals
+Garage import, a Source filter, multiple currencies, recurring billing,
+receipts, tax advice, and annual Expenses reporting are not part of this V1.
+Future `Підтягувати з Garage` is a separate feature and must not be inferred
+from maintenance or repair category activation.
 
-This draft does not define or implement:
+## Canonical categories
 
-- an Expenses page or any UI;
-- a database schema, migration, RPC, generated database types, or RLS policy;
-- a replacement or refactor of current Work or Annual calculations;
-- a legal or audited tax model;
-- multi-currency, conversion, charging, parking, insurance, washing, or arbitrary recurring billing;
-- changes to Garage schema, runtime behavior, RPC semantics, acceptance, or provenance;
-- Production or Staging deployment.
+All five categories are created, edited, and deleted as ordinary owner-owned
+Expenses rows:
 
-## Currency, categories, and sources
+| Identifier | Meaning |
+| --- | --- |
+| `fuel` | Fuel purchased for courier work |
+| `rental` | A vehicle-rental payment |
+| `maintenance` | Planned vehicle service or maintenance |
+| `repair` | Vehicle repair or fault remediation |
+| `food_on_shift` | Food purchased during a work shift |
 
-`CONFIRMED`: Expenses V1 uses PLN only.
+`maintenance` and `repair` are complete manual expenses. They do not create a
+Garage gap and do not make a calculation partial. Garage remains unchanged and
+is only a deferred future integration.
 
-The canonical category identifiers and permitted sources are:
+## Persistence model
 
-| Category | Meaning | Permitted source |
-| --- | --- | --- |
-| `fuel` | Fuel purchased for courier work | `manual` |
-| `rental` | Vehicle rental cost derived from rental periods | `rental_period` |
-| `maintenance` | Planned or routine vehicle maintenance | `manual`, `garage` |
-| `repair` | Fault remediation or repair | `manual`, `garage` |
-| `food_on_shift` | Food purchased during a work shift | `manual` |
+### `expense_settings`
 
-No other category or source is part of Expenses V1 without a new approved contract change.
+- `user_id uuid` — primary key, Auth-user foreign key, owner identity;
+- `enabled boolean` — whether Expenses is active;
+- `active_categories text[]` — unique subset of the five canonical categories;
+- `created_at timestamptz`, `updated_at timestamptz` — technical timestamps.
 
-An Expenses history item must retain its source identity. A future physical schema may represent the link differently, but the logical contract is a pair of `source` and `sourceRecordId`. The same source record must contribute at most once to a result.
+An enabled settings row must contain at least one category.
 
-## Financial components
+### `expenses`
 
-For one requested calendar-date range:
+- `id uuid` — stable primary key;
+- `user_id uuid` — required Auth-user foreign key and owner identity;
+- `category text` — one of the five canonical categories;
+- `amount numeric` — positive PLN amount;
+- `currency text` — always `PLN`;
+- `expense_date date` — actual calendar date used by filters and calculations;
+- `paid_period_from date`, `paid_period_to date` — required together only for
+  `rental`, inclusive at both ends;
+- `created_at timestamptz`, `updated_at timestamptz` — technical timestamps.
 
-- `G` is gross recorded work income.
-- `T` is the tax-and-fee deduction supplied by the future audited tax/fee boundary.
-- `E` is the total of recorded Expenses sources in the range.
+`created_at` never replaces `expense_date` in financial attribution. A user may
+record an expense for an earlier calendar day.
 
-`CONFIRMED`:
+## Money rules
 
-`G = base income + app tips + cash tips + bonuses`
+- Currency is PLN only.
+- Canonical client payloads use base-10 decimal strings.
+- Minimum amount: `0.01` PLN.
+- Maximum amount: `999999.99` PLN.
+- At most two decimal places are accepted; greater precision is rejected.
+- Client calculations use exact string/minor-unit arithmetic, not JavaScript
+  binary floating point.
+- Derived values may be negative and are not persisted as authoritative totals.
 
-`G` is canonical financial input and does not change when presentation toggles hide tips or bonuses. Existing Work and Annual toggles remain presentation/runtime behavior and are not the Expenses calculation contract.
+The lower bound and scale checks are introduced by migration `202608130001`.
+The upper bound is introduced by forward-only migration `202608140001`; that
+migration was validated first on Staging and then on Production without
+rewriting user rows.
 
-`E` is the sum of eligible source records exactly once:
+## Calendar and rental rules
 
-- manual rows for `fuel`, `maintenance`, `repair`, and `food_on_shift`;
-- rental cost calculated from rental periods;
-- Garage `routine` history as `maintenance` and Garage `repair` history as `repair`.
+- Date-only values use exact `YYYY-MM-DD` and are never converted through UTC.
+- Range boundaries are inclusive.
+- A rental row stores the payment date in `expense_date`, the paid-period start
+  in `paid_period_from`, and the final paid day in `paid_period_to`.
+- `paid_period_to >= paid_period_from`.
+- The full rental amount contributes only to the month containing
+  `expense_date`; it is not prorated across the paid period.
+- Rental is ordinary CRUD. No weekly rate, rental-period source, overlap rule,
+  close-and-create RPC, proration, or rental idempotency model exists in V1.
 
-Taxes and fees are not expense categories and are never included in `E`.
+## Calculations
 
-## Calculation modes
+For a requested calendar range:
 
-The four canonical modes are:
+- `G = base income + app tips + cash tips + bonuses` across recorded Work rows;
+- `E` is the exact sum of all five Expenses categories whose `expense_date` is
+  inside the range;
+- `T` is the tax deduction produced by the existing configured Work tax logic.
 
 | Mode | Formula |
 | --- | --- |
@@ -88,154 +115,58 @@ The four canonical modes are:
 | `after_recorded_expenses` | `G - E` |
 | `after_all_deductions` | `G - T - E` |
 
-Negative results are valid calculation results. Calculated totals are derived values and are not persisted as authoritative database totals.
+BRUTTO income after expenses is `G - E`. NETTO income after expenses is
+`G - T - E`. Expenses are subtracted exactly once.
 
-## Availability and completeness
+## Availability and failure behavior
 
-Every future calculation result must distinguish:
+Every calculation result distinguishes `available`, `partial`, `unavailable`,
+and `not_configured` and carries a nullable value plus missing components.
 
-| Status | Contract meaning |
-| --- | --- |
-| `available` | All components required by the selected mode are known for the requested range. |
-| `partial` | A value can be shown only from an explicitly identified subset; omitted or incomplete components must be disclosed. |
-| `unavailable` | A trustworthy value cannot be calculated because a required source failed, is inaccessible, or is invalid. |
-| `not_configured` | A required configurable component has intentionally not been configured. |
+- A successfully queried empty Expenses result is known zero.
+- A failed Expenses read makes every Expenses-dependent result unavailable;
+  the client must not substitute zero.
+- A NETTO mode is not available when the current tax logic cannot reliably
+  determine `T`; tax is never silently assumed to be zero.
+- `partial` always has a non-empty missing-component list and is never final.
+- Activation of maintenance or repair is not a missing component.
 
-`OWNER APPROVED`: each result carries a nullable value, a completeness status, and a missing-component list. Missing, failed, or unconfigured data must not be silently converted to zero. An empty but successfully queried category set may be a known zero.
+## Ownership, RLS, and operations
 
-- `available` requires every component used by the selected mode to be known and has an empty missing-component list.
-- `partial` requires a non-empty missing-component list and is never a final result, even if a provisional value is present.
-- `not_configured` identifies an intentionally absent required configuration.
-- `unavailable` identifies a failed, inaccessible, invalid, or otherwise unreliable required component.
-- Modes that depend on `T` must not be `available` when `T` cannot be determined reliably.
+Both tables enable RLS. Authenticated users may select, insert, update, and
+delete only rows where `user_id = auth.uid()`. Clients derive the current user
+from Supabase Auth and never need an elevated browser credential.
 
-## Calendar-date semantics
+Expenses settings use owner-scoped upsert. Expense records use owner-scoped
+select, insert, update, and delete. Invalid category, currency, amount, date, or
+rental period is rejected by client validation and database constraints.
 
-`OWNER APPROVED`: Expenses uses exact `YYYY-MM-DD` calendar dates across all sources. Garage already owns the same date-only contract, and rental decisions use inclusive calendar dates.
+Stable client domain errors are:
 
-- a manual row stores its actual calendar expense date separately from its technical creation timestamp;
-- a user may create a manual expense with an earlier calendar date when recording it late;
-- filters, history, and financial calculations attribute the row to its actual expense date, never to `createdAt`/`created_at`;
-- date-only values do not pass through UTC conversion;
-- a selected range includes both start and end dates;
-- Garage rows use their existing accepted Garage date without reinterpretation;
-- rental overlap is evaluated using rental calendar dates, not Work-shift presence.
+- `EXPENSES_AUTH_REQUIRED`;
+- `EXPENSES_READ_FAILED`;
+- `EXPENSES_WRITE_FAILED`;
+- `EXPENSES_INVALID_CATEGORY`;
+- `EXPENSES_INVALID_AMOUNT`;
+- `EXPENSES_INVALID_DATE`;
+- `EXPENSES_INVALID_RENTAL_PERIOD`.
 
-This draft does not claim that current Work, Annual, or Garage Web runtime already has full cross-feature timezone parity.
+Internal SQL details are not user-facing error text.
 
-## Rental-period semantics
+## Rollout state
 
-`EXISTING DECISION`:
+- Web runtime: implemented against Supabase owner CRUD.
+- Staging migrations through `202608140001`: applied and verified.
+- Production canonical history through `202608140001`: reconciled, applied,
+  and verified; baseline `202607220000` was history-only and its known ownership
+  nullability gap was immediately closed by `202608020002`.
+- Canonical public-schema database types: regenerated from verified Production;
+  their bytes match the prior Staging-generated public contract surface.
+- Production Web deployment: unchanged; the feature branch remains pending
+  Preview acceptance and merge.
+- Mobile implementation and compatibility catch-up: paused/deferred and not a
+  gate for this owner-approved Web rollout.
+- Garage integration: deferred; Garage contract/runtime are unchanged.
 
-- rental is optional and represented by periods rather than copied daily or weekly expense rows;
-- a period has a weekly PLN amount, inclusive `valid_from`, and inclusive optional `valid_to`;
-- `valid_to = null` identifies an open period;
-- rental is calculated for the intersection of the rental period and requested date range, independently of Work shifts;
-- the direction of the calculation is `weekly amount × active calendar days / 7`;
-- changing a normal rate closes the previous period and creates a new period instead of rewriting unrelated history;
-- historical correction is a separate warned action.
-
-`OWNER APPROVED`: PLN inputs accept at most two decimal places. Calculations use decimal arithmetic, rental proration retains full intermediate precision, and only the final result is rounded to `0.01 PLN` with `ROUND_HALF_UP` identically on Web and Mobile.
-
-For one owner, rental periods must not overlap. A normal rate change closes the current period and creates the replacement atomically. Historical correction remains a separate controlled action, and retryable creates require idempotency keys. The physical persistence and RPC shape remain deferred.
-
-## Double-counting protection
-
-The aggregation boundary is a source-aware union, not a copied manual ledger:
-
-- a Garage row remains owned by Garage and is referenced as `source = garage`;
-- Garage rows must not be copied into manual expenses;
-- a rental period remains owned by the rental source and does not generate manual expense rows;
-- a manual expense has `source = manual` and must not claim a Garage or rental source identity;
-- one logical `(source, sourceRecordId)` may contribute at most once to one calculation result.
-
-Deleting or hiding a presentation item must not cause a second source representation to appear automatically.
-
-## Ownership and RLS expectations
-
-Any future persisted Expenses or rental object must be owner-scoped to the authenticated user. Before implementation, the approved schema must define and verify:
-
-- owner foreign keys and ownership defaults, if any;
-- authenticated owner-only read and mutation policies;
-- denial of cross-user source references;
-- Garage references that resolve only to Garage rows owned by the same user;
-- whether aggregation is safe as direct CRUD/read queries or requires an owner-scoped RPC;
-- grants, indexes, constraints, and deletion behavior.
-
-These are expectations, not claims about an existing Expenses schema. No Expenses or rental table is evidenced at this baseline.
-
-## Correction and idempotency boundaries
-
-- Pure calculation over the same source snapshot and date range must be deterministic and side-effect free.
-- Manual-expense correction may target only the owned manual record; its final audit/history policy is unresolved.
-- Garage correction stays inside the accepted Garage contract. Expenses does not update, clone, or reinterpret Garage records.
-- Rental correction follows the separate historical-correction boundary and must not be treated as a normal rate change.
-- Retryable rental creates require a stable client-generated idempotency key. The future schema/API must define its storage, scope, replay result, and conflict behavior before implementation.
-
-The product-level mutation boundaries are owner approved. Their concrete schema, transaction/RPC contract, authorization, manual deletion/audit retention, and stable mutation errors still require a separate design review before any migration or runtime implementation.
-
-## Garage integration
-
-Garage Contract `0.3.0-draft` is an accepted upstream source contract and is not amended here.
-
-Expenses consumes Garage history by reference:
-
-- `routine` contributes to `maintenance`;
-- `repair` contributes to `repair`;
-- `garage_history.cost` remains the source amount in PLN;
-- the Garage row ID is retained as source identity;
-- the source row is not copied to a manual expense and is counted at most once;
-- a Garage-derived expense is created or corrected in Garage and cannot be recreated as a manual duplicate;
-- Expenses cannot change Garage validation, RPC behavior, history lifecycle, or ownership.
-
-Any future cross-source query or reference constraint requires its own schema and compatibility review.
-
-## Owner-approved decision gates
-
-All five product decision groups below were explicitly approved by the owner on 2026-08-10. Approval records the required behavior; it does not authorize schema, runtime, UI, migration, database, or Production work.
-
-### Gate 1 — Persistence model and source identity
-
-`OWNER APPROVED`: use a source-aware Expenses read model with a stable `(source, sourceRecordId)` identity. Persist only manual records; derive rental entries and reference Garage rows without copying them.
-
-Consequence: deduplication and ownership remain explicit, but queries may require a shared aggregation boundary instead of one simple table scan.
-
-### Gate 2 — Money precision and rounding
-
-`OWNER APPROVED`: accept manual and rental monetary inputs as non-negative PLN decimal values with at most two decimal places, use decimal arithmetic, keep rental proration at full intermediate precision, and round only the final range result to `0.01 PLN` with `ROUND_HALF_UP`.
-
-Consequence: Web, Mobile, and database calculations need one accepted rounding oracle and fixtures before implementation.
-
-### Gate 3 — Availability state matrix
-
-`OWNER APPROVED`: return a nullable value plus per-component completeness. Use `available` only when every component required by the selected mode is known; use `partial` only with a non-empty missing-component list and never present it as final; use `not_configured` for an intentionally absent required configuration; otherwise use `unavailable`.
-
-Consequence: consumers can avoid false zeroes, but every source adapter must report completeness rather than only a number.
-
-### Gate 4 — Tax-and-fee component `T`
-
-`OWNER APPROVED`: treat `T` as a separate audited input contract. Preserve current Work tax runtime unchanged, and do not mark tax-dependent modes `available` until the applicable tax/fee configuration and calculation for the requested range are defined and verified.
-
-Consequence: `gross` and expense-only calculations can progress independently, while tax-dependent results remain gated by the dedicated tax audit.
-
-### Gate 5 — Mutations, rental overlap, correction, and idempotency
-
-`OWNER APPROVED`: prohibit overlapping owned rental periods, perform normal close-and-create rate changes atomically, keep historical correction as a separate controlled action, and require client-generated idempotency keys for retryable creates.
-
-`UNRESOLVED`: manual deletion/audit retention and the concrete transaction/RPC/error contract must be decided before schema work.
-
-Consequence: this likely requires constraints and one or more transactional RPCs, which cannot be designed or deployed during this documentation stage.
-
-## Migration and production approval process
-
-No migration is authorized by this draft. Production implementation requires separate sequential approval for:
-
-1. owner decisions for all five product gates — completed on 2026-08-10;
-2. read-only inspection of the actual target Supabase environment;
-3. a reviewed forward-only SQL migration and rollback/compatibility analysis;
-4. generated database types and sanitized contract fixtures;
-5. local and Staging verification, including RLS isolation and calculation parity;
-6. Mobile compatibility review for the resulting immutable contract snapshot;
-7. a separate explicit Production approval.
-
-Until the remaining steps complete, Expenses remains a contract draft and Production implementation has not started.
+The shared contract remains `0.3.0-draft` until the owner approves a later
+versioned snapshot. No remote migration is authorized by this document alone.
