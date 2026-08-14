@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../../context/LanguageContext";
 import { checkAuthRoute } from "../../lib/auth-route-policy";
+import { recordAnalyticsActivity } from "../../lib/admin-analytics";
 
 type GarageRule = {
   id: number;
@@ -126,6 +127,7 @@ export default function GarageDashboard() {
     };
     const { error } = await supabase.from("garage_rules").insert([newRule]);
     if (!error) {
+      void recordAnalyticsActivity("garage");
       setRuleName(""); setRuleInterval(""); setRuleLastOdo(""); setHasInterval(true);
       setActiveForm("none"); fetchData(userId);
     } else alert(t.garage.errorPrefix + error.message);
@@ -146,6 +148,7 @@ export default function GarageDashboard() {
     };
     const { error } = await supabase.from("garage_history").insert([newRepair]);
     if (!error) {
+      void recordAnalyticsActivity("garage");
       setRepairName(""); setRepairCost("");
       setActiveForm("none"); fetchData(userId);
     } else alert(t.garage.errorPrefix + error.message);
@@ -172,7 +175,8 @@ export default function GarageDashboard() {
     const { error: histError } = await supabase.from("garage_history").insert([historyRecord]);
     
     if (!histError) {
-      await supabase.from("garage_rules").update({ last_change_km: newOdo }).eq("id", updateModalRule.id);
+      const { error: ruleError } = await supabase.from("garage_rules").update({ last_change_km: newOdo }).eq("id", updateModalRule.id);
+      if (!ruleError) void recordAnalyticsActivity("garage");
       setUpdateCost("");
       setUpdateModalRule(null);
       fetchData(userId);

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 
 import type { ExpenseCategory } from "../docs/shared/types/expenses"
+import { recordAnalyticsActivity } from "./admin-analytics"
 import type { Tables, TablesInsert } from "./database.types"
 import {
   EXPENSE_CATEGORIES,
@@ -180,6 +181,7 @@ export function useExpenses() {
         )
         return { error }
       })
+      void recordAnalyticsActivity("expenses")
     },
     [currentUserId, runMutation],
   )
@@ -193,6 +195,7 @@ export function useExpenses() {
           .insert(asExpenseInsert({ ...expensePayload(input), user_id: userId }))
         return { error }
       })
+      void recordAnalyticsActivity("expenses")
     },
     [currentUserId, runMutation],
   )
@@ -210,6 +213,7 @@ export function useExpenses() {
           .eq("user_id", userId)
         return { error }
       })
+      void recordAnalyticsActivity("expenses")
     },
     [currentUserId, runMutation],
   )

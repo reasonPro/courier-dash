@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_activity_daily: {
+        Row: {
+          activity_date: string
+          expenses_activity_at: string | null
+          first_seen_at: string
+          garage_activity_at: string | null
+          last_seen_at: string
+          user_id: string
+          work_activity_at: string | null
+        }
+        Insert: {
+          activity_date: string
+          expenses_activity_at?: string | null
+          first_seen_at: string
+          garage_activity_at?: string | null
+          last_seen_at: string
+          user_id: string
+          work_activity_at?: string | null
+        }
+        Update: {
+          activity_date?: string
+          expenses_activity_at?: string | null
+          first_seen_at?: string
+          garage_activity_at?: string | null
+          last_seen_at?: string
+          user_id?: string
+          work_activity_at?: string | null
+        }
+        Relationships: []
+      }
       expense_settings: {
         Row: {
           active_categories: string[]
@@ -358,6 +388,8 @@ export type Database = {
           service_type: string
         }[]
       }
+      get_admin_dashboard_metrics: { Args: never; Returns: Json }
+      record_app_activity: { Args: { p_area?: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

@@ -7,6 +7,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useLanguage } from "../../context/LanguageContext";
 import { AUTH_ROUTES, checkAuthRoute } from "../../lib/auth-route-policy";
 import { hasPasswordResetSuccess } from "../../lib/password-recovery";
+import { syncServerAuthSession } from "../../lib/server-session-client";
 import { supabase } from "../../lib/supabase";
 
 export default function LoginPage() {
@@ -28,19 +29,21 @@ function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const passwordResetSucceeded = hasPasswordResetSuccess(searchParams);
+  const nextPath =
+    searchParams.get("next") === "/admin" ? "/admin" : AUTH_ROUTES.dashboard;
 
   useEffect(() => {
     let isActive = true;
 
     const checkActiveSession = async () => {
-      const { redirectTo } = await checkAuthRoute("login", () =>
-        supabase.auth.getSession(),
-      );
+      const sessionResult = await supabase.auth.getSession();
+      const { redirectTo } = await checkAuthRoute("login", async () => sessionResult);
 
       if (!isActive) return;
 
       if (redirectTo) {
-        router.replace(redirectTo);
+        await syncServerAuthSession(sessionResult.data.session?.access_token ?? null);
+        router.replace(nextPath);
       } else {
         setIsCheckingSession(false);
       }
@@ -51,7 +54,7 @@ function LoginPageContent() {
     return () => {
       isActive = false;
     };
-  }, [router]);
+  }, [nextPath, router]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,12 +63,15 @@ function LoginPageContent() {
 
     if (isLogin) {
       // Логіка входу
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       if (error) setErrorMsg("Помилка входу: перевір email та пароль.");
-      else router.replace(AUTH_ROUTES.dashboard);
+      else {
+        await syncServerAuthSession(data.session?.access_token ?? null);
+        router.replace(nextPath);
+      }
     } else {
       // Логіка реєстрації
       const { data, error } = await supabase.auth.signUp({
@@ -73,7 +79,10 @@ function LoginPageContent() {
         password,
       });
       if (error) setErrorMsg("Помилка реєстрації: " + error.message);
-      else if (data.session) router.replace(AUTH_ROUTES.dashboard);
+      else if (data.session) {
+        await syncServerAuthSession(data.session.access_token);
+        router.replace(nextPath);
+      }
       else {
         alert("Реєстрація успішна! Тепер ти можеш увійти.");
         setIsLogin(true);
