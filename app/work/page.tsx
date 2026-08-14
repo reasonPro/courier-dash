@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import type { ChartDatasetCustomTypesPerDataset } from "chart.js";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabase";
+import { recordAnalyticsActivity } from "../../lib/admin-analytics";
+import { syncServerAuthSession } from "../../lib/server-session-client";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../../context/LanguageContext";
 import { calculateWorkedHours } from "../../lib/work-hours";
@@ -291,6 +293,7 @@ export default function WorkDashboard() {
   const handleLogout = async () => {
     setIsLoading(true);
     await supabase.auth.signOut();
+    await syncServerAuthSession(null);
     localStorage.removeItem("supabase.auth.token"); 
     router.replace(AUTH_ROUTES.home);
   };
@@ -387,6 +390,7 @@ export default function WorkDashboard() {
       const { error } = await supabase.from("work_shifts").update(shiftData).eq("id", editingId);
       if (error) showToast(t.work.updateError + error.message, "error");
       else { 
+        void recordAnalyticsActivity("work");
         resetForm(); fetchShifts(userId);
         showToast(lang === "pl" ? "Zaktualizowano!" : lang === "en" ? "Updated!" : lang === "ru" ? "Обновлено!" : "Оновлено!", "success");
       }
@@ -399,6 +403,7 @@ export default function WorkDashboard() {
           showToast(t.work.errorPrefix + error.message, "error");
         }
       } else { 
+        void recordAnalyticsActivity("work");
         resetForm(); fetchShifts(userId);
         showToast(lang === "pl" ? "Zapisano zmianę!" : lang === "en" ? "Shift saved!" : lang === "ru" ? "Смена сохранена!" : "Зміну збережено!", "success");
       }
