@@ -12,12 +12,12 @@ The current odometer is a client-local calculation parameter. It is not a Supaba
 
 ## Evidence and rollout status
 
-- Staging is verified through revision `202608090001`; `202608090001_expand_garage_contract.sql` was applied to Staging only and has not been applied to Production.
+- Staging and Production contain revision `202608090001`; authenticated behavioral verification was performed on Staging before the approved Production schema rollout.
 - Authenticated Staging verification of `public.complete_garage_routine`, including ownership, validation, atomicity, stale-conflict behavior, and cleanup of synthetic rows, completed with `PASS`.
-- `lib/database.types.ts` was regenerated from the verified Staging revision. The sanitized `supabase/schema.snapshot.json` remains the historical `202608020002` snapshot and is not the latest Garage evidence.
+- `lib/database.types.ts` was regenerated from the verified Production `public` schema after rollout. The sanitized `supabase/schema.snapshot.json` remains the historical `202608020002` snapshot and is not the latest Garage evidence.
 - Canonical rules below govern normalized new writes. Legacy nullable rows remain readable and are not silently deleted, backfilled, or invented.
 - During the compatibility window, the deployed Web may continue its existing two-write routine flow. Direct routine INSERT is removed only in a separately approved hardening migration after Web adopts the RPC.
-- The contract remains a draft. Web RPC adoption, Mobile implementation, constraint/FK validation, final nullability hardening, and Production rollout remain deferred.
+- The contract remains a draft. Web RPC adoption, Mobile implementation, constraint/FK validation, and final nullability hardening remain deferred; the additive Stage 1 schema is present in Production.
 
 ## Database objects
 
@@ -158,7 +158,7 @@ Database messages are stable machine codes, not localized user copy. Web and Mob
 - No migration in this draft deletes, backfills, or invents legacy Garage values.
 - The `rule_id` conversion has a fail-closed precondition for fractional/out-of-range non-null values.
 - The FK is added `NOT VALID`; future validation requires separate sanitized Staging evidence and approval.
-- Generated Supabase types were regenerated from verified Staging revision `202608090001`. They continue to expose nullable legacy columns because `CHECK ... NOT VALID` does not change column-level nullability metadata.
+- Generated Supabase types were regenerated from the verified Production `public` schema. They continue to expose nullable legacy columns because `CHECK ... NOT VALID` does not change column-level nullability metadata.
 
 ## Compatibility window
 

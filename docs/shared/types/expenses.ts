@@ -1,7 +1,7 @@
 export const EXPENSES_CONTRACT_VERSION = "0.3.0-draft" as const
 
 export const EXPENSES_CONTRACT_STATUS =
-  "owner_approved_web_implemented_staging_verified" as const
+  "owner_approved_web_implemented_production_schema_verified" as const
 
 export const EXPENSES_CURRENCY = "PLN" as const
 export const EXPENSE_MONEY_DECIMAL_PLACES = 2 as const

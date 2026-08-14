@@ -2,13 +2,14 @@
 
 Contract version: `0.3.0-draft`
 
-Status: `owner_approved_web_implemented_staging_verified`
+Status: `owner_approved_web_implemented_production_schema_verified`
 
 This is the canonical Web-owned Expenses V1 contract. Web runtime and the
-owner-scoped Supabase schema from
-`202608130001_create_expenses_schema.sql` are implemented and verified on
-Staging. Production rollout remains separately gated. Mobile is paused and may
-catch up to a later immutable snapshot; it does not author schema or migrations.
+owner-scoped Supabase schema through `202608140001_limit_expenses_amount.sql`
+are implemented and verified on Staging and Production. The Web feature branch
+still requires Preview acceptance and merge before the runtime becomes the
+deployed `main` behavior. Mobile is paused and may catch up to a later immutable
+snapshot; it does not author schema or migrations.
 
 ## Scope
 
@@ -83,8 +84,8 @@ record an expense for an earlier calendar day.
 
 The lower bound and scale checks are introduced by migration `202608130001`.
 The upper bound is introduced by forward-only migration `202608140001`; that
-migration does not rewrite user rows and must be verified on Staging before a
-separately approved Production rollout.
+migration was validated first on Staging and then on Production without
+rewriting user rows.
 
 ## Calendar and rental rules
 
@@ -155,10 +156,14 @@ Internal SQL details are not user-facing error text.
 ## Rollout state
 
 - Web runtime: implemented against Supabase owner CRUD.
-- Staging migration `202608130001`: applied and verified.
-- Staging migration `202608140001`: local forward-only draft pending explicit
-  remote approval.
-- Production Expenses schema: not applied by this local stage.
+- Staging migrations through `202608140001`: applied and verified.
+- Production canonical history through `202608140001`: reconciled, applied,
+  and verified; baseline `202607220000` was history-only and its known ownership
+  nullability gap was immediately closed by `202608020002`.
+- Canonical public-schema database types: regenerated from verified Production;
+  their bytes match the prior Staging-generated public contract surface.
+- Production Web deployment: unchanged; the feature branch remains pending
+  Preview acceptance and merge.
 - Mobile implementation and compatibility catch-up: paused/deferred and not a
   gate for this owner-approved Web rollout.
 - Garage integration: deferred; Garage contract/runtime are unchanged.

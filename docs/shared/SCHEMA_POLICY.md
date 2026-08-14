@@ -17,7 +17,7 @@ Only these evidence statuses are used by this contract:
 - CourierDash Web is the sole authoritative repository for Supabase migrations and the canonical `docs/shared` contract.
 - A generated database type file is a client artifact, not a migration and not proof that Staging matches.
 - A local schema snapshot is evidence only. It must record capture context and must not contain project references, credentials, database URLs, user data, or concrete ownership defaults in exported documentation.
-- `schemaRevision` records the latest verified target revision and `latestMigration` records the latest canonical local migration. Staging is verified through Expenses revision `202608130001`; local forward-only revision `202608140001` remains pending remote approval.
+- `schemaRevision` records the latest verified target revision and `latestMigration` records the latest canonical local migration. Staging and Production are verified through Expenses revision `202608140001`.
 - Production metadata is not used to fill Staging gaps.
 
 ## Supabase governance
@@ -63,7 +63,7 @@ The sanitized snapshot at `supabase/schema.snapshot.json` remains historical evi
 
 The helper `public.handle_new_user_profile()` is not an application RPC: `PUBLIC`, `anon`, `authenticated`, and `service_role` have no `EXECUTE` privilege. At revision `202608020002`, generated types therefore exposed no callable public Functions. After the separately approved Garage migration was applied and verified on Staging, `lib/database.types.ts` was regenerated at revision `202608090001` and now exposes `public.complete_garage_routine`. Nullable database fields remain nullable in clients unless a verified migration changes column-level nullability metadata.
 
-Authenticated Garage RPC verification at revision `202608090001` completed with `PASS`; ownership, validation, atomic rollback, stale-conflict behavior, grants, and cleanup of synthetic Staging rows were verified. Production was not accessed or changed.
+Authenticated Garage RPC verification at revision `202608090001` completed with `PASS`; ownership, validation, atomic rollback, stale-conflict behavior, grants, and cleanup of synthetic Staging rows were verified. The same canonical Garage migration is now present in Production history and schema; Web RPC adoption remains deferred.
 
 ## Migration discipline
 
@@ -76,9 +76,9 @@ The repository migration directory and Staging history contain the same ordered 
 - `202608020002_reconcile_ownership_profiles_rls.sql`;
 - `202608090001_expand_garage_contract.sql`;
 - `202608130001_create_expenses_schema.sql`;
-- `202608140001_limit_expenses_amount.sql` (local forward-only migration pending remote approval).
+- `202608140001_limit_expenses_amount.sql`.
 
-The reviewed historical baseline restores the five-table base schema; the two August 2 migrations reconcile privileges, required work ownership, profile lifecycle, and RLS; the August 9 migration adds Garage guards and RPC; and the August 13 migration adds owner-scoped Expenses settings/rows, constraints, indexes, triggers, RLS, policies, and grants. Remote Staging migration history is verified through `202608130001`. The August 14 migration adds only the validated `expenses.amount <= 999999.99` check and changes no row. It must be tested on Staging and separately approved before Production.
+The reviewed historical baseline restores the five-table base schema; the two August 2 migrations reconcile privileges, required work ownership, profile lifecycle, and RLS; the August 9 migration adds Garage guards and RPC; and the August 13 migration adds owner-scoped Expenses settings/rows, constraints, indexes, triggers, RLS, policies, and grants. Staging and Production migration histories are verified through `202608140001`. The August 14 migration adds only the validated `expenses.amount <= 999999.99` check and changed no row.
 
 Migration rollout must follow expand, migrate clients, verify, deprecate, remove within the governance and approval route above. Applying a migration remotely always requires separate explicit approval and is outside this contract-generation task.
 
@@ -104,17 +104,17 @@ Profile rows remain visible to `anon` and `authenticated` under RLS because nick
 
 ## Garage Stage 1 migration discipline
 
-`202608090001_expand_garage_contract.sql` was applied only to the approved Staging target and is the latest verified Staging migration. It has not been applied to Production or a local database. It adds lifecycle-safe constraints, a `rule_id` FK with `ON DELETE SET NULL`, an INSERT invariant trigger, and the atomic routine RPC; authenticated Staging RPC verification completed with `PASS` and zero synthetic-data residue.
+`202608090001_expand_garage_contract.sql` is applied to Staging and Production. It adds lifecycle-safe constraints, a `rule_id` FK with `ON DELETE SET NULL`, an INSERT invariant trigger, and the atomic routine RPC; authenticated Staging RPC verification completed with `PASS` and zero synthetic-data residue.
 
-The migration does not validate `NOT VALID` constraints, backfill legacy rows, or harden the current direct routine INSERT policy. Canonical database types were regenerated separately from Staging revision `202608090001`. Web RPC adoption, Mobile implementation, final hardening, and Production rollout remain separately gated.
+The migration does not validate `NOT VALID` constraints, backfill legacy rows, or harden the current direct routine INSERT policy. Canonical database types were regenerated from the verified Production public schema. Web RPC adoption, Mobile implementation, and final hardening remain separately gated.
 
 ## Expenses V1 migration discipline
 
-`202608130001_create_expenses_schema.sql` is immutable because it is already applied and verified on Staging. It creates `expense_settings` and `expenses`, owner-only RLS policies, required constraints/indexes, and timestamp triggers without changing Garage or Work data.
+`202608130001_create_expenses_schema.sql` is immutable because it is applied and verified on Staging and Production. It creates `expense_settings` and `expenses`, owner-only RLS policies, required constraints/indexes, and timestamp triggers without changing Garage or Work data.
 
-The amount maximum is a separate forward-only migration, `202608140001_limit_expenses_amount.sql`. It adds and validates only `expenses_amount_max_check`; validation fails rather than rewriting an incompatible row. The ordered migration must pass Staging before the same canonical file may be applied to Production with explicit owner approval.
+The amount maximum is a separate forward-only migration, `202608140001_limit_expenses_amount.sql`. It adds and validates only `expenses_amount_max_check`; validation fails rather than rewriting an incompatible row. It passed Staging before the same canonical file was applied and verified on Production with explicit owner approval.
 
-After Production rollout, `lib/database.types.ts` is regenerated from the verified Production target. Existing Work, Tax, Profile, and Garage surfaces must remain present; only expected Expenses objects may be added. Mobile remains paused and consumes a later versioned Web snapshot.
+`lib/database.types.ts` was regenerated from the verified Production `public` schema. Existing Work, Tax, Profile, Garage, and Expenses surfaces remain present; the platform-only `graphql_public` schema is intentionally outside this canonical client artifact. Mobile remains paused and consumes a later versioned Web snapshot.
 
 ## Compatibility classes
 

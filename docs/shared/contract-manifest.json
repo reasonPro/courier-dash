@@ -2,16 +2,16 @@
   "manifestSchemaVersion": "1.0.0",
   "contractName": "courierdash-shared-contract",
   "contractVersion": "0.3.0-draft",
-  "snapshotId": "courierdash-0.3.0-draft-c1e3b98-20260814t104719z",
+  "snapshotId": "courierdash-0.3.0-draft-bf1f595-20260814t113740z",
   "snapshotVersion": "0.3.0-draft.2",
   "status": "partially_verified",
   "canonicalLocation": "docs/shared",
   "developmentPhase": "web_expenses_rollout_mobile_paused",
-  "generatedFromEnvironment": "staging",
-  "sourceWebCommit": "c1e3b98a24d9ef8a33d4d61ece04bf0126b496a2",
-  "schemaRevision": "202608130001",
+  "generatedFromEnvironment": "production",
+  "sourceWebCommit": "bf1f595f679316cf09aa5c8bf558320257df3a59",
+  "schemaRevision": "202608140001",
   "latestMigration": "202608140001",
-  "generatedAt": "2026-08-14T10:47:19Z",
+  "generatedAt": "2026-08-14T11:37:40Z",
   "compatibility": {
     "semverRangeFormat": "npm-semver",
     "web": ">=0.2.0-draft <0.4.0",
@@ -34,7 +34,7 @@
     },
     {
       "path": "docs/shared/SCHEMA_POLICY.md",
-      "sha256": "b14db7fc24f6885c51bbec6f83d760aeaafcb52e00f588bc443f2e8a60c04620",
+      "sha256": "13d03fc220d3b6d0593d0c010638310f4f07b83a09464f45ff57b6953c9e7a7d",
       "status": "present",
       "sourceRefs": [
         "supabase/schema.snapshot.json",
@@ -51,7 +51,7 @@
         "supabase/README.md",
         "mobile-governance-review:pending"
       ],
-      "generatedAt": "2026-08-10T17:19:11Z",
+      "generatedAt": "2026-08-14T11:37:40Z",
       "stagingStatus": "not_checked",
       "productionStatus": "not_applied",
       "verificationStatus": "draft_pending_schema_snapshot"
@@ -105,7 +105,7 @@
     },
     {
       "path": "docs/shared/EXPENSES_CONTRACT.md",
-      "sha256": "7ea426eb2e5d4bee2066189c8b3fc61a800f6260ad5ed7db47587549d001b71e",
+      "sha256": "681e8c929831ac680ffc612c9065af1eda51ec39af895d9e019b968054848cf5",
       "status": "present",
       "sourceRefs": [
         "docs/DECISIONS.md",
@@ -115,57 +115,57 @@
         "app/work/year/annual-report-calculations.ts",
         "docs/shared/GARAGE_CONTRACT.md"
       ],
-      "generatedAt": "2026-08-10T17:19:11Z",
+      "generatedAt": "2026-08-14T11:37:40Z",
       "stagingStatus": "verified",
       "productionStatus": "not_applied",
       "verificationStatus": "partially_verified"
     },
     {
       "path": "docs/shared/types/expenses.ts",
-      "sha256": "e23991171f5d548f7884ff20b38e0464080042eb3c8f09eefdaa41f2be395a84",
+      "sha256": "d55b57dc7234cb28481f188e4cebbe75ab87a0c0619ce771d91443829a79412f",
       "status": "present",
       "sourceRefs": [
         "docs/shared/EXPENSES_CONTRACT.md",
         "docs/shared/fixtures/expense-calculations.json"
       ],
-      "generatedAt": "2026-08-10T17:19:11Z",
+      "generatedAt": "2026-08-14T11:37:40Z",
       "stagingStatus": "verified",
       "productionStatus": "not_applied",
       "verificationStatus": "partially_verified"
     },
     {
       "path": "docs/shared/COMPATIBILITY_POLICY.md",
-      "sha256": "61e63acc38d36fe9f400790554de8f68527db4c0a7d5359d5c8568648254a9e2",
+      "sha256": "20632980ac0f857904c285e192a086c2baa67199dd9a974afd7f4773b01cedf6",
       "status": "present",
       "sourceRefs": [
         "docs/shared/SHARED_ARCHITECTURE.md",
         "docs/shared/SCHEMA_POLICY.md"
       ],
-      "generatedAt": "2026-08-10T17:19:11Z",
+      "generatedAt": "2026-08-14T11:37:40Z",
       "stagingStatus": "not_applicable",
       "productionStatus": "not_applicable",
       "verificationStatus": "proposed"
     },
     {
       "path": "docs/shared/CHANGELOG.md",
-      "sha256": "5e4a250ab84a3b8bca10a2478a2ac00c17bedb4ceb19bab2d3d7f31a588c074e",
+      "sha256": "7d01a8b87b92e1f10e11c05c774e2fbff63002e4a2c5888bb0cdff567fee18fc",
       "status": "present",
       "sourceRefs": [
         "docs/shared"
       ],
-      "generatedAt": "2026-08-10T17:19:11Z",
+      "generatedAt": "2026-08-14T11:37:40Z",
       "stagingStatus": "not_checked",
       "productionStatus": "not_applied",
       "verificationStatus": "draft_pending_schema_snapshot"
     },
     {
       "path": "docs/shared/contract-manifest.schema.json",
-      "sha256": "258b97cd35f233feee433c406a1b006eec602dea1a83f558f81756e09afa991e",
+      "sha256": "8f4646f87b63ab07279cc93782e42798e0482a553c0b183c1432d6cbb399af0f",
       "status": "present",
       "sourceRefs": [
         "docs/shared/contract-manifest.json"
       ],
-      "generatedAt": "2026-08-09T12:10:54Z",
+      "generatedAt": "2026-08-14T11:37:40Z",
       "stagingStatus": "not_applicable",
       "productionStatus": "not_applicable",
       "verificationStatus": "verified"
@@ -240,7 +240,7 @@
     },
     {
       "path": "docs/shared/GARAGE_CONTRACT.md",
-      "sha256": "1ce1f99beeaa9b52cdfa0a235602d7de6b67ec93a26f6e7728dbf0f044af6a6b",
+      "sha256": "1e7b80d19d499a28fa5426bc07bf5633e67cc4dd6b1a8e0527cb1e03f04713db",
       "status": "present",
       "sourceRefs": [
         "app/garage/page.tsx",
@@ -248,7 +248,7 @@
         "supabase/schema.snapshot.json",
         "supabase/migrations/202608090001_expand_garage_contract.sql"
       ],
-      "generatedAt": "2026-08-09T20:30:02Z",
+      "generatedAt": "2026-08-14T11:37:40Z",
       "stagingStatus": "verified",
       "productionStatus": "not_applied",
       "verificationStatus": "partially_verified"
@@ -288,9 +288,9 @@
         "app/garage/page.tsx",
         "supabase/migrations/202607220000_baseline_production_schema.sql"
       ],
-      "generatedAt": "2026-08-09T20:30:02Z",
+      "generatedAt": "2026-08-14T11:37:40Z",
       "stagingStatus": "verified",
-      "productionStatus": "not_applied",
+      "productionStatus": "applied",
       "verificationStatus": "verified"
     },
     {
@@ -301,9 +301,9 @@
         "docs/shared/EXPENSES_CONTRACT.md",
         "lib/use-expenses.ts"
       ],
-      "generatedAt": "2026-08-14T10:47:19Z",
+      "generatedAt": "2026-08-14T11:37:40Z",
       "stagingStatus": "verified",
-      "productionStatus": "not_applied",
+      "productionStatus": "applied",
       "verificationStatus": "verified"
     },
     {
@@ -314,14 +314,14 @@
         "docs/shared/EXPENSES_CONTRACT.md",
         "supabase/migrations/202608130001_create_expenses_schema.sql"
       ],
-      "generatedAt": "2026-08-14T10:47:19Z",
-      "stagingStatus": "not_checked",
-      "productionStatus": "not_applied",
-      "verificationStatus": "draft_pending_schema_snapshot"
+      "generatedAt": "2026-08-14T11:37:40Z",
+      "stagingStatus": "verified",
+      "productionStatus": "applied",
+      "verificationStatus": "verified"
     },
     {
       "path": "docs/MOBILE_INTEGRATION.md",
-      "sha256": "f8eabe5e0ec1015b00c3e4cb0d142b244839627ad4e98c74db69537198ec54af",
+      "sha256": "662e89fa4dd318d4fd32b2231ec19379bf20c4386427b775c623a43b5c3d962f",
       "status": "present",
       "sourceRefs": [
         "docs/shared/GARAGE_CONTRACT.md",
@@ -330,7 +330,7 @@
         "docs/shared/types/expenses.ts",
         "owner-approved:DEC-025:2026-08-10"
       ],
-      "generatedAt": "2026-08-10T17:19:11Z",
+      "generatedAt": "2026-08-14T11:37:40Z",
       "stagingStatus": "verified",
       "productionStatus": "not_applied",
       "verificationStatus": "partially_verified"
@@ -535,7 +535,7 @@
     {
       "id": "expenses",
       "implementationStatus": "staging_verified",
-      "implementationCommit": "c1e3b98a24d9ef8a33d4d61ece04bf0126b496a2",
+      "implementationCommit": "bf1f595f679316cf09aa5c8bf558320257df3a59",
       "reviewStatus": "passed",
       "acceptanceStatus": "accepted_by_web",
       "contractVersion": "0.3.0-draft",
@@ -551,18 +551,17 @@
         "pln_exact_amount_bounds",
         "rental_payment_month_attribution",
         "staging_schema_and_rls_verified",
+        "amount_limit_staging_verified",
+        "production_schema_verified",
+        "production_public_types_verified",
         "synthetic_contract_fixtures"
       ],
       "missingCapabilities": [
-        "amount_limit_staging_verification",
-        "production_rollout",
-        "production_generated_types",
         "mobile_catch_up",
         "future_garage_import"
       ],
       "blockers": [
-        "RISK-007",
-        "RISK-014"
+        "RISK-007"
       ],
       "evidenceRefs": [
         "owner-approved:DEC-025:2026-08-10",
@@ -577,7 +576,7 @@
     {
       "id": "vehicle_rental",
       "implementationStatus": "staging_verified",
-      "implementationCommit": "c1e3b98a24d9ef8a33d4d61ece04bf0126b496a2",
+      "implementationCommit": "bf1f595f679316cf09aa5c8bf558320257df3a59",
       "reviewStatus": "passed",
       "acceptanceStatus": "accepted_by_web",
       "contractVersion": "0.3.0-draft",
@@ -587,15 +586,13 @@
         "payment_calendar_date",
         "inclusive_paid_period",
         "payment_month_attribution",
-        "owner_crud_and_rls"
+        "owner_crud_and_rls",
+        "production_schema_verified"
       ],
       "missingCapabilities": [
-        "production_rollout",
         "mobile_catch_up"
       ],
-      "blockers": [
-        "RISK-014"
-      ],
+      "blockers": [],
       "evidenceRefs": [
         "owner-approved:DEC-025:2026-08-10",
         "docs/shared/BUSINESS_RULES.md",
@@ -802,8 +799,8 @@
       "id": "RISK-014",
       "area": "expenses_and_rental",
       "severity": "high",
-      "status": "open",
-      "description": "Expenses Web runtime and owner-scoped Staging schema are verified, but the amount maximum, canonical Production migration history, Production rollout/types, and later Mobile catch-up remain gated.",
+      "status": "resolved",
+      "description": "Expenses amount validation passed on Staging, canonical Production history and schema are verified through 202608140001, and public database types were regenerated from Production. Web Preview acceptance and later Mobile catch-up remain separate delivery steps.",
       "blocksFlows": [
         "expenses",
         "vehicle_rental"
@@ -814,14 +811,14 @@
         "docs/shared/fixtures/expense-calculations.json",
         "lib/database.types.ts"
       ],
-      "requiredResolution": "Verify 202608140001 on Staging, apply the explicitly approved ordered Production bundle, regenerate Production types, validate the feature branch, and let paused Mobile catch up in a later snapshot."
+      "requiredResolution": "Completed by the owner-approved ordered rollout, per-migration verification, Production public-type regeneration, and preservation of the separate paused Mobile catch-up gate."
     },
     {
       "id": "RISK-015",
       "area": "garage_atomic_rollout",
       "severity": "high",
       "status": "open",
-      "description": "The atomic Garage RPC is applied and verified on Staging, while current Web still performs routine completion as two writes and Mobile implementation has not started.",
+      "description": "The atomic Garage RPC is applied to Staging and Production and behaviorally verified on Staging, while current Web still performs routine completion as two writes and Mobile implementation has not started.",
       "blocksFlows": [
         "garage"
       ],
@@ -830,7 +827,7 @@
         "docs/shared/GARAGE_CONTRACT.md",
         "supabase/migrations/202608090001_expand_garage_contract.sql"
       ],
-      "requiredResolution": "Adopt the verified RPC in Web, implement Mobile against the shared contract, verify both clients, then separately approve Production rollout and direct routine INSERT hardening."
+      "requiredResolution": "Adopt the verified RPC in Web, implement Mobile against the shared contract, verify both clients, then separately approve direct routine INSERT hardening."
     }
   ],
   "mismatches": [
@@ -838,14 +835,14 @@
       "id": "MISMATCH-001",
       "severity": "blocker",
       "status": "resolved",
-      "summary": "Repository and Staging migration history are coherent through verified Expenses revision 202608130001; local 202608140001 remains unapplied.",
+      "summary": "Repository, Staging, and Production migration histories are coherent through verified Expenses revision 202608140001.",
       "evidenceRefs": [
         "supabase/migrations",
         "supabase/schema.snapshot.json"
       ],
-      "impact": "The schema revision and generated artifacts now have an auditable migration chain; empty-database execution remains a pre-Production gate.",
+      "impact": "The Production schema revision and generated public client artifact have an auditable canonical migration chain; Web Preview acceptance remains separate from schema rollout.",
       "mobileStop": false,
-      "recommendation": "Run the deferred isolated bootstrap before Production rollout.",
+      "recommendation": "Preserve the canonical ordered history and verify the production-backed feature Preview before any main-branch merge.",
       "flows": [
         "profile",
         "work",

@@ -2,7 +2,7 @@
 
 ## 0.3.0-draft Expenses production reconciliation — 2026-08-14
 
-Status: `owner_approved_web_implemented_staging_verified`
+Status: `owner_approved_web_implemented_production_schema_verified`
 
 ### Reconciled
 
@@ -14,9 +14,10 @@ Status: `owner_approved_web_implemented_staging_verified`
 
 ### Schema and rollout
 
-- Staging migration `202608130001_create_expenses_schema.sql` and Web Supabase CRUD are implemented and verified.
-- Forward-only `202608140001_limit_expenses_amount.sql` adds only the maximum-amount check and changes no user row.
-- Production migration application, Production-generated types, branch push, and Vercel Preview remain separately gated.
+- Staging and Production canonical histories are reconciled and verified through `202608140001_limit_expenses_amount.sql`.
+- Forward-only `202608140001_limit_expenses_amount.sql` was validated first on Staging and then Production; it adds only the maximum-amount check and changes no user row.
+- Public-schema database types were regenerated from verified Production without losing Work, Tax, Profile, Garage, or Expenses surfaces.
+- Branch push and production-backed Vercel Preview remain pending; `main` and the existing Production deployment are unchanged.
 
 ## 0.3.0-draft Expenses product reconciliation — 2026-08-10
 

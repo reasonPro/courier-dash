@@ -38,7 +38,7 @@ describe("Expenses production-ready shared contract", () => {
   it("defines the owner-approved PLN vocabulary and all five manual categories", () => {
     expect(EXPENSES_CONTRACT_VERSION).toBe("0.3.0-draft")
     expect(EXPENSES_CONTRACT_STATUS).toBe(
-      "owner_approved_web_implemented_staging_verified",
+      "owner_approved_web_implemented_production_schema_verified",
     )
     expect(EXPENSES_CURRENCY).toBe("PLN")
     expect(EXPENSE_CATEGORIES).toEqual([

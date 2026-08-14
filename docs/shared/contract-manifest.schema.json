@@ -35,7 +35,7 @@
     "status": { "$ref": "#/$defs/evidenceStatus" },
     "canonicalLocation": { "const": "docs/shared" },
     "developmentPhase": { "const": "web_expenses_rollout_mobile_paused" },
-    "generatedFromEnvironment": { "const": "staging" },
+    "generatedFromEnvironment": { "const": "production" },
     "sourceWebCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
     "schemaRevision": { "type": ["string", "null"] },
     "latestMigration": { "type": ["string", "null"] },
