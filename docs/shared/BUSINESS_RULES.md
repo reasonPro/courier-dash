@@ -53,10 +53,10 @@ The Mobile fixture runner normalized null and missing inputs into the domain's n
 
 ## EXP-INCOME-AFTER-001 — Income after expenses
 
-- Status: `reported_pending_snapshot`.
-- Semantic definition: `after_recorded_expenses = G - E`, where `G = base income + app tips + cash tips + bonuses` and `E` is the source-aware total of all five Expenses V1 categories.
+- Status: `verified` for Web runtime and Staging Expenses schema.
+- Semantic definition: `after_recorded_expenses = G - E`, where `G = base income + app tips + cash tips + bonuses` and `E` is the total of all five user-owned Expenses V1 categories attributed by `expense_date`.
 - Presentation boundary: `G` does not depend on Work or Annual tips/bonuses display toggles.
-- Explicit distinction: this mode is not Netto and does not subtract `T`.
+- BRUTTO after expenses is `G - E`; NETTO after expenses is `G - T - E` when the existing Work tax logic provides reliable `T`.
 - Affected flows: expenses, statistics.
 - Source evidence: owner-confirmed product basis; `docs/shared/EXPENSES_CONTRACT.md`; actual Work/Annual calculations inspected as non-normative runtime evidence.
 - Fixture IDs: `expense-four-calculation-modes`.
@@ -66,17 +66,17 @@ The Mobile fixture runner normalized null and missing inputs into the domain's n
 
 - Status: `reported_pending_snapshot`.
 - Semantic definition: Expenses V1 is PLN-only and includes exactly `fuel`, `rental`, `maintenance`, `repair`, and `food_on_shift`.
-- Permitted sources: fuel/manual; rental/rental period; maintenance/manual or Garage; repair/manual or Garage; food on shift/manual.
+- All five categories are stored as ordinary owner-owned Expenses rows. Rental additionally requires an inclusive paid-period start/end.
 - Affected flows: expenses.
-- Source evidence: owner-confirmed product basis; DEC-025; no matching Expenses or rental tables in repository evidence.
+- Source evidence: owner-confirmed product basis; DEC-025; `202608130001_create_expenses_schema.sql`; Web runtime.
 - Fixture IDs: `expense-v1-category-source-matrix`.
 - Introduced in contract: `0.2.0-draft`.
 
-Garage remains an accepted separate source contract. Expenses references eligible Garage rows instead of copying them into manual expenses.
+Maintenance and repair are complete manual Expenses categories. Garage import is a deferred future integration and is not a current source or completeness requirement.
 
 ## EXP-CALCULATION-MODES-001 — Expenses financial modes
 
-- Status: `reported_pending_snapshot`.
+- Status: `verified` for current Web calculations; Mobile catch-up is paused.
 - Semantic definition: `gross = G`; `after_tax_and_fees = G - T`; `after_recorded_expenses = G - E`; `after_all_deductions = G - T - E`.
 - `G` always includes base income, app tips, cash tips, and bonuses across included records.
 - `T` is a separate tax-and-fee component and is not an expense category.
@@ -87,7 +87,7 @@ Garage remains an accepted separate source contract. Expenses references eligibl
 
 ## EXP-AVAILABILITY-001 — Calculation availability
 
-- Status: `reported_pending_snapshot`; owner approved on 2026-08-10, implementation not started.
+- Status: `verified` for current Web availability behavior.
 - Required vocabulary: `available`, `partial`, `unavailable`, `not_configured`.
 - Missing, failed, or unconfigured inputs are not silently coerced to zero. A successfully queried empty source can be a known zero. A `partial` result has a non-empty missing-component list and is never final.
 - Modes that require `T` cannot be `available` until `T` is reliable for the requested range. Current Work tax/fee runtime remains unchanged pending a separate tax audit.
@@ -95,28 +95,25 @@ Garage remains an accepted separate source contract. Expenses references eligibl
 - Fixture IDs: `expense-result-availability-vocabulary`.
 - Introduced in contract: `0.3.0-draft`.
 
-## EXP-SOURCE-IDENTITY-001 — Source identity and double-counting
+## EXP-PERSISTENCE-001 — Owner-owned Expenses rows
 
-- Status: `reported_pending_snapshot`; owner approved on 2026-08-10.
-- Semantic definition: manual, rental-period, and Garage inputs retain separate source identities; one `(source, sourceRecordId)` contributes at most once.
-- Garage `routine` maps to `maintenance`; Garage `repair` maps to `repair`.
-- Garage and rental records are not copied into manual expense rows.
-- A Garage-derived expense is created or corrected in Garage and cannot be recreated as a manual duplicate.
-- Source evidence: owner-approved DEC-025; accepted Garage Contract `0.3.0-draft`.
-- Fixture IDs: `expense-garage-reference-no-copy`.
+- Status: `verified` on Staging for migration `202608130001`.
+- Semantic definition: `expense_settings` and `expenses` are owned by `auth.uid()` and protected by RLS. All five categories use direct owner CRUD.
+- A successful empty query is a known zero; a failed Expenses query is unavailable and is never coerced to zero.
+- Garage integration and a Source filter are not part of current V1.
+- Source evidence: `202608130001_create_expenses_schema.sql`; `lib/use-expenses.ts`.
+- Fixture IDs: `expense-v1-five-manual-categories`, `expense-read-failure-is-unavailable`.
 - Introduced in contract: `0.3.0-draft`.
 
-## RENTAL-PERIOD-001 — Vehicle rental periods
+## EXP-RENTAL-PAYMENT-001 — Rental payment
 
-- Status: `reported_pending_snapshot`; product behavior owner approved on 2026-08-10, implementation not started.
-- Semantic definition: rental is optional and is modeled as a history of periods with weekly price, inclusive start date, and inclusive optional end date. Closing or correcting a period must preserve history rather than rewrite unrelated past periods, and destructive corrections require a warning.
-- Calculation direction: `weekly amount × active calendar days / 7` for the inclusive intersection with the requested date range; rental is independent of Work shifts and does not generate copied daily or weekly expense rows.
-- Owner-approved boundaries: periods for one owner cannot overlap; normal close-and-create is atomic; correction is a separate controlled action; retryable creates require idempotency keys; PLN inputs have at most two decimal places; intermediate proration is not rounded; the final result uses `ROUND_HALF_UP` to `0.01 PLN`.
-- Unresolved implementation details: physical persistence, authorization/RLS, transaction or RPC shape, stable mutation errors, idempotency-key storage, and correction audit mechanics.
-- Affected flows: vehicle rental, expenses.
-- Source evidence: DEC-011 through DEC-014; owner-approved DEC-025; `docs/shared/EXPENSES_CONTRACT.md`; no matching repository schema.
-- Fixture IDs: `rental-owner-overlap-atomicity-and-idempotency`, `expense-pln-decimal-and-rental-rounding`.
-- Introduced in contract: `0.2.0-draft`.
+- Status: `verified` in current Web runtime and Staging schema.
+- Semantic definition: rental is one ordinary expense with positive PLN amount, payment `expense_date`, inclusive `paid_period_from`, and inclusive `paid_period_to`.
+- The full amount contributes only to the month containing `expense_date`; the paid period is not prorated across months.
+- No weekly-rate history, rental-period source, overlap rule, close-and-create RPC, correction workflow, or create idempotency model is part of V1.
+- Source evidence: DEC-025; `202608130001_create_expenses_schema.sql`; `lib/expenses-prototype.ts`.
+- Fixture IDs: `rental-payment-month-attribution`.
+- Introduced in contract: `0.3.0-draft`.
 
 ## REPORT-ANNUAL-001 — Annual report
 
@@ -141,18 +138,18 @@ Mobile pure arithmetic helpers satisfy the supplied report numeric fixtures. Mob
 
 For Garage in contract `0.3.0-draft`, the owner-approved rule is narrower and canonical: `garage_history.date` is an exact `YYYY-MM-DD` calendar date chosen on the device and must not pass through UTC conversion. The existing Web Garage runtime does not yet satisfy this rule and is intentionally deferred to the post-review implementation stage.
 
-For Expenses, DEC-025 now provides a flow-specific owner-approved rule: a manual row's actual `YYYY-MM-DD` expense date is distinct from technical `created_at`, may be entered after the fact, and controls filters, history, and financial attribution. Garage dates are consumed without reinterpretation; rental overlap uses inclusive rental calendar dates. Expenses implementation remains pending.
+For Expenses, DEC-025 provides a flow-specific owner-approved rule: an expense row's actual `YYYY-MM-DD` expense date is distinct from technical `created_at`, may be entered after the fact, and controls filters, history, and financial attribution. Rental paid-period dates are inclusive and descriptive; payment-month attribution uses `expense_date`. Garage integration is deferred.
 
 ## MONEY-ROUNDING-001 — Precision and rounding
 
-- Status: `unresolved` for Statistics and Reports; `reported_pending_snapshot` for owner-approved Expenses and Vehicle Rental rules.
-- Semantic definition: Expenses/rental PLN inputs accept at most two decimal places and use decimal arithmetic. Rental intermediate calculations are not rounded; the final result is rounded to `0.01 PLN` with `ROUND_HALF_UP`. Web and Mobile must use the same oracle. Existing Web fixed-decimal presentation does not implement this contract.
+- Status: `unresolved` for Statistics and Reports; `verified` for current Expenses client validation and totals.
+- Semantic definition: Expenses accepts `0.01…999999.99` PLN with at most two decimal places and uses exact decimal string/minor-unit arithmetic. Values outside the range or scale are rejected, not rounded into range.
 - Affected flows: statistics, reports, expenses, vehicle rental.
 - Source evidence: Web formatting call sites; no schema-level money type policy.
-- Fixture IDs: `income-decimal-values` validates legacy arithmetic inputs; `expense-pln-decimal-and-rental-rounding` locks the Expenses/rental rule.
+- Fixture IDs: `income-decimal-values` validates legacy arithmetic inputs; `expense-amount-boundaries` locks the Expenses rule.
 - Introduced in contract: `0.2.0-draft`.
 
-Garage has an independent approved persistence rule: PLN only, cost `>= 0`, at most two decimal places, and rejection rather than silent rounding. Garage mileage is an integer from `0` through `2147483647`. Expenses and Vehicle Rental now have the separate DEC-025 rounding rule above; Statistics and Reports remain unresolved.
+Garage has an independent approved persistence rule: PLN only, cost `>= 0`, at most two decimal places, and rejection rather than silent rounding. Garage mileage is an integer from `0` through `2147483647`. Expenses uses the separate bounded rule above; Statistics and Reports remain unresolved.
 
 ## GARAGE-HISTORY-001 — Routine and repair history
 

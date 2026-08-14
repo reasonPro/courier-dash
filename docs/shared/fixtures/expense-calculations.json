@@ -1,260 +1,130 @@
 {
   "fixtureType": "expense",
   "contractVersion": "0.3.0-draft",
-  "status": "reported_pending_snapshot",
+  "status": "verified",
   "cases": [
     {
       "ruleId": "EXP-CATEGORY-001",
-      "caseId": "expense-v1-category-source-matrix",
-      "title": "Expenses V1 accepts only the owner-approved category and source pairs",
-      "status": "reported_pending_snapshot",
+      "caseId": "expense-v1-five-manual-categories",
+      "title": "All five V1 categories are ordinary expense entries",
+      "status": "verified",
       "input": {
-        "currency": "PLN"
+        "categories": ["fuel", "rental", "maintenance", "repair", "food_on_shift"]
       },
       "expected": {
-        "fuel": ["manual"],
-        "rental": ["rental_period"],
-        "maintenance": ["manual", "garage"],
-        "repair": ["manual", "garage"],
-        "food_on_shift": ["manual"]
+        "manualCategories": ["fuel", "rental", "maintenance", "repair", "food_on_shift"],
+        "garageIntegration": "deferred",
+        "sourceFilter": false
       },
-      "explanation": "The owner-approved V1 scope is PLN-only and source-restricted.",
-      "verifiedAgainst": ["owner-approved:DEC-025:2026-08-10"],
-      "evidenceRefs": ["docs/shared/EXPENSES_CONTRACT.md", "docs/shared/types/expenses.ts"],
+      "explanation": "Maintenance and repair are complete manual expenses; Garage is not a V1 source.",
+      "verifiedAgainst": ["docs/shared/types/expenses.ts", "lib/expenses-prototype.ts"],
+      "evidenceRefs": ["docs/DECISIONS.md#dec-025", "supabase/migrations/202608130001_create_expenses_schema.sql"],
+      "introduced": "0.3.0-draft"
+    },
+    {
+      "ruleId": "EXP-MONEY-001",
+      "caseId": "expense-amount-boundaries",
+      "title": "Expense amount boundaries and decimal scale",
+      "status": "verified",
+      "input": {
+        "accepted": ["0.01", "999999.99"],
+        "rejected": ["0.00", "1000000.00", "1.001", "-0.01"]
+      },
+      "expected": {
+        "minimum": "0.01",
+        "maximum": "999999.99",
+        "decimalPlacesMaximum": "2",
+        "currency": "PLN"
+      },
+      "explanation": "Amounts use exact decimal strings and are rejected rather than rounded into range.",
+      "verifiedAgainst": ["lib/expenses-prototype.ts", "supabase/migrations/202608140001_limit_expenses_amount.sql"],
+      "evidenceRefs": ["docs/shared/EXPENSES_CONTRACT.md#money-rules"],
       "introduced": "0.3.0-draft"
     },
     {
       "ruleId": "EXP-CALCULATION-MODES-001",
       "caseId": "expense-four-calculation-modes",
-      "title": "All four calculation modes use the same canonical G, T, and E",
-      "status": "reported_pending_snapshot",
+      "title": "BRUTTO and NETTO subtract recorded expenses once",
+      "status": "verified",
       "input": {
-        "grossComponents": {
-          "baseIncome": "700.00",
-          "appTips": "100.00",
-          "cashTips": "50.00",
-          "bonuses": "150.00"
-        },
-        "taxAndFees": "200.00",
-        "recordedExpenses": "150.00",
-        "presentationToggles": {
-          "includeTips": false,
-          "includeBonuses": false
-        }
+        "gross": "5000.00",
+        "taxAndFees": "600.00",
+        "recordedExpenses": "800.00"
       },
       "expected": {
-        "gross": "1000.00",
-        "after_tax_and_fees": "800.00",
-        "after_recorded_expenses": "850.00",
-        "after_all_deductions": "650.00"
+        "gross": "5000.00",
+        "after_tax_and_fees": "4400.00",
+        "after_recorded_expenses": "4200.00",
+        "after_all_deductions": "3600.00"
       },
-      "explanation": "G includes every recorded income component and is independent of presentation toggles.",
-      "verifiedAgainst": ["owner-approved:DEC-025:2026-08-10"],
-      "evidenceRefs": ["docs/shared/EXPENSES_CONTRACT.md", "docs/shared/BUSINESS_RULES.md"],
+      "explanation": "G includes all recorded income; E is subtracted once and T is used only in tax-dependent modes.",
+      "verifiedAgainst": ["lib/after-expenses.ts", "lib/work-finance.ts"],
+      "evidenceRefs": ["tests/expenses-work-summary.test.ts"],
       "introduced": "0.3.0-draft"
     },
     {
-      "ruleId": "EXP-SOURCE-IDENTITY-001",
-      "caseId": "expense-garage-reference-no-copy",
-      "title": "Garage costs remain Garage sources and are counted once",
-      "status": "reported_pending_snapshot",
+      "ruleId": "EXP-RENTAL-001",
+      "caseId": "rental-payment-month-attribution",
+      "title": "Rental is counted in the payment month only",
+      "status": "verified",
       "input": {
-        "sources": [
-          {
-            "source": "manual",
-            "sourceRecordId": "synthetic-manual-fuel-1",
-            "category": "fuel",
-            "amount": "75.00"
-          },
-          {
-            "source": "garage",
-            "sourceRecordId": "synthetic-garage-routine-1",
-            "garageServiceType": "routine",
-            "category": "maintenance",
-            "amount": "125.00"
-          },
-          {
-            "source": "garage",
-            "sourceRecordId": "synthetic-garage-repair-1",
-            "garageServiceType": "repair",
-            "category": "repair",
-            "amount": "200.00"
-          }
-        ],
-        "attemptedManualDuplicate": {
-          "sourceGarageRecordId": "synthetic-garage-repair-1",
-          "category": "repair",
-          "amount": "200.00"
-        }
+        "amount": "700.00",
+        "expenseDate": "2026-08-28",
+        "paidPeriodFrom": "2026-08-28",
+        "paidPeriodTo": "2026-09-03"
       },
       "expected": {
-        "recordedExpenses": "400.00",
-        "uniqueSourceReferences": 3,
-        "copiedGarageRowsInManualExpenses": 0,
-        "manualDuplicateAllowed": false,
-        "garageCorrectionOwner": "garage"
+        "augustTotal": "700.00",
+        "septemberTotal": "0.00",
+        "paidPeriodInclusive": true,
+        "proration": false
       },
-      "explanation": "Expenses references Garage history as a separate source; Garage-derived expenses are created or corrected in Garage, never copied into manual rows.",
-      "verifiedAgainst": ["owner-approved:DEC-025:2026-08-10", "Garage Contract 0.3.0-draft"],
-      "evidenceRefs": ["docs/shared/EXPENSES_CONTRACT.md", "docs/shared/GARAGE_CONTRACT.md"],
-      "introduced": "0.3.0-draft"
-    },
-    {
-      "ruleId": "EXP-AVAILABILITY-001",
-      "caseId": "expense-result-availability-vocabulary",
-      "title": "Calculation results expose owner-approved completeness behavior",
-      "status": "reported_pending_snapshot",
-      "input": {
-        "scenarios": ["complete", "partial", "tax-dependent-without-reliable-t"]
-      },
-      "expected": {
-        "states": ["available", "partial", "unavailable", "not_configured"],
-        "complete": {
-          "availability": "available",
-          "value": "850.00",
-          "missingComponents": [],
-          "isFinal": true
-        },
-        "partial": {
-          "availability": "partial",
-          "value": null,
-          "missingComponents": ["recordedExpenses"],
-          "isFinal": false
-        },
-        "taxDependentWithoutReliableT": {
-          "availability": "not_configured",
-          "value": null,
-          "missingComponents": ["taxAndFees"],
-          "isFinal": false,
-          "availableAllowed": false
-        }
-      },
-      "explanation": "Partial results disclose at least one missing component and are never final; T-dependent modes cannot be available without reliable T.",
-      "verifiedAgainst": ["owner-approved:DEC-025:2026-08-10"],
-      "evidenceRefs": ["docs/shared/EXPENSES_CONTRACT.md", "docs/shared/types/expenses.ts"],
-      "introduced": "0.3.0-draft"
-    },
-    {
-      "ruleId": "EXP-MONEY-001",
-      "caseId": "expense-pln-decimal-and-rental-rounding",
-      "title": "PLN validation and rental rounding use the shared decimal rule",
-      "status": "reported_pending_snapshot",
-      "input": {
-        "acceptedPlnInputs": ["0", "0.1", "0.10", "214.50"],
-        "rejectedPlnInputs": ["-0.01", "19.999", "PLN 10.00"],
-        "roundHalfUpTie": "12.345"
-      },
-      "expected": {
-        "decimalPlacesMaximum": 2,
-        "intermediateRounding": false,
-        "finalIncrement": "0.01",
-        "roundingMode": "ROUND_HALF_UP",
-        "roundHalfUpTieResult": "12.35"
-      },
-      "explanation": "Inputs with excess precision are rejected and decimal ROUND_HALF_UP is applied without binary floating-point.",
-      "verifiedAgainst": ["owner-approved:DEC-025:2026-08-10"],
-      "evidenceRefs": ["docs/shared/EXPENSES_CONTRACT.md", "docs/shared/types/expenses.ts"],
-      "introduced": "0.3.0-draft"
-    },
-    {
-      "ruleId": "EXP-MONEY-001",
-      "caseId": "expense-pln-beyond-javascript-safe-integer",
-      "title": "PLN arithmetic remains exact beyond the JavaScript safe integer range",
-      "status": "reported_pending_snapshot",
-      "input": {
-        "amounts": ["9007199254740993.00", "0.01"]
-      },
-      "expected": {
-        "total": "9007199254740993.01"
-      },
-      "explanation": "The shared oracle operates on decimal strings and bigint minor units without introducing a product maximum or converting PLN through JavaScript number.",
-      "verifiedAgainst": ["owner-approved:DEC-025:2026-08-10"],
-      "evidenceRefs": ["docs/shared/EXPENSES_CONTRACT.md", "tests/expenses-contract.test.ts"],
-      "introduced": "0.3.0-draft"
-    },
-    {
-      "ruleId": "RENTAL-PERIOD-001",
-      "caseId": "rental-non-terminating-proration-round-half-up",
-      "title": "Rental proration keeps a non-terminating rational exact until final rounding",
-      "status": "reported_pending_snapshot",
-      "input": {
-        "weeklyAmount": "100.00",
-        "activeCalendarDays": "1",
-        "daysPerWeek": "7"
-      },
-      "expected": {
-        "minorUnitNumerator": "10000",
-        "minorUnitDenominator": "7",
-        "intermediateRounding": false,
-        "finalAmount": "14.29",
-        "roundingMode": "ROUND_HALF_UP"
-      },
-      "explanation": "100.00 PLN multiplied by 1/7 has a non-terminating decimal expansion; the rational numerator and denominator remain exact and only the final PLN result is rounded.",
-      "verifiedAgainst": ["owner-approved:DEC-025:2026-08-10"],
-      "evidenceRefs": ["docs/shared/EXPENSES_CONTRACT.md", "tests/expenses-contract.test.ts"],
+      "explanation": "The paid period is descriptive; the full payment is attributed by expenseDate.",
+      "verifiedAgainst": ["lib/expenses-prototype.ts"],
+      "evidenceRefs": ["tests/expenses-prototype.test.ts"],
       "introduced": "0.3.0-draft"
     },
     {
       "ruleId": "EXP-DATE-001",
-      "caseId": "expense-backdated-manual-attribution",
-      "title": "A backdated manual expense is attributed to its actual calendar date",
-      "status": "reported_pending_snapshot",
+      "caseId": "backdated-expense-uses-actual-date",
+      "title": "Backdated entries use expense date rather than creation time",
+      "status": "verified",
       "input": {
-        "manualExpense": {
-          "source": "manual",
-          "sourceRecordId": "synthetic-manual-food-1",
-          "category": "food_on_shift",
-          "expenseDate": "2026-08-01",
-          "createdAt": "2026-08-10T10:15:30Z",
-          "amount": "25.50"
-        },
-        "selectedRange": {
-          "from": "2026-08-01",
-          "to": "2026-08-07"
-        }
+        "expenseDate": "2026-07-31",
+        "createdAt": "2026-08-10T10:00:00.000Z",
+        "amount": "25.50"
       },
       "expected": {
-        "included": true,
-        "backdatedCreateAllowed": true,
-        "attributionField": "expenseDate",
+        "attributedMonth": "2026-07",
         "createdAtUsedForAttribution": false,
         "utcDateConversionAllowed": false
       },
-      "explanation": "Financial attribution follows the user-entered actual calendar date, while createdAt remains technical metadata.",
-      "verifiedAgainst": ["owner-approved:DEC-025:2026-08-10"],
-      "evidenceRefs": ["docs/shared/EXPENSES_CONTRACT.md", "docs/DECISIONS.md"],
+      "explanation": "Calendar-date filters and totals use the user's actual expense date.",
+      "verifiedAgainst": ["supabase/migrations/202608130001_create_expenses_schema.sql"],
+      "evidenceRefs": ["docs/shared/EXPENSES_CONTRACT.md#calendar-and-rental-rules"],
       "introduced": "0.3.0-draft"
     },
     {
-      "ruleId": "RENTAL-PERIOD-001",
-      "caseId": "rental-owner-overlap-atomicity-and-idempotency",
-      "title": "Rental mutations preserve one non-overlapping owner timeline",
-      "status": "reported_pending_snapshot",
+      "ruleId": "EXP-AVAILABILITY-001",
+      "caseId": "expense-read-failure-is-unavailable",
+      "title": "Failed Expenses reads never become zero",
+      "status": "verified",
       "input": {
-        "existingPeriod": {
-          "sourceRecordId": "synthetic-rental-period-1",
-          "validFrom": "2026-08-01",
-          "validTo": null,
-          "weeklyAmount": "350.00"
-        },
-        "replacement": {
-          "validFrom": "2026-08-15",
-          "validTo": null,
-          "weeklyAmount": "420.00",
-          "idempotencyKey": "synthetic-rental-create-key-1"
-        }
+        "gross": "5000.00",
+        "expensesRead": "failed",
+        "taxConfigured": false
       },
       "expected": {
-        "overlapAllowed": false,
-        "closedExistingValidTo": "2026-08-14",
-        "closeAndCreateAtomic": true,
-        "correctionIsSeparateControlledAction": true,
-        "retryWithSameIdempotencyKeyCreatesSecondPeriod": false,
-        "source": "rental_period"
+        "afterRecordedExpenses": null,
+        "afterRecordedExpensesAvailability": "unavailable",
+        "afterAllDeductions": null,
+        "afterAllDeductionsAvailability": "unavailable",
+        "silentZeroAllowed": false,
+        "missingComponents": ["recordedExpenses"]
       },
-      "explanation": "A normal rate change atomically closes the current period before the replacement starts; retries reuse the same logical create.",
-      "verifiedAgainst": ["owner-approved:DEC-025:2026-08-10"],
-      "evidenceRefs": ["docs/shared/EXPENSES_CONTRACT.md", "docs/DECISIONS.md"],
+      "explanation": "A remote read failure is not the same as a successful empty result; unknown tax also remains unavailable.",
+      "verifiedAgainst": ["lib/use-expenses.ts", "app/expenses/components/AfterExpensesResult.tsx"],
+      "evidenceRefs": ["docs/shared/EXPENSES_CONTRACT.md#availability-and-failure-behavior"],
       "introduced": "0.3.0-draft"
     }
   ]

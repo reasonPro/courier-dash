@@ -1,10 +1,28 @@
 # Shared Contract Changelog
 
+## 0.3.0-draft Expenses production reconciliation — 2026-08-14
+
+Status: `owner_approved_web_implemented_staging_verified`
+
+### Reconciled
+
+- All five V1 categories are ordinary owner-owned Expenses rows; maintenance and repair are complete without Garage.
+- Rental is a payment with amount, payment date, and inclusive paid period. The full amount is attributed only to the payment month; the weekly-rate/proration/source model is superseded.
+- Amount inputs are limited to `0.01…999999.99` PLN with at most two decimals and exact string/minor-unit client arithmetic.
+- A failed Expenses read makes Expenses-dependent results unavailable; it is never a silent zero. Unknown tax keeps NETTO unavailable.
+- Source filtering and Garage import are absent and deferred. Mobile implementation is paused and will catch up to the canonical Web contract later.
+
+### Schema and rollout
+
+- Staging migration `202608130001_create_expenses_schema.sql` and Web Supabase CRUD are implemented and verified.
+- Forward-only `202608140001_limit_expenses_amount.sql` adds only the maximum-amount check and changes no user row.
+- Production migration application, Production-generated types, branch push, and Vercel Preview remain separately gated.
+
 ## 0.3.0-draft Expenses product reconciliation — 2026-08-10
 
 Status: `owner_approved_contract_draft`
 
-This documentation-only stage records the owner-approved Expenses V1 product basis and all five decision gates. Expenses Production implementation has not started.
+This historical documentation-only stage recorded the initial owner-approved product basis. Its source/rental/implementation status is superseded by the 2026-08-14 reconciliation above.
 
 ### Added
 
@@ -24,10 +42,10 @@ This documentation-only stage records the owner-approved Expenses V1 product bas
 - `partial` results have non-empty missing components and are not final; modes requiring unreliable `T` are not `available`.
 - Rental periods cannot overlap per owner; normal close-and-create is atomic, correction is separate, and retryable creates require idempotency keys.
 
-### Not implemented
+### Historical stage boundary
 
-- No `/expenses` route, UI, finance refactor, schema, migration, generated database type, Supabase operation, DDL, DML, RPC, Staging change, or Production change was introduced.
-- Concrete schema/RLS/RPC/error design, idempotency-key storage, manual deletion/audit retention, audited `T`, and implementation remain deferred despite the approved product gates.
+- That documentation commit itself introduced no runtime, schema, database, or deployment change. Web runtime and Staging schema were implemented later and are recorded above.
+- Its proposed source-aware rental/Garage model is historical and no longer normative.
 - Garage Contract `0.3.0-draft` runtime, acceptance, provenance, schema, and RPC semantics are unchanged.
 
 ## 0.3.0-draft Garage contract preparation — 2026-08-09

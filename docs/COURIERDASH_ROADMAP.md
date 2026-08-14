@@ -466,120 +466,47 @@ Landing Page повинна виконувати дві головні функ�
 
 Результат фази — безпечна migration strategy.
 
-# PHASE 8 — Expenses V1 contract та майбутня реалізація
+# PHASE 8 — Expenses V1 Web rollout
 
-Статус: `OWNER DECISIONS APPROVED — CONTRACT DRAFT`; production implementation: `NOT STARTED`.
+Статус: `WEB IMPLEMENTED — STAGING SCHEMA VERIFIED — PRODUCTION GATED`.
 
-Нормативний draft: `docs/shared/EXPENSES_CONTRACT.md`. П'ять owner decision gates затверджені 2026-08-10. Це не дозволяє автоматично переходити до schema, migration, `/expenses`, UI або Production implementation: кожен такий етап потребує окремого review та approval.
+Нормативний draft: `docs/shared/EXPENSES_CONTRACT.md`. Web є єдиним owner schema/migrations. Mobile paused і наздожене canonical Web contract пізніше; Mobile не є gate для поточного owner-approved Web rollout.
 
-Валюта:
+## 8.1. Поточна модель
 
 - тільки PLN;
-- без currency selector;
-- без multi-currency;
-- без conversion.
+- категорії `fuel`, `rental`, `maintenance`, `repair`, `food_on_shift`;
+- усі п'ять категорій створюються як owner-owned Expenses rows;
+- amount `0.01…999999.99`, максимум дві decimals, exact string/minor-unit arithmetic;
+- `expense_date` є фактичною календарною датою і може бути backdated;
+- settings та CRUD захищені owner-only RLS.
 
-Категорії Expenses V1:
+## 8.2. Оренда
 
-1. `fuel`;
-2. `rental`;
-3. `maintenance`;
-4. `repair`;
-5. `food_on_shift`.
+Rental є звичайною витратою з amount, payment `expense_date`, inclusive `paid_period_from` та inclusive `paid_period_to`. Повна сума входить лише до місяця оплати. Weekly-rate/proration, окремі rental-period sources, overlap, close-and-create, correction та rental idempotency не входять до V1.
 
-Дозволені sources:
+## 8.3. Розрахунки та помилки
 
-- `fuel` — manual;
-- `rental` — rental periods;
-- `maintenance` — manual або Garage;
-- `repair` — manual або Garage;
-- `food_on_shift` — manual.
+`G = base income + app tips + cash tips + bonuses`.
 
-Charging, parking, insurance, washing, taxes та довільні recurring expenses не входять до V1.
+`E = fuel + rental + maintenance + repair + food_on_shift` за `expense_date`.
 
-## 8.1. Manual expenses
+- BRUTTO after expenses: `G - E`;
+- NETTO after expenses: `G - T - E`;
+- failed Expenses read не є zero і робить Expenses-dependent result unavailable;
+- неналаштований або ненадійний `T` не підмінюється zero;
+- maintenance/repair є повними manual expenses і не створюють Garage gap.
 
-Manual source використовується тільки для `fuel`, `maintenance`, `repair` і `food_on_shift`. Мінімальна логічна інформація: owner, actual `YYYY-MM-DD` expense date, separate technical `created_at`, category, PLN amount і stable source identity. Користувач може створити manual expense заднім числом; filters, history і financial calculations використовують actual expense date, а не `created_at`.
+## 8.4. Відкладено
 
-Owner-approved persistence boundary зберігає тільки manual rows; rental periods і Garage history залишаються окремими sources зі стабільною парою `(source, sourceRecordId)`. Майбутня physical persistence model, correction history, deletion policy, constraints, RLS і CRUD/RPC boundary ще не погоджені. На contract-draft stage таблиця або migration не створюється.
+- Garage integration і Source filter;
+- annual Expenses reporting та cost-per-kilometer;
+- multi-currency, receipts і recurring billing;
+- Mobile implementation/compatibility catch-up.
 
-Manual expense не потрібно обов'язково прив'язувати до Work shift і він не може дублювати Garage або rental source record.
+## 8.5. Rollout
 
-## 8.2. Оренда транспорту
-
-Один rental record означає один безперервний період однієї тижневої ставки з weekly amount, inclusive `valid_from`, inclusive optional `valid_to` та user ownership.
-
-- `valid_to = null` означає незавершену оренду;
-- оренда рахується незалежно від наявності Work shifts;
-- старим користувачам вона не нараховується без явного створення rental period;
-- rental periods не копіюються у manual expenses і не створюють physical daily/weekly expense rows.
-
-Фізична schema потребує окремого remote audit і approval.
-
-## 8.3. Математика оренди
-
-Напрям формули за вибраний період:
-
-`weekly_amount × active_calendar_days / 7`
-
-Потрібно рахувати inclusive intersection rental period і selected date range, підтримувати calendar-month lengths, leap year, зміну ставки, паузу та повторне увімкнення. Повні сім активних днів дорівнюють weekly amount.
-
-OWNER APPROVED: PLN inputs мають максимум два десяткові знаки; використовується decimal arithmetic; intermediate rental values не округлюються; фінальний результат округлюється до `0.01 PLN` за `ROUND_HALF_UP` однаково на Web і Mobile.
-
-## 8.4. Зміна ставки
-
-Звичайна зміна ставки не переписує минуле: вона завершує попередній period за день до нової ставки та створює новий period із вибраної дати.
-
-OWNER APPROVED: rental periods одного користувача не перетинаються, normal close-and-create є атомарним, correction залишається окремою контрольованою дією, а retryable creates використовують idempotency keys. Конкретний schema/RPC/transaction/error contract не проєктується на цьому етапі.
-
-## 8.5. Виправлення історії
-
-Історичне виправлення є окремою дією, не звичайною зміною ставки. Воно має попереджати про перерахунок старих reports і вимагати свідомого підтвердження. Точні authorization, audit retention та UI потребують окремого рішення.
-
-## 8.6. Garage і витрати
-
-Garage Contract `0.3.0-draft` залишається окремим прийнятим source contract і не змінюється Expenses draft.
-
-- Garage `routine` є source для `maintenance`;
-- Garage `repair` є source для `repair`;
-- Expenses history посилається на Garage row як на окреме source identity;
-- Garage row не копіюється у manual expenses; Garage-derived expense створюється або виправляється лише у Garage;
-- один Garage source record рахується не більше одного разу.
-
-## 8.7. Агрегація витрат
-
-`E` є source-aware сумою п'яти категорій за selected date range:
-
-`E = fuel + rental + maintenance + repair + food_on_shift`
-
-Manual, rental-period і Garage records зберігають різні source identities. Невідомі або недоступні sources не перетворюються на zero без completeness state.
-
-## 8.8. Відображення
-
-Future UI може містити короткий dashboard summary та окрему `/expenses` page, але точний UX має статус `REQUIRES DESIGN`. У межах contract draft UI та route не створюються.
-
-## 8.9. Витрати на кілометр
-
-Напрям майбутніх формул:
-
-`fuelPerKm = fuel / mileage`
-
-`allExpensesPerKm = E / mileage`
-
-При нульовому, відсутньому або неповному mileage не показувати хибний zero; результат має бути unavailable/partial згідно з майбутньою availability matrix. Точне відображення не погоджене.
-
-## 8.10. Financial calculation modes
-
-`G = base income + app tips + cash tips + bonuses` і не залежить від presentation toggles.
-
-Підтверджені режими:
-
-- `gross = G`;
-- `after_tax_and_fees = G - T`;
-- `after_recorded_expenses = G - E`;
-- `after_all_deductions = G - T - E`.
-
-Результат може бути від'ємним, не обмежується нулем і не зберігається як authoritative total. OWNER APPROVED: результат має nullable value, completeness status і missing components; `partial` завжди має непорожній missing-component list і не є фінальним. Чинний Work tax runtime не змінюється; режими, залежні від `T`, не можуть бути `available`, поки `T` не визначається надійно в межах окремого tax audit.
+Migration `202608130001_create_expenses_schema.sql` застосована та перевірена на Staging. Forward-only `202608140001_limit_expenses_amount.sql` додає maximum amount без переписування rows і має спочатку пройти Staging. Production migration history/schema rollout, generated Production types, feature-branch push і Vercel Preview потребують окремого підтвердження власника.
 
 # PHASE 9 — персоналізація dashboard і onboarding
 

@@ -10,7 +10,7 @@ function source(path: string) {
   return readFileSync(resolve(process.cwd(), path), "utf8")
 }
 
-describe("Expenses after-income preview", () => {
+describe("Expenses after-income result", () => {
   it("calculates the approved BRUTTO and NETTO examples without subtracting expenses twice", () => {
     const finance = calculateMonthlyWorkFinance(
       [{ date: "2026-08-10", uber: 5000 }],
@@ -70,7 +70,7 @@ describe("Expenses after-income preview", () => {
     const summary = source("app/work/components/ExpensesMonthSummary.tsx")
     const workPage = source("app/work/page.tsx")
 
-    expect(summary).toContain("if (!state.enabled)")
+    expect(summary).toContain("if (!state.enabled && !expensesReadFailed)")
     expect(summary).toContain('blur-[3px]')
     expect(summary).toContain("onClick={onSetupCategories}")
     expect(workPage).toContain(
@@ -105,6 +105,22 @@ describe("Expenses after-income preview", () => {
     expect(workPage).toContain("netIncome={expensesFinance.netIncome}")
     expect(expensesPage).toContain("<AfterExpensesResult")
     expect(expensesPage).toContain("showModeToggle")
+  })
+
+  it("makes the result unavailable after an Expenses read failure", () => {
+    const page = source("app/expenses/page.tsx")
+    const workPage = source("app/work/page.tsx")
+    const summary = source("app/work/components/ExpensesMonthSummary.tsx")
+    const hook = source("lib/use-expenses.ts")
+
+    expect(page).toContain("expensesComplete={!prototype.error}")
+    expect(workPage).toContain(
+      "expensesReadFailed={expensesPrototype.error !== null}",
+    )
+    expect(summary).toContain("expensesComplete={!expensesReadFailed}")
+    expect(hook).toContain('error: "EXPENSES_READ_FAILED"')
+    expect(summary).not.toContain("garageIncomplete")
+    expect(page).not.toContain("hasGarageGap")
   })
 
   it("removes the old not-Netto wording in every locale", () => {

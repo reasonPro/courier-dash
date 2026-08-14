@@ -100,10 +100,6 @@ export default function ExpensesPage() {
     [monthRange, prototype.state],
   )
   const activeFilterCount = filters.category !== "all" ? 1 : 0
-  const hasGarageGap = prototype.state.activeCategories.some(
-    (category) => category === "repair" || category === "maintenance",
-  )
-
   useEffect(() => {
     let active = true
 
@@ -219,15 +215,7 @@ export default function ExpensesPage() {
             >
               ← {copy.backToWork}
             </Link>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-black sm:text-3xl">{copy.pageTitle}</h1>
-                <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-cyan-300">
-                  {copy.prototypeBadge}
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-gray-500">{copy.localOnly}</p>
-            </div>
+            <h1 className="text-2xl font-black sm:text-3xl">{copy.pageTitle}</h1>
           </div>
           <div className="flex items-center gap-2">
             <select
@@ -273,7 +261,7 @@ export default function ExpensesPage() {
           </div>
         )}
 
-        {!prototype.state.enabled ? (
+        {!prototype.state.enabled && !prototype.error ? (
           <section className="mx-auto mt-16 max-w-xl rounded-3xl border border-gray-800 bg-gradient-to-br from-[#1d1d24] to-[#17171d] p-7 text-center shadow-2xl sm:p-10">
             <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500/20 to-cyan-500/20 text-3xl">
               −
@@ -326,15 +314,10 @@ export default function ExpensesPage() {
                   </p>
                   <p className="mt-1 text-sm text-gray-400">{copy.totalExpenses}</p>
                   <p className="mt-1 text-3xl font-black text-red-400">
-                    {monthTotals.total} <span className="text-sm">PLN</span>
+                    {prototype.error ? "—" : monthTotals.total}{" "}
+                    {!prototype.error && <span className="text-sm">PLN</span>}
                   </p>
                 </div>
-                {hasGarageGap && (
-                  <div className="max-w-sm rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-                    <strong className="block">{copy.partialStatus}</strong>
-                    {copy.partialGarage}
-                  </div>
-                )}
               </div>
               <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-5">
                 {prototype.state.activeCategories.map((category) => (
@@ -356,7 +339,7 @@ export default function ExpensesPage() {
             <section className="mb-5">
               <AfterExpensesResult
                 copy={copy}
-                expensesComplete={!hasGarageGap}
+                expensesComplete={!prototype.error}
                 expensesTotal={monthTotals.total}
                 grossIncome={finance.grossIncome}
                 incomeKnown={!finance.isLoading && !finance.error}

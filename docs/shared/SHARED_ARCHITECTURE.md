@@ -1,7 +1,7 @@
 # CourierDash Shared Architecture
 
 Contract version: `0.3.0-draft`
-Development phase: `mobile_catch_up`
+Development phase: `web_expenses_rollout_mobile_paused`
 Contract status: `partially_verified`
 
 ## Authority model
@@ -40,17 +40,17 @@ Conflicts do not get resolved by choosing the newest-looking file. They become e
 | Statistics | Brutto and platform aggregation | `reported_pending_snapshot` for Mobile |
 | Reports | Annual totals and safe averages | `partially_verified` |
 | Garage | Single-vehicle maintenance rules, append-only history, atomic routine completion | `draft_pending_schema_snapshot`; Mobile review pending |
-| Expenses | Five PLN categories from manual, rental-period, and Garage sources | `owner_approved_contract_draft`; implementation not started |
-| Vehicle rental | Non-overlapping dated weekly-price periods with owner-approved calculation/mutation boundaries | `reported_pending_snapshot`; implementation not started |
+| Expenses | Five owner-owned PLN categories, settings, CRUD, payment-month rental, and income-after-expenses | Web implemented; Staging schema verified; Production gated |
+| Vehicle rental | Ordinary Expenses payment with inclusive paid-period metadata | Implemented as `rental` Expenses rows; weekly-period model superseded |
 
 ## Required client boundaries
 
 - UI layout and navigation may differ, but stored meaning, formulas, ownership, date interpretation, and error outcomes must remain compatible.
 - `app_tips` is the canonical domain term. Mobile may expose it as `appTips`; the current database mapping uses per-platform `tips_*` fields.
 - A dated work record is not an active shift. Start/stop shift semantics are not currently part of the shared contract.
-- Statistics can be complete without Expenses. Expenses and rental do not enter Brutto.
-- Income after expenses is a separate future metric and is not tax Netto.
-- Garage current odometer is deliberately client-local and is not a shared backend field. Expenses consumes eligible Garage history by stable source reference without copying rows or changing the Garage contract/runtime.
+- Statistics can be complete without Expenses. Expenses do not change recorded Work Brutto.
+- BRUTTO after expenses is `G - E`; NETTO after expenses is `G - T - E` only when current tax configuration reliably provides `T`.
+- Garage current odometer remains client-local. Garage integration with Expenses is deferred and does not affect current manual maintenance/repair completeness.
 
 ## Evidence and verification
 
@@ -72,5 +72,5 @@ Class C requires a new contract version, migration path, client catch-up gate, f
 - Mobile has not yet reviewed snapshot `0.2.0-draft.5` and the separately verified generated database types.
 - A clean executable migration bootstrap still needs a Docker-compatible or isolated PostgreSQL CI runtime before Production rollout.
 - Garage calendar-date semantics are approved, but Web runtime adoption is deferred; other flows still have UTC/local-date mismatches.
-- Expenses/rental precision, final rounding, completeness, source identity, actual-date attribution, overlap, atomic close-and-create, correction boundary, and create idempotency are owner approved in the contract draft; schema/RLS/RPC design and implementation remain unresolved.
+- Expenses Web runtime and owner-scoped Staging schema are implemented. The amount maximum migration, Production rollout, Production-generated types, and later Mobile catch-up remain gated; Garage import is deferred.
 - Garage is promoted to a draft shared flow, but its migration, regenerated types, Web RPC adoption, Staging verification, and Mobile acceptance remain incomplete.

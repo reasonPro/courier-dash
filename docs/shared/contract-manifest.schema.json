@@ -34,7 +34,7 @@
     "snapshotVersion": { "type": "string", "minLength": 1 },
     "status": { "$ref": "#/$defs/evidenceStatus" },
     "canonicalLocation": { "const": "docs/shared" },
-    "developmentPhase": { "const": "mobile_catch_up" },
+    "developmentPhase": { "const": "web_expenses_rollout_mobile_paused" },
     "generatedFromEnvironment": { "const": "staging" },
     "sourceWebCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
     "schemaRevision": { "type": ["string", "null"] },

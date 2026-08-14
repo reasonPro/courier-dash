@@ -18,6 +18,10 @@ export const PROTOTYPE_EXPENSE_ENTRY_CATEGORIES: ExpenseCategory[] = [
 
 const BIGINT_ZERO = BigInt("0")
 const PLN_MINOR_UNITS = BigInt("100")
+export const MIN_EXPENSE_AMOUNT = "0.01" as const
+export const MAX_EXPENSE_AMOUNT = "999999.99" as const
+const MIN_EXPENSE_AMOUNT_MINOR = BigInt("1")
+const MAX_EXPENSE_AMOUNT_MINOR = BigInt("99999999")
 
 export type PrototypeExpenseRecord = {
   id: string
@@ -95,9 +99,11 @@ export function isPositivePlnInput(value: string): boolean {
   const normalized = normalizePlnInput(value)
   if (!isValidPlnInput(normalized)) return false
   const [whole, fraction = ""] = normalized.split(".")
+  const minorUnits =
+    BigInt(whole) * PLN_MINOR_UNITS + BigInt(fraction.padEnd(2, "0"))
   return (
-    BigInt(whole) * PLN_MINOR_UNITS + BigInt(fraction.padEnd(2, "0")) >
-    BIGINT_ZERO
+    minorUnits >= MIN_EXPENSE_AMOUNT_MINOR &&
+    minorUnits <= MAX_EXPENSE_AMOUNT_MINOR
   )
 }
 
@@ -250,7 +256,7 @@ function normalizeExpenseRecord(
     !isExpenseCategory(record.category) ||
     !isCalendarDate(record.expenseDate) ||
     typeof record.amount !== "string" ||
-    !isValidPlnInput(record.amount) ||
+    !isPositivePlnInput(record.amount) ||
     typeof record.createdAt !== "string" ||
     typeof record.updatedAt !== "string"
   ) {

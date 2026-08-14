@@ -38,7 +38,7 @@
 | Annual Report | Current report implemented; 2.0 not implemented | <code>app/work/year/page.tsx</code>, <code>app/work/year/annual-report-calculations.ts</code> | <code>work_shifts</code> | Aggregation includes all supported platforms, tips and bonuses | Chart.js UI, hardcoded year selector | Native report design і performance | Future 2.0 design unresolved |
 | Garage | Rules/history implemented; `0.3.0-draft` contract prepared | <code>app/garage/page.tsx</code>, <code>docs/shared/GARAGE_CONTRACT.md</code> | <code>garage_rules</code>, <code>garage_history</code>, <code>complete_garage_routine</code> | Routine/repair rules, date-only, PLN/mileage validation, local-only odometer | Browser odometer storage, web forms | Native UI; contract-owned result type and verified RPC | Staging migration/RPC verification passed and types regenerated; Production, Web adoption, and Mobile implementation deferred |
 | Tax settings | Read/create/update and presentation implemented | <code>app/work/page.tsx</code> | <code>tax_settings</code> | Не змішувати income after expenses із Netto | Web toggle і inline formulas | Чи підтримувати до завершення tax audit | Формули не підтверджені окремим audit |
-| Expenses/rentals | Owner-approved contract draft; not implemented | <code>docs/shared/EXPENSES_CONTRACT.md</code>, <code>docs/shared/types/expenses.ts</code> | Schema/RLS/RPC не визначені й локально не існують | Five PLN categories; source-aware manual/rental/Garage aggregation; actual expense dates; decimal rounding; completeness; non-overlapping rental periods | Planned <code>/expenses</code> UI | Mobile compatibility review after shared schema/API approval | Runtime, schema, RPC і UI не існують |
+| Expenses/rentals | Web implemented; Staging schema verified; Production gated | <code>app/expenses</code>, <code>lib/use-expenses.ts</code>, <code>docs/shared/EXPENSES_CONTRACT.md</code> | <code>expense_settings</code>, <code>expenses</code>; owner-only RLS; no Expenses RPC | Five manual PLN categories; actual dates; rental payment month; exact amount bounds; explicit unavailable state | Current responsive Web UI | Mobile paused; later catch-up to canonical Web snapshot | Production rollout and Production-generated types pending |
 | Localization | PL/UK/EN/RU implemented | <code>lib/translations.ts</code>, <code>context/LanguageContext.tsx</code> | None in current code | Узгоджені terminology/keys можуть бути reusable | React context, browser detection/localStorage | Mobile i18n framework, device locale rules | Shared key package не існує |
 
 ## Authentication
@@ -69,10 +69,12 @@ Mobile може використовувати ті самі Auth identities л�
 | <code>work_shifts</code> | <code>app/work/page.tsx</code>, <code>app/work/year/page.tsx</code> | Work records і platform metrics. |
 | <code>garage_rules</code> | <code>app/garage/page.tsx</code> | Maintenance intervals і last-change odometer. |
 | <code>garage_history</code> | <code>app/garage/page.tsx</code> | Routine/repair history, date, odometer і cost. |
+| <code>expense_settings</code> | <code>lib/use-expenses.ts</code> | Per-user activation and active V1 categories. |
+| <code>expenses</code> | <code>lib/use-expenses.ts</code> | Owner-owned amount, category, actual date and optional rental paid period. |
 
 Verified Staging snapshot має RLS enabled для всіх п’яти tables. Mutation policies прив’язують user-owned rows до <code>auth.uid()</code>; <code>profiles</code> окремо має shared row visibility, а anon SQL privilege обмежено колонкою <code>nickname</code>. Не слід узагальнювати це як owner-only читання всіх tables.
 
-Generated types із Staging revision <code>202608020002</code> роблять <code>work_shifts.user_id</code> required для Row/Insert; інші nullable fields Mobile має обробляти без unsafe assumptions. Production migration ще не застосована.
+Generated types із Staging revision <code>202608130001</code> містять Work/Profile/Tax/Garage surfaces та Expenses settings/rows. Production Expenses migrations ще не застосовані; після rollout types регенеруються з перевіреного Production target. Mobile catch-up paused.
 
 ## Work і earnings
 
@@ -119,20 +121,19 @@ Migration <code>202608090001_expand_garage_contract.sql</code> застосов�
 
 ## Expenses і rentals
 
-У generated types, snapshot, migrations та application code не знайдено tables <code>expenses</code> або <code>transport_rentals</code>. Route <code>/expenses</code> і rental RPC також не реалізовані.
+Web реалізує `/expenses`, Work summary та owner-scoped Supabase CRUD через `expense_settings` і `expenses`. Migration `202608130001_create_expenses_schema.sql` перевірена на Staging; forward-only amount-limit migration ще потребує окремого rollout approval.
 
-Owner-approved product rules описано в [Expenses contract](./shared/EXPENSES_CONTRACT.md), DEC-025 і PHASE 8 [roadmap](./COURIERDASH_ROADMAP.md):
+Canonical V1:
 
-- V1 використовує лише PLN і категорії <code>fuel</code>, <code>rental</code>, <code>maintenance</code>, <code>repair</code>, <code>food_on_shift</code>;
-- manual rows зберігаються окремо, а rental periods і Garage history підтягуються за стабільною парою <code>(source, sourceRecordId)</code> без копіювання чи подвійного підрахунку;
-- manual expense може бути внесена заднім числом; actual <code>YYYY-MM-DD</code> expense date відокремлена від technical <code>created_at</code> і визначає filters, history та financial attribution;
-- PLN inputs мають максимум два decimals; decimal arithmetic не округлює rental intermediates і застосовує фінальний <code>ROUND_HALF_UP</code> до <code>0.01 PLN</code>;
-- <code>partial</code> має непорожній missing-component list і не є final; режими з ненадійним <code>T</code> не є <code>available</code> до tax audit;
-- rental periods одного owner не перетинаються; close-and-create є atomic, correction — separate controlled action, retryable creates використовують idempotency keys;
-- Garage-derived expense створюється або виправляється у Garage; rental expense залишається прив'язаною до rental period;
-- income after recorded expenses не є Netto і не включає <code>T</code>.
+- тільки PLN; amount `0.01…999999.99`, максимум дві decimals, exact string/minor-unit client arithmetic;
+- категорії `fuel`, `rental`, `maintenance`, `repair`, `food_on_shift` — усі п'ять ordinary owner-owned Expenses rows;
+- actual `expense_date` відокремлена від `created_at`, дозволяє backdated entry та визначає month/filter/history;
+- rental має payment date та inclusive paid period; повна сума входить лише в payment month, без weekly proration;
+- BRUTTO after expenses = `G - E`; NETTO = `G - T - E`, якщо current Work tax logic надійно визначає `T`;
+- failed Expenses read і unknown `T` не перетворюються на zero;
+- maintenance/repair є complete manual expenses; Garage integration і Source filter deferred.
 
-Ці owner-approved rules не підтверджують існування schema або готової implementation. Concrete schema, RLS, mutation API/errors, tax model і Mobile/Web UI залишаються deferred.
+Mobile implementation paused і не є gate поточного Web rollout. Mobile пізніше отримує versioned Web-owned contract і generated types після verified Production schema; Mobile не створює власних Expenses migrations.
 
 ## Localization
 

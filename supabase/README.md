@@ -19,6 +19,9 @@
 | <code>migrations/202607240001_add_cash_tips_per_platform.sql</code> | Додає per-platform cash tips і nonnegative/name constraints. |
 | <code>migrations/202608020001_harden_public_api_privileges.sql</code> | Звужує application-role table/sequence ACL і migration-owner default privileges. |
 | <code>migrations/202608020002_reconcile_ownership_profiles_rls.sql</code> | Узгоджує required Work ownership, Profile lifecycle і RLS boundaries. |
+| <code>migrations/202608090001_expand_garage_contract.sql</code> | Додає Garage constraints, relationship і atomic routine RPC. |
+| <code>migrations/202608130001_create_expenses_schema.sql</code> | Додає owner-scoped Expenses settings/rows, constraints, indexes, triggers, RLS і grants; verified on Staging. |
+| <code>migrations/202608140001_limit_expenses_amount.sql</code> | Forward-only maximum `999999.99` constraint; local, pending remote approval. |
 | [<code>lib/database.types.ts</code>](../lib/database.types.ts) | Local generated TypeScript database types. |
 
 ## Джерела правди
@@ -162,7 +165,7 @@ Migration або інші remote changes не застосовуються бе�
 
 ## Remote state
 
-- Staging schema і migration history: <code>VERIFIED THROUGH 202608020002</code>;
+- Staging schema і migration history: <code>VERIFIED THROUGH 202608130001</code>;
 - Staging RLS, policies, grants і profile trigger: <code>VERIFIED</code>;
 - Staging Auth provider/confirmation settings: <code>VERIFIED BY REMOTE AUDIT</code>;
 - Production schema/RLS/history: <code>UNCHANGED; NOT RECONCILED BY THIS TASK</code>;

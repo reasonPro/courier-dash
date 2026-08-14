@@ -37,18 +37,19 @@ function expense(
   }
 }
 
-describe("Expenses local prototype data layer", () => {
-  it("validates exact PLN strings without a JavaScript safe-integer cap", () => {
-    expect(isValidPlnInput("9007199254740993.00")).toBe(true)
+describe("Expenses exact client calculations", () => {
+  it("validates the approved amount range with exact minor-unit arithmetic", () => {
     expect(isPositivePlnInput("0.00")).toBe(false)
     expect(isPositivePlnInput("0.01")).toBe(true)
+    expect(isPositivePlnInput("999999.99")).toBe(true)
+    expect(isPositivePlnInput("1000000.00")).toBe(false)
     expect(isValidPlnInput("19.999")).toBe(false)
     expect(isValidPlnInput("-0.01")).toBe(false)
     expect(
       formatMinorUnits(
-        plnToMinorUnits("9007199254740993.00") + plnToMinorUnits("0.01"),
+        plnToMinorUnits("999999.98") + plnToMinorUnits("0.01"),
       ),
-    ).toBe("9007199254740993.01")
+    ).toBe("999999.99")
   })
 
   it("keeps calendar dates local and handles leap-month boundaries", () => {
@@ -161,61 +162,6 @@ describe("Expenses local prototype data layer", () => {
     expect(filterSource).not.toContain("ExpenseSource")
     expect(filterSource).not.toContain("copy.source")
     expect(filterSource).not.toContain('type="date"')
-  })
-
-  it("preserves legacy manual rows and ignores incompatible rental periods", () => {
-    let stored = JSON.stringify({
-      version: 1,
-      enabled: true,
-      activeCategories: ["fuel", "rental"],
-      manualExpenses: [
-        {
-          id: "legacy-manual",
-          source: "manual",
-          category: "fuel",
-          expenseDate: "2026-08-03",
-          amount: "75.00",
-          createdAt: "2026-08-03T10:00:00.000Z",
-          updatedAt: "2026-08-03T10:00:00.000Z",
-        },
-      ],
-      rentalPeriods: [
-        {
-          id: "legacy-rental",
-          source: "rental_period",
-          weeklyAmount: "350.00",
-          validFrom: "2026-08-01",
-          validTo: null,
-          createdAt: "2026-08-01T10:00:00.000Z",
-          updatedAt: "2026-08-01T10:00:00.000Z",
-        },
-      ],
-    })
-    const storage: StorageReaderWriter = {
-      getItem: () => stored,
-      setItem: (_key, value) => {
-        stored = value
-      },
-    }
-    const result = readExpensesPrototype(storage)
-
-    expect(result.error).toBeNull()
-    expect(result.state.version).toBe(2)
-    expect(result.state.manualExpenses).toEqual([
-      expense({
-        id: "legacy-manual",
-        createdAt: "2026-08-03T10:00:00.000Z",
-        updatedAt: "2026-08-03T10:00:00.000Z",
-      }),
-    ])
-    expect(result.state).not.toHaveProperty("rentalPeriods")
-    expect(
-      calculateExpensesForRange(
-        result.state,
-        "2026-08-01",
-        "2026-08-31",
-      ).byCategory.rental,
-    ).toBe("0.00")
   })
 
   it("reports corrupt prototype storage instead of silently replacing it", () => {

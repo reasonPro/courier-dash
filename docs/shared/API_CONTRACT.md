@@ -24,6 +24,8 @@ Introduce a versioned service API when the domain becomes complex, integrations 
 | `garage_rules` | Select, insert, update, delete | `app/garage/page.tsx`, `docs/shared/GARAGE_CONTRACT.md` | `verified` on Staging | Owner-only; Mobile must not add rule-edit UI absent from Web |
 | `garage_history` | Select, insert | `app/garage/page.tsx`, `docs/shared/GARAGE_CONTRACT.md` | `verified` on Staging | Append-only; manual INSERT is `repair` with null `rule_id` |
 | RPC | `complete_garage_routine` | `supabase/migrations/202608090001_expand_garage_contract.sql` | `verified` on Staging | Authenticated RPC verification passed; Web call-site adoption is deferred |
+| `expense_settings` | Select and owner upsert | `lib/use-expenses.ts`, `202608130001_create_expenses_schema.sql` | `verified` on Staging | Mobile catch-up paused |
+| `expenses` | Owner select, insert, update, delete | `lib/use-expenses.ts`, `202608130001_create_expenses_schema.sql` | `verified` on Staging | All five V1 categories are direct CRUD rows |
 | Edge Functions | No invocation or function source found | repository search | `not_used` | None today |
 | Storage | No Storage calls found | repository search | `not_used` | None today |
 
@@ -48,3 +50,13 @@ The platform-neutral Garage contract is normative in `GARAGE_CONTRACT.md`, with 
 The verified RPC may return `next_service_odometer = null` for monitoring-only interval `0`. Web and Mobile must use the contract-owned `CompleteGarageRoutineResult` rather than relying only on the generated RPC return type, which currently represents that column as `number`.
 
 The additive migration intentionally leaves the existing owner INSERT policy compatible with deployed Web. A later separately approved hardening migration restricts direct history INSERT to `repair` with `rule_id = null` only after Web adopts the RPC. Garage is not an Expenses implementation.
+
+## Expenses operation contract
+
+Web loads `expense_settings` and `expenses` together for the authenticated user. A successful empty response is a known zero; failure of either read returns `EXPENSES_READ_FAILED` and every Expenses-dependent financial result is unavailable rather than calculated with zero.
+
+Settings activation uses owner-scoped upsert. All five categories (`fuel`, `rental`, `maintenance`, `repair`, `food_on_shift`) use owner-scoped insert/update/delete on `expenses`. Clients send positive base-10 PLN text, `expense_date`, and for rental an inclusive `paid_period_from`/`paid_period_to` pair. The minimum is `0.01`, the maximum is `999999.99`, and scale greater than two is rejected.
+
+Rental is one payment row attributed wholly to its payment `expense_date`; no weekly-rate/proration RPC or separate rental source exists. Maintenance and repair are complete direct Expenses rows. Garage import and Source filtering are deferred.
+
+The database layer is simple owner CRUD protected by RLS and constraints; no Expenses RPC is required. Production application and Production-generated types remain separately gated.

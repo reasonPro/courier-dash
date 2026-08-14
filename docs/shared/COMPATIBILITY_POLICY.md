@@ -17,7 +17,7 @@ The complete cross-repository ownership and approval route is normative in `SCHE
 4. Deprecate the old capability with an explicit end condition.
 5. Remove it only after the supported client range no longer needs it.
 
-No remote rollout starts without an unambiguously identified Staging target. Mobile compatibility `PASS` and separate project-owner Production approval are required before Production application.
+No remote rollout starts without an unambiguously identified Staging target and separate project-owner Production approval. Mobile normally supplies compatibility `PASS`; for the explicitly owner-approved Expenses Web rollout, Mobile is paused and catches up later without authoring schema or blocking the canonical Web migration.
 
 ## Change classes
 
@@ -55,8 +55,8 @@ Mobile cannot be accepted as contract-verified until all applicable items pass:
 - Two-account RLS tests pass for every Mobile-accessed table. **Passed on Staging for the current five-table Web surface.**
 - Work and annual-report fixtures pass on both clients.
 - Local-date/week/month boundary semantics are identical.
-- Expenses/rental rounding and precision are owner approved and covered by synthetic fixtures; cross-client execution parity remains required before either flow ships.
-- Expenses and rental stay disabled until their schema, RLS, mutation contract, fixtures, and Web/Mobile compatibility are separately accepted.
+- Expenses amount/date/rental-payment rules are owner approved, implemented on Web, and covered by synthetic fixtures; Staging schema/RLS are verified through `202608130001`.
+- Expenses Production rollout remains gated by the forward-only amount-limit Staging check and explicit owner approval. Mobile catch-up is deferred and does not create a parallel schema.
 - Garage types, date/PLN/mileage rules, RPC signature, stable errors, and local-only odometer behavior pass Mobile review.
 
 ## Garage compatibility window
@@ -70,6 +70,16 @@ Mobile cannot be accepted as contract-verified until all applicable items pass:
 Because the verified runtime may return `next_service_odometer = null`, both clients must use `CompleteGarageRoutineResult` from the shared contract rather than trusting the generated RPC return type alone.
 
 The Stage 1 repository must not contain an automatically pending policy-hardening migration, because a normal migration runner could apply it before the deployed Web adopts the RPC.
+
+## Expenses compatibility window
+
+1. Preserve migration `202608130001` unchanged because it is applied on Staging.
+2. Verify `202608140001` on Staging; it only adds the `999999.99` amount maximum.
+3. Reconcile Production migration history and apply the canonical ordered Web migrations only after explicit approval.
+4. Regenerate database types from verified Production and confirm existing Work/Tax/Profile/Garage surfaces remain intact.
+5. Push the Web feature branch and verify a Production-backed Preview without changing `main` or launching a Production deployment.
+
+Current Expenses has no Source filter, Garage import, weekly rental source, or proration. Adding any of those later is a separate contract change. Mobile remains paused until a later Web-owned snapshot is ready.
 
 ## Deprecation rules
 

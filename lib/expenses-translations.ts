@@ -7,8 +7,6 @@ export type ExpensesCopy = {
   navLabel: string
   pageTitle: string
   backToWork: string
-  prototypeBadge: string
-  localOnly: string
   activationTitle: string
   activationDescription: string
   setupExpenses: string
@@ -33,7 +31,6 @@ export type ExpensesCopy = {
   totalExpenses: string
   categoryBreakdown: string
   partialStatus: string
-  partialGarage: string
   historyTitle: string
   noEntries: string
   noFilterResults: string
@@ -78,8 +75,6 @@ const pl: ExpensesCopy = {
   navLabel: "Wydatki",
   pageTitle: "Wydatki",
   backToWork: "Praca",
-  prototypeBadge: "Staging Preview",
-  localOnly: "Dane są zapisane na bezpiecznym koncie testowym Staging.",
   activationTitle: "Śledź realny zarobek po kosztach pracy",
   activationDescription: "Włącz tylko te kategorie, które chcesz prowadzić. Ustawienia możesz później zmienić.",
   setupExpenses: "Skonfiguruj wydatki",
@@ -110,7 +105,6 @@ const pl: ExpensesCopy = {
   totalExpenses: "Łączne wydatki",
   categoryBreakdown: "Według kategorii",
   partialStatus: "Niektóre wydatki nie są jeszcze uwzględnione",
-  partialGarage: "Koszty Garażu nie są jeszcze połączone z lokalnym prototypem.",
   historyTitle: "Historia wydatków",
   noEntries: "Brak wydatków w tym miesiącu.",
   noFilterResults: "Brak wyników dla wybranych filtrów.",
@@ -127,7 +121,7 @@ const pl: ExpensesCopy = {
   editExpenseTitle: "Edytuj wydatek",
   saveExpense: "Zapisz wydatek",
   updateExpense: "Zapisz zmiany",
-  amountInvalid: "Wpisz nieujemną kwotę z maksymalnie dwoma miejscami po przecinku.",
+  amountInvalid: "Wpisz kwotę od 0,01 do 999 999,99 PLN, maksymalnie z dwoma miejscami po przecinku.",
   dateInvalid: "Wybierz prawidłową datę.",
   expenseAdded: "Wydatek zapisany.",
   expenseUpdated: "Wydatek zaktualizowany.",
@@ -155,8 +149,6 @@ const uk: ExpensesCopy = {
   navLabel: "Витрати",
   pageTitle: "Витрати",
   backToWork: "Робота",
-  prototypeBadge: "Staging Preview",
-  localOnly: "Дані зберігаються в безпечному тестовому Staging-акаунті.",
   activationTitle: "Відстежуйте реальний заробіток після робочих витрат",
   activationDescription: "Увімкніть лише потрібні категорії. Набір можна змінити пізніше.",
   setupExpenses: "Налаштувати витрати",
@@ -187,7 +179,6 @@ const uk: ExpensesCopy = {
   totalExpenses: "Загальна сума витрат",
   categoryBreakdown: "За категоріями",
   partialStatus: "Деякі витрати ще не враховані",
-  partialGarage: "Витрати Garage ще не підключені до локального прототипу.",
   historyTitle: "Історія витрат",
   noEntries: "За цей місяць витрат ще немає.",
   noFilterResults: "За вибраними фільтрами нічого не знайдено.",
@@ -204,7 +195,7 @@ const uk: ExpensesCopy = {
   editExpenseTitle: "Редагування витрати",
   saveExpense: "Зберегти витрату",
   updateExpense: "Зберегти зміни",
-  amountInvalid: "Введіть невід’ємну суму, максимум два знаки після коми.",
+  amountInvalid: "Введіть суму від 0,01 до 999 999,99 PLN, максимум два знаки після коми.",
   dateInvalid: "Оберіть коректну дату.",
   expenseAdded: "Витрату збережено.",
   expenseUpdated: "Витрату оновлено.",
@@ -232,8 +223,6 @@ const en: ExpensesCopy = {
   navLabel: "Expenses",
   pageTitle: "Expenses",
   backToWork: "Work",
-  prototypeBadge: "Staging Preview",
-  localOnly: "Data is saved to the secure Staging test account.",
   activationTitle: "Track your real earnings after work expenses",
   activationDescription: "Enable only the categories you want to track. You can change them later.",
   setupExpenses: "Set up expenses",
@@ -264,7 +253,6 @@ const en: ExpensesCopy = {
   totalExpenses: "Total expenses",
   categoryBreakdown: "By category",
   partialStatus: "Some expenses are not included yet",
-  partialGarage: "Garage costs are not connected to the local prototype yet.",
   historyTitle: "Expense history",
   noEntries: "No expenses in this month yet.",
   noFilterResults: "No expenses match the selected filters.",
@@ -281,7 +269,7 @@ const en: ExpensesCopy = {
   editExpenseTitle: "Edit expense",
   saveExpense: "Save expense",
   updateExpense: "Save changes",
-  amountInvalid: "Enter a non-negative amount with no more than two decimal places.",
+  amountInvalid: "Enter an amount from 0.01 to 999,999.99 PLN with no more than two decimal places.",
   dateInvalid: "Choose a valid date.",
   expenseAdded: "Expense saved.",
   expenseUpdated: "Expense updated.",
@@ -309,8 +297,6 @@ const ru: ExpensesCopy = {
   navLabel: "Расходы",
   pageTitle: "Расходы",
   backToWork: "Работа",
-  prototypeBadge: "Staging Preview",
-  localOnly: "Данные сохраняются в безопасном тестовом Staging-аккаунте.",
   activationTitle: "Отслеживайте реальный заработок после рабочих расходов",
   activationDescription: "Включите только нужные категории. Их можно изменить позже.",
   setupExpenses: "Настроить расходы",
@@ -341,7 +327,6 @@ const ru: ExpensesCopy = {
   totalExpenses: "Общая сумма расходов",
   categoryBreakdown: "По категориям",
   partialStatus: "Некоторые расходы пока не учтены",
-  partialGarage: "Расходы Garage пока не подключены к локальному прототипу.",
   historyTitle: "История расходов",
   noEntries: "За этот месяц расходов пока нет.",
   noFilterResults: "По выбранным фильтрам ничего не найдено.",
@@ -358,7 +343,7 @@ const ru: ExpensesCopy = {
   editExpenseTitle: "Редактирование расхода",
   saveExpense: "Сохранить расход",
   updateExpense: "Сохранить изменения",
-  amountInvalid: "Введите неотрицательную сумму, максимум два знака после запятой.",
+  amountInvalid: "Введите сумму от 0,01 до 999 999,99 PLN, максимум два знака после запятой.",
   dateInvalid: "Выберите корректную дату.",
   expenseAdded: "Расход сохранён.",
   expenseUpdated: "Расход обновлён.",

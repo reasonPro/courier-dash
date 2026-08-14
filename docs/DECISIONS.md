@@ -240,7 +240,7 @@ Revisit when:
 
 ### DEC-011 — Rental зберігається періодами
 
-Status: ACTIVE
+Status: SUPERSEDED by DEC-025
 Date: UNKNOWN
 Scope: Planned rental model
 Source: [COURIERDASH_ROADMAP.md](./COURIERDASH_ROADMAP.md), PHASE 8.2
@@ -263,7 +263,7 @@ Revisit when:
 
 ### DEC-012 — Valid to є inclusive
 
-Status: ACTIVE
+Status: AMENDED by DEC-025 — the paid-period end remains inclusive
 Date: UNKNOWN
 Scope: Rental date semantics
 Source: [COURIERDASH_ROADMAP.md](./COURIERDASH_ROADMAP.md), PHASE 8.2
@@ -286,7 +286,7 @@ Revisit when:
 
 ### DEC-013 — Зміна ставки не переписує історію
 
-Status: ACTIVE
+Status: SUPERSEDED by DEC-025
 Date: UNKNOWN
 Scope: Rental history
 Source: [COURIERDASH_ROADMAP.md](./COURIERDASH_ROADMAP.md), PHASE 8.4
@@ -309,7 +309,7 @@ Revisit when:
 
 ### DEC-014 — Виправлення rental history є окремою дією
 
-Status: ACTIVE
+Status: SUPERSEDED by DEC-025
 Date: UNKNOWN
 Scope: Rental correction UX
 Source: [COURIERDASH_ROADMAP.md](./COURIERDASH_ROADMAP.md), PHASE 8.5
@@ -355,7 +355,7 @@ Revisit when:
 
 ### DEC-016 — Income after expenses не є Netto
 
-Status: ACTIVE
+Status: SUPERSEDED by DEC-025
 Date: UNKNOWN
 Scope: Financial terminology
 Source: [COURIERDASH_ROADMAP.md](./COURIERDASH_ROADMAP.md), PHASE 8.10 і PHASE 12
@@ -563,59 +563,34 @@ Revisit when:
 
 Після окремого підтвердженого продуктового рішення про нову аудиторію, auth UX або повну заміну Landing visual direction.
 
-### DEC-025 — Expenses V1 categories, sources і calculation modes
+### DEC-025 — Expenses V1 categories, persistence and calculations
 
-Status: ACTIVE
-Date: 2026-08-10
-Scope: Expenses V1 shared-contract product basis
-Source: підтверджене власником продуктове рішення; `docs/shared/EXPENSES_CONTRACT.md`
+Status: ACTIVE — OWNER APPROVED, updated 2026-08-14
+Date: 2026-08-10; reconciled with implemented Web V1 on 2026-08-14
+Scope: Expenses V1 canonical Web contract and Supabase persistence
+Source: owner-approved decisions; `docs/shared/EXPENSES_CONTRACT.md`
 
 Decision:
 
-Expenses V1 використовує тільки PLN і п'ять категорій: `fuel`, `rental`, `maintenance`, `repair`, `food_on_shift`.
+1. Expenses V1 uses PLN only and exactly five categories: `fuel`, `rental`, `maintenance`, `repair`, and `food_on_shift`.
+2. All five categories are ordinary user-owned Expenses rows with direct CRUD. Maintenance and repair are complete manual expenses and never create a Garage completeness gap.
+3. Rental is one payment row with amount, payment `expense_date`, inclusive `paid_period_from`, and inclusive `paid_period_to`. The full amount is counted only in the payment month. The former weekly-rate, rental-period source, proration, overlap, close-and-create, correction, and rental idempotency model is superseded.
+4. Garage import and the Source filter are absent. Future `Підтягувати з Garage` is a separate deferred feature and does not change current manual maintenance/repair semantics.
+5. Amounts are `0.01…999999.99` PLN with at most two decimals and exact string/minor-unit client arithmetic. Out-of-range or over-precision input is rejected, not silently rounded.
+6. `G` includes base income, app tips, cash tips, and bonuses. `E` includes all five Expenses categories exactly once by `expense_date`. BRUTTO after expenses is `G - E`; NETTO after expenses is `G - T - E` when current Work tax logic reliably provides `T`.
+7. A failed Expenses read and an unknown tax component are not zero. Required results become `unavailable`/`not_configured`; `partial` remains non-final with a non-empty missing-component list.
+8. Expenses may be entered backdated. `expense_date`, not technical `created_at`, controls history, filters, and financial attribution.
+9. Web remains the sole schema and migration owner. Mobile implementation is paused and will catch up to the canonical Web contract later; it is not a gate for the currently owner-approved Web rollout.
 
-Допустимі sources:
-
-- `fuel` — manual;
-- `rental` — rental periods;
-- `maintenance` — manual або Garage;
-- `repair` — manual або Garage;
-- `food_on_shift` — manual.
-
-Garage Contract `0.3.0-draft` залишається окремим прийнятим source contract. Garage rows не копіюються до manual expenses і не рахуються двічі; майбутня Expenses history зберігає Garage source identity.
-
-Підтримуються чотири calculation modes:
-
-- `gross = G`;
-- `after_tax_and_fees = G - T`;
-- `after_recorded_expenses = G - E`;
-- `after_all_deductions = G - T - E`.
-
-`G` включає base income, app tips, cash tips і bonuses та не залежить від presentation toggles. Майбутній calculation result відрізняє `available`, `partial`, `unavailable` і `not_configured`.
-
-Це рішення supersede DEC-009 і DEC-010 та amend DEC-015.
-
-OWNER APPROVED 2026-08-10:
-
-1. Expenses зберігає лише manual rows. Rental periods і Garage history залишаються окремими sources та входять до read/aggregation model через стабільну пару `(source, sourceRecordId)` без копіювання і подвійного підрахунку.
-2. PLN inputs є невід'ємними decimal values із максимум двома знаками після коми. Розрахунки використовують decimal arithmetic; rental intermediate values не округлюються, а фінальний результат округлюється до `0.01 PLN` за `ROUND_HALF_UP` однаково на Web і Mobile.
-3. Calculation result повертає nullable value, completeness status і missing components. `partial` завжди має непорожній missing-component list і ніколи не показується як фінальний результат.
-4. Чинний Work tax/fee runtime не змінюється до окремого tax audit. Режим, що залежить від `T`, не може мати status `available`, якщо `T` не визначається надійно.
-5. Rental periods одного користувача не перетинаються; normal close-and-create є атомарним, historical correction — окремою контрольованою дією, а retryable creates використовують idempotency keys.
-
-Manual expense можна створити заднім числом. Її фактична календарна дата зберігається окремо від технічного `created_at`; filters, history і financial calculations використовують фактичну дату витрати. Garage-derived expense створюється або виправляється у Garage та не дублюється manual row. Rental expense залишається прив'язаною до відповідного rental period.
-
-Reason:
-
-Попередній fuel-plus-rental scope більше не відповідає підтвердженій продуктовій моделі, а виключення Garage не дозволяє коректно представити maintenance і repair як source-aware витрати.
+This decision supersedes the Expenses parts of DEC-009 through DEC-017 wherever they describe fuel-plus-rental-only scope, weekly rental proration, separate rental sources, or the claim that income after expenses can never be NETTO.
 
 Consequences:
 
-Roadmap і shared contract використовують п'ять категорій, source-aware aggregation, затверджені date/precision/completeness boundaries і чотири різні financial modes. Expenses implementation, schema, UI та Production rollout залишаються не розпочатими й потребують окремих approvals. Manual deletion/audit retention, concrete schema, RLS, RPC/error contracts і tax model після audit не затверджені цим рішенням.
+Web runtime uses owner-scoped `expense_settings` and `expenses` CRUD. Migration `202608130001` is verified on Staging; the amount maximum is added by a separate forward-only migration and remains remotely gated. Production rollout still requires explicit approval. Garage contract/runtime and Mobile repository are unchanged.
 
 Revisit when:
 
-Лише після окремого підтвердження зміни категорій, sources, валюти, формул, date/rounding/completeness semantics, rental mutation boundaries або Garage boundary.
+Only after explicit owner approval to change categories, currency, amount range, payment-month attribution, formulas, tax availability, Garage integration, or the shared Web/Mobile rollout boundary.
 
 ## Рішення, що потребують перегляду
 

@@ -858,6 +858,7 @@ export default function WorkDashboard() {
 
         <ExpensesMonthSummary
           copy={expenseCopy}
+          expensesReadFailed={expensesPrototype.error !== null}
           grossIncome={expensesFinance.grossIncome}
           grossKnown={!isLoading && !shiftLoadFailed}
           mode={isNetto ? "netto" : "brutto"}

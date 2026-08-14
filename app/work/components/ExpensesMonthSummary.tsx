@@ -16,6 +16,7 @@ type ExpensesMonthSummaryProps = {
   copy: ExpensesCopy
   grossIncome: string
   grossKnown: boolean
+  expensesReadFailed: boolean
   mode: AfterExpensesMode
   netIncome: string | null
   onSetupCategories: () => void
@@ -27,6 +28,7 @@ export function ExpensesMonthSummary({
   copy,
   grossIncome,
   grossKnown,
+  expensesReadFailed,
   mode,
   netIncome,
   onSetupCategories,
@@ -37,11 +39,7 @@ export function ExpensesMonthSummary({
 
   const range = getMonthRange(selectedMonth)
   const totals = calculateExpensesForRange(state, range.from, range.to)
-  const garageIncomplete = state.activeCategories.some(
-    (category) => category === "repair" || category === "maintenance",
-  )
-
-  if (!state.enabled) {
+  if (!state.enabled && !expensesReadFailed) {
     return (
       <section className="relative mb-8 overflow-hidden rounded-2xl border border-red-500/20 bg-gradient-to-br from-red-950/15 to-[#1b1b22]">
         <div aria-hidden="true" className="select-none px-5 py-5 opacity-35 blur-[3px]">
@@ -82,7 +80,9 @@ export function ExpensesMonthSummary({
           <span className="mt-0.5 block text-xs text-gray-500">{copy.totalExpenses}</span>
         </span>
         <span className="flex shrink-0 items-center gap-3">
-          <span className="font-black text-rose-300">{totals.total} PLN</span>
+          <span className="font-black text-rose-300">
+            {expensesReadFailed ? "—" : `${totals.total} PLN`}
+          </span>
           <svg
             aria-hidden="true"
             className={`h-4 w-4 text-gray-400 transition-transform ${isExpanded ? "rotate-180" : ""}`}
@@ -100,7 +100,7 @@ export function ExpensesMonthSummary({
             <AfterExpensesResult
               compact
               copy={copy}
-              expensesComplete={!garageIncomplete}
+              expensesComplete={!expensesReadFailed}
               expensesTotal={totals.total}
               grossIncome={grossIncome}
               incomeKnown={grossKnown}

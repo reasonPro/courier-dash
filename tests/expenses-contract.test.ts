@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto"
+import { execFileSync } from "node:child_process"
 import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
 
@@ -10,76 +11,35 @@ import {
   EXPENSES_CONTRACT_STATUS,
   EXPENSES_CONTRACT_VERSION,
   EXPENSES_CURRENCY,
-  EXPENSE_CALCULATION_AVAILABILITY,
-  EXPENSE_CALCULATION_MODES,
   EXPENSE_CATEGORIES,
-  EXPENSE_CATEGORY_SOURCES,
-  EXPENSE_FINAL_ROUNDING_INCREMENT,
-  EXPENSE_FINAL_ROUNDING_MODE,
-  EXPENSE_MONEY_DECIMAL_PLACES,
-  EXPENSE_SOURCES,
-  EXPENSE_T_DEPENDENT_MODES,
+  EXPENSE_MAX_AMOUNT,
+  EXPENSE_MIN_AMOUNT,
   MANUAL_EXPENSE_CATEGORIES,
 } from "../docs/shared/types/expenses"
+import {
+  calculateExpensesForRange,
+  createEmptyExpensesPrototypeState,
+  isPositivePlnInput,
+} from "../lib/expenses-prototype"
+import { calculateAfterExpensesIncome } from "../lib/after-expenses"
 
-const PLN_INPUT_PATTERN = /^\d+(?:\.\d{1,2})?$/
-const MINOR_UNITS_PER_PLN = BigInt("100")
-const ROUNDING_COMPARISON_FACTOR = BigInt("2")
-
-function toMinorUnits(value: string): bigint {
-  if (!PLN_INPUT_PATTERN.test(value)) {
-    throw new Error(`Invalid synthetic PLN input: ${value}`)
-  }
-
-  const [whole, fraction = ""] = value.split(".")
-  return (
-    BigInt(whole) * MINOR_UNITS_PER_PLN +
-    BigInt(fraction.padEnd(2, "0"))
-  )
+function source(path: string) {
+  return readFileSync(resolve(process.cwd(), path), "utf8")
 }
 
-function formatMinorUnits(value: bigint): string {
-  const zero = BigInt("0")
-  const sign = value < zero ? "-" : ""
-  const absolute = value < zero ? -value : value
-  const whole = absolute / MINOR_UNITS_PER_PLN
-  const fraction = absolute % MINOR_UNITS_PER_PLN
-  return `${sign}${whole}.${String(fraction).padStart(2, "0")}`
+function indexedBlob(path: string): Buffer {
+  return execFileSync("git", ["show", `:${path}`], {
+    cwd: process.cwd(),
+    encoding: "buffer",
+  })
 }
 
-function roundPositiveRationalHalfUp(
-  numerator: bigint,
-  denominator: bigint,
-): bigint {
-  const zero = BigInt("0")
-  const one = BigInt("1")
-  if (numerator < zero || denominator <= zero) {
-    throw new Error("Synthetic rational must be non-negative with denominator > 0")
-  }
-
-  const quotient = numerator / denominator
-  const remainder = numerator % denominator
-  return remainder * ROUNDING_COMPARISON_FACTOR >= denominator
-    ? quotient + one
-    : quotient
-}
-
-function roundDecimalToMinorUnitsHalfUp(value: string): string {
-  const match = /^(\d+)(?:\.(\d+))?$/.exec(value)
-  if (!match) throw new Error(`Invalid synthetic decimal: ${value}`)
-
-  const whole = BigInt(match[1])
-  const fraction = (match[2] ?? "").padEnd(3, "0")
-  const base =
-    whole * MINOR_UNITS_PER_PLN + BigInt(fraction.slice(0, 2))
-  const rounded = fraction[2] >= "5" ? base + BigInt("1") : base
-  return formatMinorUnits(rounded)
-}
-
-describe("Expenses shared-contract owner decisions", () => {
-  it("defines only the owner-approved PLN category and source vocabulary", () => {
+describe("Expenses production-ready shared contract", () => {
+  it("defines the owner-approved PLN vocabulary and all five manual categories", () => {
     expect(EXPENSES_CONTRACT_VERSION).toBe("0.3.0-draft")
-    expect(EXPENSES_CONTRACT_STATUS).toBe("owner_approved_contract_draft")
+    expect(EXPENSES_CONTRACT_STATUS).toBe(
+      "owner_approved_web_implemented_staging_verified",
+    )
     expect(EXPENSES_CURRENCY).toBe("PLN")
     expect(EXPENSE_CATEGORIES).toEqual([
       "fuel",
@@ -88,306 +48,123 @@ describe("Expenses shared-contract owner decisions", () => {
       "repair",
       "food_on_shift",
     ])
-    expect(MANUAL_EXPENSE_CATEGORIES).toEqual([
-      "fuel",
-      "maintenance",
-      "repair",
-      "food_on_shift",
-    ])
-    expect(EXPENSE_SOURCES).toEqual(["manual", "rental_period", "garage"])
-    expect(EXPENSE_CATEGORY_SOURCES).toEqual({
-      fuel: ["manual"],
-      rental: ["rental_period"],
-      maintenance: ["manual", "garage"],
-      repair: ["manual", "garage"],
-      food_on_shift: ["manual"],
-    })
+    expect(MANUAL_EXPENSE_CATEGORIES).toEqual(EXPENSE_CATEGORIES)
   })
 
-  it("keeps all four calculation modes independent of presentation toggles", () => {
-    const calculationCase = expenseCases.cases.find(
-      ({ caseId }) => caseId === "expense-four-calculation-modes",
-    )
-
-    expect(calculationCase).toBeDefined()
-    expect(EXPENSE_CALCULATION_MODES).toEqual([
-      "gross",
-      "after_tax_and_fees",
-      "after_recorded_expenses",
-      "after_all_deductions",
-    ])
-
-    const input = calculationCase?.input as unknown as {
-      grossComponents: Record<string, string>
-      taxAndFees: string
-      recordedExpenses: string
-    }
-    const expected = calculationCase?.expected as unknown as Record<
-      string,
-      string
-    >
-    const gross = Object.values(input.grossComponents).reduce(
-      (total, value) => total + toMinorUnits(value),
-      BigInt("0"),
-    )
-
-    expect(formatMinorUnits(gross)).toBe(expected.gross)
-    expect(formatMinorUnits(gross - toMinorUnits(input.taxAndFees))).toBe(
-      expected.after_tax_and_fees,
-    )
-    expect(formatMinorUnits(gross - toMinorUnits(input.recordedExpenses))).toBe(
-      expected.after_recorded_expenses,
-    )
-    expect(
-      formatMinorUnits(
-        gross -
-          toMinorUnits(input.taxAndFees) -
-          toMinorUnits(input.recordedExpenses),
-      ),
-    ).toBe(expected.after_all_deductions)
+  it("enforces exact amount boundaries without binary floating point", () => {
+    expect(EXPENSE_MIN_AMOUNT).toBe("0.01")
+    expect(EXPENSE_MAX_AMOUNT).toBe("999999.99")
+    expect(isPositivePlnInput("0.00")).toBe(false)
+    expect(isPositivePlnInput("0.01")).toBe(true)
+    expect(isPositivePlnInput("999999.99")).toBe(true)
+    expect(isPositivePlnInput("1000000.00")).toBe(false)
+    expect(isPositivePlnInput("1.001")).toBe(false)
   })
 
-  it("locks PLN scale, decimal rental proration, and final ROUND_HALF_UP", () => {
-    const moneyCase = expenseCases.cases.find(
-      ({ caseId }) => caseId === "expense-pln-decimal-and-rental-rounding",
-    )
-    const input = moneyCase?.input as unknown as {
-      acceptedPlnInputs: string[]
-      rejectedPlnInputs: string[]
-      roundHalfUpTie: string
-    }
-    const expected = moneyCase?.expected as unknown as {
-      decimalPlacesMaximum: number
-      intermediateRounding: boolean
-      finalIncrement: string
-      roundingMode: string
-      roundHalfUpTieResult: string
-    }
-
-    expect(input.acceptedPlnInputs.every((value) => PLN_INPUT_PATTERN.test(value))).toBe(true)
-    expect(input.rejectedPlnInputs.every((value) => !PLN_INPUT_PATTERN.test(value))).toBe(true)
-    expect(EXPENSE_MONEY_DECIMAL_PLACES).toBe(expected.decimalPlacesMaximum)
-    expect(EXPENSE_FINAL_ROUNDING_INCREMENT).toBe(expected.finalIncrement)
-    expect(EXPENSE_FINAL_ROUNDING_MODE).toBe(expected.roundingMode)
-    expect(expected.intermediateRounding).toBe(false)
-
-    expect(roundDecimalToMinorUnitsHalfUp(input.roundHalfUpTie)).toBe(
-      expected.roundHalfUpTieResult,
-    )
-  })
-
-  it("keeps PLN exact beyond the JavaScript safe integer range", () => {
-    const largeValueCase = expenseCases.cases.find(
-      ({ caseId }) =>
-        caseId === "expense-pln-beyond-javascript-safe-integer",
-    )
-    const input = largeValueCase?.input as unknown as { amounts: string[] }
-    const expected = largeValueCase?.expected as unknown as { total: string }
-    const total = input.amounts.reduce(
-      (sum, value) => sum + toMinorUnits(value),
-      BigInt("0"),
-    )
-
-    expect(formatMinorUnits(total)).toBe(expected.total)
-  })
-
-  it("keeps non-terminating rental proration rational until final rounding", () => {
-    const rentalCase = expenseCases.cases.find(
-      ({ caseId }) =>
-        caseId === "rental-non-terminating-proration-round-half-up",
-    )
-    const input = rentalCase?.input as unknown as {
-      weeklyAmount: string
-      activeCalendarDays: string
-      daysPerWeek: string
-    }
-    const expected = rentalCase?.expected as unknown as {
-      minorUnitNumerator: string
-      minorUnitDenominator: string
-      intermediateRounding: boolean
-      finalAmount: string
-      roundingMode: string
-    }
-    const numerator =
-      toMinorUnits(input.weeklyAmount) * BigInt(input.activeCalendarDays)
-    const denominator = BigInt(input.daysPerWeek)
-
-    expect(String(numerator)).toBe(expected.minorUnitNumerator)
-    expect(String(denominator)).toBe(expected.minorUnitDenominator)
-    expect(expected.intermediateRounding).toBe(false)
-    expect(expected.roundingMode).toBe(EXPENSE_FINAL_ROUNDING_MODE)
-    expect(
-      formatMinorUnits(
-        roundPositiveRationalHalfUp(numerator, denominator),
-      ),
-    ).toBe(expected.finalAmount)
-  })
-
-  it("requires completeness evidence and gates modes that depend on T", () => {
-    expect(EXPENSE_CALCULATION_AVAILABILITY).toEqual([
-      "available",
-      "partial",
-      "unavailable",
-      "not_configured",
-    ])
-    expect(EXPENSE_T_DEPENDENT_MODES).toEqual([
-      "after_tax_and_fees",
-      "after_all_deductions",
-    ])
-
-    const availabilityCase = expenseCases.cases.find(
-      ({ caseId }) => caseId === "expense-result-availability-vocabulary",
-    )
-    const expected = availabilityCase?.expected as unknown as {
-      states: string[]
-      complete: { missingComponents: string[]; isFinal: boolean }
-      partial: { missingComponents: string[]; isFinal: boolean }
-      taxDependentWithoutReliableT: {
-        availability: string
-        availableAllowed: boolean
-        isFinal: boolean
-      }
-    }
-
-    expect(expected.states).toEqual([...EXPENSE_CALCULATION_AVAILABILITY])
-    expect(expected.complete.missingComponents).toEqual([])
-    expect(expected.complete.isFinal).toBe(true)
-    expect(expected.partial.missingComponents.length).toBeGreaterThan(0)
-    expect(expected.partial.isFinal).toBe(false)
-    expect(expected.taxDependentWithoutReliableT.availability).not.toBe(
-      "available",
-    )
-    expect(expected.taxDependentWithoutReliableT.availableAllowed).toBe(false)
-    expect(expected.taxDependentWithoutReliableT.isFinal).toBe(false)
-  })
-
-  it("attributes backdated manual expenses to expenseDate, not createdAt", () => {
-    const dateCase = expenseCases.cases.find(
-      ({ caseId }) => caseId === "expense-backdated-manual-attribution",
-    )
-    const input = dateCase?.input as unknown as {
-      manualExpense: { expenseDate: string; createdAt: string }
-      selectedRange: { from: string; to: string }
-    }
-    const expected = dateCase?.expected as unknown as {
-      included: boolean
-      backdatedCreateAllowed: boolean
-      attributionField: string
-      createdAtUsedForAttribution: boolean
-      utcDateConversionAllowed: boolean
-    }
-
-    expect(input.manualExpense.expenseDate).not.toBe(
-      input.manualExpense.createdAt.slice(0, 10),
-    )
-    expect(
-      input.manualExpense.expenseDate >= input.selectedRange.from &&
-        input.manualExpense.expenseDate <= input.selectedRange.to,
-    ).toBe(expected.included)
-    expect(expected.backdatedCreateAllowed).toBe(true)
-    expect(expected.attributionField).toBe("expenseDate")
-    expect(expected.createdAtUsedForAttribution).toBe(false)
-    expect(expected.utcDateConversionAllowed).toBe(false)
-  })
-
-  it("keeps Garage and rental records separate from manual expenses", () => {
-    const sourceCase = expenseCases.cases.find(
-      ({ caseId }) => caseId === "expense-garage-reference-no-copy",
-    )
-    const input = sourceCase?.input as unknown as {
-      sources: Array<{
-        source: string
-        sourceRecordId: string
-        amount: string
-      }>
-    }
-    const expected = sourceCase?.expected as unknown as {
-      recordedExpenses: string
-      uniqueSourceReferences: number
-      copiedGarageRowsInManualExpenses: number
-      manualDuplicateAllowed: boolean
-      garageCorrectionOwner: string
-    }
+  it("counts a rental payment only in the month of its payment date", () => {
+    const state = createEmptyExpensesPrototypeState()
+    state.manualExpenses = [
+      {
+        id: "fixture-rental",
+        source: "manual",
+        category: "rental",
+        expenseDate: "2026-08-28",
+        amount: "700.00",
+        paidPeriodFrom: "2026-08-28",
+        paidPeriodTo: "2026-09-03",
+        createdAt: "2026-08-28T10:00:00.000Z",
+        updatedAt: "2026-08-28T10:00:00.000Z",
+      },
+    ]
 
     expect(
-      formatMinorUnits(
-        input.sources.reduce(
-          (total, source) => total + toMinorUnits(source.amount),
-          BigInt("0"),
-        ),
-      ),
-    ).toBe(expected.recordedExpenses)
+      calculateExpensesForRange(state, "2026-08-01", "2026-08-31").total,
+    ).toBe("700.00")
     expect(
-      new Set(
-        input.sources.map(
-          ({ source, sourceRecordId }) => `${source}:${sourceRecordId}`,
-        ),
-      ).size,
-    ).toBe(expected.uniqueSourceReferences)
-    expect(expected.copiedGarageRowsInManualExpenses).toBe(0)
-    expect(expected.manualDuplicateAllowed).toBe(false)
-    expect(expected.garageCorrectionOwner).toBe("garage")
-
-    const rentalCase = expenseCases.cases.find(
-      ({ caseId }) =>
-        caseId === "rental-owner-overlap-atomicity-and-idempotency",
-    )
-    expect(rentalCase?.expected).toMatchObject({
-      overlapAllowed: false,
-      closeAndCreateAtomic: true,
-      correctionIsSeparateControlledAction: true,
-      retryWithSameIdempotencyKeyCreatesSecondPeriod: false,
-      source: "rental_period",
-    })
+      calculateExpensesForRange(state, "2026-09-01", "2026-09-30").total,
+    ).toBe("0.00")
   })
 
-  it("records all five owner-approved gates while keeping implementation deferred", () => {
-    const expensesFlow = manifest.sharedFlows.find(
-      (flow) => flow.id === "expenses",
-    )
-    const contract = readFileSync(
-      resolve(process.cwd(), "docs/shared/EXPENSES_CONTRACT.md"),
-      "utf8",
-    )
-    const gateSections = contract.match(
-      /^### Gate [1-5] —[\s\S]*?(?=^### Gate|^## Migration)/gm,
-    )
-
-    expect(expensesFlow?.implementationStatus).toBe("planned")
-    expect(expensesFlow?.implementationCommit).toBeNull()
-    expect(expensesFlow?.reviewStatus).toBe("passed")
-    expect(expensesFlow?.acceptanceStatus).toBe("accepted_by_web")
-    expect(expensesFlow?.missingCapabilities).not.toContain(
-      "owner_decision_gates",
-    )
-    expect(contract).toContain("Status: `owner_approved_contract_draft`")
-    expect(gateSections).toHaveLength(5)
-    gateSections?.forEach((gate) => {
-      expect(gate).toContain("`OWNER APPROVED`")
-      expect(gate).not.toContain("`PROPOSED`")
-    })
-    expect(contract).toContain("Production implementation has not started")
+  it("preserves the approved BRUTTO and NETTO formulas", () => {
+    expect(
+      calculateAfterExpensesIncome({
+        expensesTotal: "800.00",
+        grossIncome: "5000.00",
+        mode: "brutto",
+        netIncome: "4400.00",
+      }),
+    ).toBe("4200.00")
+    expect(
+      calculateAfterExpensesIncome({
+        expensesTotal: "800.00",
+        grossIncome: "5000.00",
+        mode: "netto",
+        netIncome: "4400.00",
+      }),
+    ).toBe("3600.00")
+    expect(
+      calculateAfterExpensesIncome({
+        expensesTotal: "800.00",
+        grossIncome: "5000.00",
+        mode: "netto",
+        netIncome: null,
+      }),
+    ).toBeNull()
   })
 
-  it("keeps manifest hashes synchronized for every Expenses-related artifact", () => {
-    const expenseArtifactPaths = [
+  it("keeps current fixtures free of the removed source/proration model", () => {
+    expect(expenseCases.status).toBe("verified")
+    expect(expenseCases.cases).toHaveLength(6)
+    const serialized = JSON.stringify(expenseCases)
+    expect(serialized).not.toContain("rental_period")
+    expect(serialized).not.toContain("weeklyAmount")
+    expect(serialized).not.toContain("idempotencyKey")
+    expect(serialized).not.toContain('"source":"garage"')
+    expect(serialized).toContain("rental-payment-month-attribution")
+    expect(serialized).toContain("expense-read-failure-is-unavailable")
+  })
+
+  it("documents Garage as deferred and removes old incomplete markers", () => {
+    const contract = source("docs/shared/EXPENSES_CONTRACT.md")
+    const page = source("app/expenses/page.tsx")
+    const workSummary = source(
+      "app/work/components/ExpensesMonthSummary.tsx",
+    )
+    const translations = source("lib/expenses-translations.ts")
+
+    expect(contract).toContain("Garage integration: deferred")
+    expect(contract).not.toContain("weekly amount")
+    expect(contract).not.toContain("rental_period")
+    expect(page).not.toContain("hasGarageGap")
+    expect(workSummary).not.toContain("garageIncomplete")
+    expect(translations).not.toContain("partialGarage")
+    expect(page).toContain("expensesComplete={!prototype.error}")
+    expect(workSummary).toContain("expensesComplete={!expensesReadFailed}")
+  })
+
+  it("matches manifest hashes to canonical staged Git blobs", () => {
+    const requiredPaths = [
       "docs/shared/SHARED_ARCHITECTURE.md",
+      "docs/shared/SCHEMA_POLICY.md",
+      "docs/shared/API_CONTRACT.md",
       "docs/shared/BUSINESS_RULES.md",
       "docs/shared/EXPENSES_CONTRACT.md",
       "docs/shared/types/expenses.ts",
+      "docs/shared/COMPATIBILITY_POLICY.md",
       "docs/shared/CHANGELOG.md",
       "docs/shared/fixtures/expense-calculations.json",
+      "supabase/migrations/202608130001_create_expenses_schema.sql",
+      "supabase/migrations/202608140001_limit_expenses_amount.sql",
       "docs/MOBILE_INTEGRATION.md",
     ]
 
-    expenseArtifactPaths.forEach((path) => {
+    for (const path of requiredPaths) {
       const artifact = manifest.artifacts.find((entry) => entry.path === path)
-      const actualHash = createHash("sha256")
-        .update(readFileSync(resolve(process.cwd(), path)))
-        .digest("hex")
-
       expect(artifact, path).toBeDefined()
-      expect(artifact?.sha256, path).toBe(actualHash)
-    })
+      expect(
+        createHash("sha256").update(indexedBlob(path)).digest("hex"),
+        path,
+      ).toBe(artifact?.sha256)
+    }
   })
 })

@@ -11,6 +11,9 @@ describe("Expenses Staging Supabase integration", () => {
   const migration = source(
     "supabase/migrations/202608130001_create_expenses_schema.sql",
   )
+  const amountLimitMigration = source(
+    "supabase/migrations/202608140001_limit_expenses_amount.sql",
+  )
   const hook = source("lib/use-expenses.ts")
   const generatedTypes = source("lib/database.types.ts")
 
@@ -34,6 +37,16 @@ describe("Expenses Staging Supabase integration", () => {
     expect(migration).toContain("paid_period_to >= paid_period_from")
     expect(migration).toContain("expenses_user_expense_date_idx")
     expect(migration).toContain("expenses_user_category_expense_date_idx")
+  })
+
+  it("adds the maximum amount as a forward-only validated constraint", () => {
+    expect(amountLimitMigration).toContain("amount <= 999999.99")
+    expect(amountLimitMigration).toContain("not valid")
+    expect(amountLimitMigration).toContain(
+      "validate constraint expenses_amount_max_check",
+    )
+    expect(amountLimitMigration).not.toMatch(/\b(update|delete|insert)\b/i)
+    expect(amountLimitMigration).not.toContain("expense_settings")
   })
 
   it("uses Supabase as the runtime source without importing local prototype data", () => {

@@ -124,11 +124,11 @@ export function useExpenses() {
         error: null,
       })
     } catch {
-      setSnapshot({
-        state: createEmptyExpensesPrototypeState(),
+      setSnapshot((current) => ({
+        state: current.state,
         isLoading: false,
         error: "EXPENSES_READ_FAILED",
-      })
+      }))
     }
   }, [])
 
