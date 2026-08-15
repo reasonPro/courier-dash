@@ -1,7 +1,10 @@
+import { readFileSync } from "node:fs";
+
 import { describe, expect, it } from "vitest";
 
 import {
   buildPasswordRecoveryRedirect,
+  classifyRecoveryRequestError,
   classifyRecoveryUpdateError,
   clearRecoverySessionMarker,
   hasRecoveryCallbackParams,
@@ -202,6 +205,78 @@ describe("password recovery helpers", () => {
     expect(classifyRecoveryUpdateError({ code: "unexpected_failure" })).toBe(
       "resetError",
     );
+  });
+
+  it("uses a rate-limit message only for the confirmed Supabase error code", () => {
+    expect(
+      classifyRecoveryRequestError({
+        code: "over_email_send_rate_limit",
+        status: 429,
+      }),
+    ).toBe("rateLimit");
+    expect(classifyRecoveryRequestError({ status: 429 })).toBe("requestError");
+    expect(
+      classifyRecoveryRequestError({ code: "user_not_found", status: 400 }),
+    ).toBe("requestError");
+  });
+
+  it("never revokes a broadcast recovery session from AuthSessionBridge", () => {
+    const bridgeSource = readFileSync(
+      "app/components/AuthSessionBridge.tsx",
+      "utf8",
+    );
+
+    expect(bridgeSource).not.toContain("supabase.auth.signOut");
+    expect(
+      shouldIsolateRecoverySession(
+        "/forgot-password",
+        "",
+        "",
+        "PASSWORD_RECOVERY",
+        true,
+      ),
+    ).toBe(true);
+  });
+
+  it("keeps the recovery session through URL cleanup and the update attempt", () => {
+    const pageSource = readFileSync("app/reset-password/page.tsx", "utf8");
+    const sessionInitialization = pageSource.indexOf(
+      "await supabase.auth.getSession()",
+    );
+    const urlCleanup = pageSource.indexOf(
+      "clearRecoveryUrl();",
+      sessionInitialization,
+    );
+    const passwordUpdate = pageSource.indexOf("supabase.auth.updateUser");
+    const sessionCleanupAfterUpdate = pageSource.indexOf(
+      "await clearRecoverySession();",
+      passwordUpdate,
+    );
+
+    expect(sessionInitialization).toBeGreaterThan(-1);
+    expect(urlCleanup).toBeGreaterThan(sessionInitialization);
+    expect(passwordUpdate).toBeGreaterThan(urlCleanup);
+    expect(sessionCleanupAfterUpdate).toBeGreaterThan(passwordUpdate);
+  });
+
+  it.each([
+    "bad_jwt",
+    "jwt_expired",
+    "refresh_token_already_used",
+    "refresh_token_not_found",
+    "session_not_found",
+  ])("continues to block invalid or reused recovery sessions: %s", (code) => {
+    expect(classifyRecoveryUpdateError({ code })).toBe("invalid");
+  });
+
+  it("continues to block expired and tampered recovery callbacks", () => {
+    expect(hasRecoveryUrlError("", "#error_code=otp_expired")).toBe(true);
+    expect(
+      shouldDetectAuthSessionInUrl(
+        new URL("https://example.com/"),
+        { access_token: "tampered", type: "recovery" },
+      ),
+    ).toBe(false);
   });
 
   it("reduces an arbitrary URL error description to a boolean state", () => {

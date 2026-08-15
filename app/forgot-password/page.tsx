@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { useLanguage } from "../../context/LanguageContext";
-import { buildPasswordRecoveryRedirect } from "../../lib/password-recovery";
+import {
+  buildPasswordRecoveryRedirect,
+  classifyRecoveryRequestError,
+} from "../../lib/password-recovery";
 import { supabase } from "../../lib/supabase";
 
 export default function ForgotPasswordPage() {
@@ -24,7 +27,9 @@ export default function ForgotPasswordPage() {
     });
 
     if (error) {
-      setErrorMessage(t.passwordRecovery.requestError);
+      setErrorMessage(
+        t.passwordRecovery[classifyRecoveryRequestError(error)],
+      );
     } else {
       setIsSent(true);
     }

@@ -62,12 +62,6 @@ export function AuthSessionBridge() {
     const syncCurrentSession = async () => {
       if (recoverySessionIsolated) {
         await syncServerAuthSession(null)
-
-        if (recoverySessionMarked && !recoveryRoute) {
-          clearRecoverySessionMarker(window.localStorage)
-          await supabase.auth.signOut({ scope: "local" })
-        }
-
         return
       }
 
@@ -100,12 +94,6 @@ export function AuthSessionBridge() {
           )
         ) {
           void syncServerAuthSession(null)
-
-          if (event === "PASSWORD_RECOVERY" && !recoveryRoute) {
-            clearRecoverySessionMarker(window.localStorage)
-            void supabase.auth.signOut({ scope: "local" })
-          }
-
           return
         }
 
