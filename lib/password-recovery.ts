@@ -37,6 +37,7 @@ const RECOVERY_ERROR_PARAMS = [
 type RecoveryAuthError = {
   code?: string | null;
   name?: string | null;
+  status?: number | null;
 };
 
 type RecoveryMarkerStorage = {
@@ -46,6 +47,7 @@ type RecoveryMarkerStorage = {
 };
 
 export type RecoveryUpdateError = "tooShort" | "invalid" | "resetError";
+export type RecoveryRequestError = "rateLimit" | "requestError";
 
 export function buildPasswordRecoveryRedirect(origin: string): string {
   const url = new URL(origin);
@@ -152,6 +154,14 @@ export function classifyRecoveryUpdateError(
   }
 
   return "resetError";
+}
+
+export function classifyRecoveryRequestError(
+  error: RecoveryAuthError,
+): RecoveryRequestError {
+  return error.code === "over_email_send_rate_limit"
+    ? "rateLimit"
+    : "requestError";
 }
 
 export function validateRecoveryPasswords(
