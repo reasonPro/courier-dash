@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { useLanguage } from "../../context/LanguageContext";
+import { buildPasswordRecoveryRedirect } from "../../lib/password-recovery";
 import { supabase } from "../../lib/supabase";
 
 export default function ForgotPasswordPage() {
@@ -19,7 +20,7 @@ export default function ForgotPasswordPage() {
     setErrorMessage("");
 
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: buildPasswordRecoveryRedirect(window.location.origin),
     });
 
     if (error) {
