@@ -90,7 +90,7 @@
     },
     {
       "path": "docs/shared/BUSINESS_RULES.md",
-      "sha256": "91e9a1970b1427a5fd006fa989c9cfb87da9e6d5547b5dc3d30b42c3373031fe",
+      "sha256": "ebc2a7ee69793593dc69c892e70de1716b3a8cff20140cee9960f3043e0934d2",
       "status": "present",
       "sourceRefs": [
         "lib/work-platforms.ts",

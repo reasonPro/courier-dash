@@ -1,6 +1,9 @@
+import type { ReactNode } from "react";
 import type { WorkTranslations } from "../work-page.types";
 
 type WorkSummaryProps = {
+  platformFilter?: ReactNode;
+  moneyUnavailable?: boolean;
   avgEarnedPerDay: string;
   avgHoursPerDay: string;
   avgOrdersPerDay: string;
@@ -21,6 +24,8 @@ type WorkSummaryProps = {
 };
 
 export function WorkSummary({
+  platformFilter,
+  moneyUnavailable = false,
   avgEarnedPerDay,
   avgHoursPerDay,
   avgOrdersPerDay,
@@ -61,11 +66,12 @@ export function WorkSummary({
 
       <div className="mb-4">
         <span className="text-xs font-semibold text-gray-500 tracking-wider uppercase mb-2 block">{t.work.totalMonthTitle} {isNetto && <span className="text-blue-400">({t.work.netto})</span>}</span>
+        {platformFilter}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
           <div className="col-span-2 sm:col-span-1 bg-gradient-to-br from-[#1e1e24] to-[#252530] p-4 rounded-xl border border-gray-800 text-center shadow-md relative overflow-hidden">
             {isNetto && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>}
             <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.work.totalIncome}</h3>
-            <p className={`text-xl sm:text-2xl font-black ${isNetto ? 'text-blue-400' : 'text-green-400'}`}>{totalVisualEarned.toFixed(2)} <span className="text-[10px] sm:text-sm font-normal">{t.common.currency}</span></p>
+            <p className={`text-xl sm:text-2xl font-black ${isNetto ? 'text-blue-400' : 'text-green-400'}`}>{moneyUnavailable ? "—" : totalVisualEarned.toFixed(2)} <span className="text-[10px] sm:text-sm font-normal">{t.common.currency}</span></p>
           </div>
           <div className="bg-[#1e1e24] p-4 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
             <h3 className="text-gray-400 text-[10px] md:text-xs uppercase tracking-wider mb-1">{t.work.totalOrders}</h3>

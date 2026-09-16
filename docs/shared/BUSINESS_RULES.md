@@ -166,3 +166,17 @@ Garage has an independent approved persistence rule: PLN only, cost `>= 0`, at m
 - Current odometer is a local calculation parameter, not Supabase data.
 - Web and Mobile may remember separate values locally; values may increase or decrease.
 - No backend field, synchronization, or automatic browser-storage import exists.
+
+## WORK-NETTO-CASH-001 — owner-confirmed display rule (2026-09-14)
+
+- Cash tips remain income, but are excluded from percentage deductions. This is a CourierDash product rule, not a claim about legal tax exemptions.
+- Percentage base per platform: base income + included online tips + included bonuses. Cash tips are added unchanged once.
+- Example: 100 PLN base + 20 PLN cash tips, 10% and no fixed fees: BRUTTO 120, deductions 10, NETTO 110.
+- The existing full-month fixed-week/fixed-month calculation and its fleet allocation remain unchanged. Do not rebuild that context per row or invent an allocation for a platform subset.
+- Work cards, chart and history use the shared `createWorkTaxContext` / `displayedPlatformMetrics` helpers; Expenses uses `calculateMonthlyWorkFinance`. Historical records are recalculated on read; no stored amounts are rewritten.
+- Work history starts in BRUTTO and has an independent, non-persistent NETTO selector. The monthly platform selection is shared and resets when the month changes.
+- Activity includes orders, base income, online/cash tips and bonuses. Daily averages count distinct active dates. Editing resolves the original unfiltered record.
+- For a platform subset, shared hours/distance and dependent rates are unavailable. If shared fixed deductions apply, subset NETTO is unavailable pending a separate owner allocation decision. Whole-month Expenses are not allocated; subset income after those expenses is unavailable.
+- Annual reporting remains its existing gross-only calculation; no new annual NETTO mode is introduced.
+- Mobile must synchronize this cash-tip rule before exposing corresponding NETTO calculations. No Mobile implementation or compatibility claim is made here.
+- Garage integration remains deferred. Future merge overlap: Work page, shared finance helper, Expenses summary inputs and this document.

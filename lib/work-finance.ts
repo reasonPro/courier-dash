@@ -55,100 +55,81 @@ export function areTaxesConfigured(settings: WorkTaxSettings | null) {
   })
 }
 
+/** One full-month context preserves the existing fixed-fee model. Never rebuild it per row. */
+export function createWorkTaxContext(
+  shifts: MonthlyFinanceShift[],
+  settings: WorkTaxSettings | null,
+  includeTips = true,
+  includeBonuses = true,
+) {
+  const stats = Object.fromEntries(TAX_PLATFORM_KEYS.map(p => [p, { active: false, weeks: new Set<number>() }])) as
+    Record<TaxPlatformKey, { active: boolean; weeks: Set<number> }>
+  let fleetGross = 0
+  shifts.forEach(shift => TAX_PLATFORM_KEYS.forEach(p => {
+    const m = getPlatformMetrics(shift, p)
+    const gross = m.income + (includeTips ? m.appTips : 0) + (includeBonuses ? m.bonuses : 0)
+    if (gross > 0 || m.orders > 0) {
+      stats[p].active = true
+      stats[p].weeks.add(getIsoWeek(shift.date))
+      if (p !== "glovo") fleetGross += gross
+    }
+  }))
+  let fixedTax = 0
+  const percentages = Object.fromEntries(TAX_PLATFORM_KEYS.map(p => [p, 0])) as Record<TaxPlatformKey, number>
+  if (settings) TAX_PLATFORM_KEYS.forEach(p => {
+    const type = settings[`${p}_type`]
+    const value = Number(settings[`${p}_val`]) || 0
+    if (type === "percent") percentages[p] = value / 100
+    else if (stats[p].active) {
+      if (type === "fixed_week") fixedTax += value * Math.min(4, stats[p].weeks.size)
+      if (type === "fixed_month") fixedTax += value
+    }
+  })
+  return {
+    configured: areTaxesConfigured(settings),
+    fixedTax,
+    ratio: fleetGross > 0 ? fixedTax / fleetGross : 0,
+    percentages,
+  }
+}
+
+export type WorkTaxContext = ReturnType<typeof createWorkTaxContext>
+
+/** Cash tips remain untouched; online tips and bonuses follow the existing deduction ratio. */
+export function displayedPlatformMetrics(
+  source: PlatformMetricSource,
+  platform: import("./work-platforms").PlatformKey,
+  context: WorkTaxContext,
+  netto: boolean,
+  includeTips = true,
+  includeBonuses = true,
+) {
+  const m = getPlatformMetrics(source, platform)
+  const appTips = includeTips ? m.appTips : 0
+  const cashTips = includeTips ? m.cashTips : 0
+  const bonuses = includeBonuses ? m.bonuses : 0
+  const taxable = m.income + appTips + bonuses
+  const ratio = netto && isTaxPlatformKey(platform) && taxable > 0
+    ? 1 - context.percentages[platform] - (platform === "glovo" ? 0 : context.ratio)
+    : 1
+  return { ...m, income: m.income * ratio, appTips: appTips * ratio, cashTips,
+    tips: appTips * ratio + cashTips, bonuses: bonuses * ratio }
+}
+
 export function calculateMonthlyWorkFinance(
   shifts: MonthlyFinanceShift[],
   settings: WorkTaxSettings | null,
 ): MonthlyWorkFinance {
-  const platformStats = Object.fromEntries(
-    TAX_PLATFORM_KEYS.map((platform) => [
-      platform,
-      { gross: 0, days: 0, weeks: new Set<number>() },
-    ]),
-  ) as Record<
-    TaxPlatformKey,
-    { gross: number; days: number; weeks: Set<number> }
-  >
-  let fleetGross = 0
-  let grossIncome = 0
-
-  shifts.forEach((shift) => {
-    const week = getIsoWeek(shift.date)
-
-    PLATFORM_KEYS.forEach((platform) => {
-      const metrics = getPlatformMetrics(shift, platform)
-      grossIncome +=
-        metrics.income + metrics.appTips + metrics.cashTips + metrics.bonuses
-
-      if (!isTaxPlatformKey(platform)) return
-
-      const taxableGross = metrics.income + metrics.appTips + metrics.bonuses
-      if (taxableGross > 0 || metrics.orders > 0) {
-        platformStats[platform].gross += taxableGross
-        platformStats[platform].days += 1
-        platformStats[platform].weeks.add(week)
-        if (platform !== "glovo") fleetGross += taxableGross
-      }
-    })
-  })
-
-  const taxesConfigured = areTaxesConfigured(settings)
-  if (!taxesConfigured || !settings) {
-    return {
-      grossIncome: grossIncome.toFixed(2),
-      netIncome: null,
-      taxAmount: null,
-      taxesConfigured: false,
-    }
-  }
-
-  const percentages: Record<TaxPlatformKey, number> = {
-    uber: 0,
-    wolt: 0,
-    bolt: 0,
-    glovo: 0,
-  }
-  let fixedTax = 0
-
-  TAX_PLATFORM_KEYS.forEach((platform) => {
-    const type = settings[`${platform}_type` as keyof WorkTaxSettings]
-    const value =
-      Number(settings[`${platform}_val` as keyof WorkTaxSettings]) || 0
-
-    if (type === "percent") {
-      percentages[platform] = value / 100
-    } else if (platformStats[platform].days > 0) {
-      if (type === "fixed_week") {
-        fixedTax += value * Math.min(4, platformStats[platform].weeks.size)
-      } else if (type === "fixed_month") {
-        fixedTax += value
-      }
-    }
-  })
-
-  const fleetFixedRatio = fleetGross > 0 ? fixedTax / fleetGross : 0
-  let netIncome = 0
-
-  shifts.forEach((shift) => {
-    PLATFORM_KEYS.forEach((platform) => {
-      const metrics = getPlatformMetrics(shift, platform)
-      const taxableGross = metrics.income + metrics.appTips + metrics.bonuses
-
-      if (isTaxPlatformKey(platform) && taxableGross > 0) {
-        let platformNet = taxableGross - taxableGross * percentages[platform]
-        if (platform !== "glovo") {
-          platformNet -= taxableGross * fleetFixedRatio
-        }
-        netIncome += platformNet + metrics.cashTips
-      } else {
-        netIncome += taxableGross + metrics.cashTips
-      }
-    })
-  })
-
-  return {
-    grossIncome: grossIncome.toFixed(2),
-    netIncome: netIncome.toFixed(2),
-    taxAmount: (grossIncome - netIncome).toFixed(2),
-    taxesConfigured: true,
-  }
+  const context = createWorkTaxContext(shifts, settings)
+  let gross = 0
+  let net = 0
+  shifts.forEach(shift => PLATFORM_KEYS.forEach(p => {
+    const m = getPlatformMetrics(shift, p)
+    gross += m.income + m.tips + m.bonuses
+    const n = displayedPlatformMetrics(shift, p, context, true)
+    net += n.income + n.tips + n.bonuses
+  }))
+  return { grossIncome: gross.toFixed(2), netIncome: context.configured ? net.toFixed(2) : null,
+    taxAmount: context.configured ? (gross - net).toFixed(2) : null,
+    taxesConfigured: context.configured }
 }

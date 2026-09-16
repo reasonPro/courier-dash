@@ -15,13 +15,14 @@ import { expensesTranslations } from "../../lib/expenses-translations";
 import { useExpenses } from "../../lib/use-expenses";
 import {
   areTaxesConfigured,
+  createWorkTaxContext,
+  displayedPlatformMetrics,
   calculateMonthlyWorkFinance,
 } from "../../lib/work-finance";
 import {
   PLATFORM_KEYS,
   PLATFORM_LABELS,
   STANDARD_PLATFORM_KEYS,
-  TAX_PLATFORM_KEYS,
   buildPlatformShiftPayload,
   createEmptyPlatformValues,
   getEditingPlatformKeys,
@@ -41,8 +42,10 @@ import {
   type PlatformKey,
   type PlatformMetrics,
   type PlatformValues,
-  type TaxPlatformKey,
 } from "../../lib/work-platforms";
+import { availablePlatforms, hasPlatformActivity, projectShift } from "../../lib/work-view";
+import { workViewTranslations } from "../../lib/work-view-translations";
+import { WorkPlatformFilter } from "./components/WorkPlatformFilter";
 import { WorkChart } from "./components/WorkChart";
 import { WorkHeader } from "./components/WorkHeader";
 import { WorkEntryForm } from "./components/WorkEntryForm";
@@ -117,6 +120,8 @@ export default function WorkDashboard() {
 
   const [taxSettings, setTaxSettings] = useState<TaxSettings | null>(null);
   const [isNetto, setIsNetto] = useState(false);
+  const [tableNetto, setTableNetto] = useState(false);
+  const [platformSelection, setPlatformSelection] = useState<{ month: string; values: PlatformKey[] } | null>(null);
   const [showTaxModal, setShowTaxModal] = useState(false);
   const [isSavingTaxes, setIsSavingTaxes] = useState(false);
   const [taxForm, setTaxForm] = useState<TaxSettings>({
@@ -486,8 +491,23 @@ export default function WorkDashboard() {
   const getPlatformOptionLabel = (platform: PlatformKey) =>
     platform === "other" ? t.work.otherPlatform : PLATFORM_LABELS[platform];
   const availableToAdd = PLATFORM_KEYS.filter(p => !activePlatforms.includes(p));
-  const filteredShifts = shifts.filter(shift => shift.date.startsWith(selectedMonth));
-  const expensesFinance = calculateMonthlyWorkFinance(filteredShifts, taxSettings);
+  const monthShifts = shifts.filter(shift => shift.date.startsWith(selectedMonth));
+  const available = availablePlatforms(monthShifts);
+  const selectedPlatforms = platformSelection?.month === selectedMonth
+    ? platformSelection.values.filter(p => available.includes(p)) : available;
+  const effectivePlatforms = selectedPlatforms.length ? selectedPlatforms : available;
+  const allPlatforms = effectivePlatforms.length === available.length;
+  const viewCopy = workViewTranslations[lang];
+  const taxContext = createWorkTaxContext(monthShifts, taxSettings, includeTips, includeBonuses);
+  const nettoUnavailable = !taxContext.configured || (!allPlatforms && taxContext.fixedTax > 0);
+  const filteredShifts = monthShifts
+    .filter(shift => allPlatforms || effectivePlatforms.some(p => hasPlatformActivity(shift, p)))
+    .map(shift => projectShift(shift, effectivePlatforms, taxContext, false, allPlatforms));
+  const tableShifts = monthShifts
+    .filter(shift => allPlatforms || effectivePlatforms.some(p => hasPlatformActivity(shift, p)))
+    .map(shift => projectShift(shift, effectivePlatforms, taxContext,
+      tableNetto && !nettoUnavailable, allPlatforms, includeTips, includeBonuses));
+  const expensesFinance = calculateMonthlyWorkFinance(monthShifts, taxSettings);
   const getMetricTooltip = (shift: Shift, metric: keyof PlatformMetrics) =>
     PLATFORM_KEYS
       .filter((platform) => platform !== "other" || isPlatformActive(shift, platform))
@@ -505,72 +525,11 @@ export default function WorkDashboard() {
       })
       .join("\n");
 
-  const getISOWeek = (dateStr: string) => {
-    const d = new Date(dateStr); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 3 - (d.getDay() || 7));
-    const week1 = new Date(d.getFullYear(), 0, 4);
-    return 1 + Math.round(((d.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() || 7)) / 7);
-  };
-
-  const platStats = {
-    uber: { gross: 0, days: 0, weeks: new Set<number>() },
-    wolt: { gross: 0, days: 0, weeks: new Set<number>() },
-    bolt: { gross: 0, days: 0, weeks: new Set<number>() },
-    glovo: { gross: 0, days: 0, weeks: new Set<number>() }
-  };
-
-  let totalFleetGross = 0;
-
-  filteredShifts.forEach(s => {
-    const w = getISOWeek(s.date);
-    TAX_PLATFORM_KEYS.forEach(p => {
-      let pGross = s[p];
-      if (includeTips) pGross += (s[`tips_${p}` as keyof Shift] as number || 0);
-      if (includeBonuses) pGross += (s[`bonuses_${p}` as keyof Shift] as number || 0);
-      if (pGross > 0 || (s[`orders_${p}` as keyof Shift] as number) > 0) {
-        platStats[p].gross += pGross;
-        platStats[p].days += 1;
-        platStats[p].weeks.add(w);
-        if (p !== "glovo") totalFleetGross += pGross;
-      }
-    });
-  });
-
-  const platPercents = { uber: 0, wolt: 0, bolt: 0, glovo: 0 };
-  let totalFixedTax = 0; 
-  
-  if (taxSettings) {
-    TAX_PLATFORM_KEYS.forEach(p => {
-      const type = taxSettings[`${p}_type` as keyof TaxSettings];
-      const val = Number(taxSettings[`${p}_val` as keyof TaxSettings]) || 0;
-      
-      if (type === 'percent') {
-        platPercents[p] = val / 100;
-      } else if (platStats[p].days > 0) {
-        if (type === 'fixed_week') {
-          const weeksCount = Math.min(4, platStats[p].weeks.size);
-          totalFixedTax += val * weeksCount;
-        } else if (type === 'fixed_month') {
-          totalFixedTax += val;
-        }
-      }
-    });
-  }
-
-  const fleetFixedRatio = totalFleetGross > 0 ? (totalFixedTax / totalFleetGross) : 0;
-
-  const getPlatNetto = (gross: number, p: TaxPlatformKey) => {
-    if (gross <= 0) return 0;
-    let net = gross - (gross * platPercents[p]);
-    if (p !== "glovo") {
-      net -= (gross * fleetFixedRatio); 
-    }
-    return net;
-  };
-  
   let totalVisualEarned = 0, totalHours = 0, totalKm = 0, totalOrders = 0;
   let absTotalTips = 0, absTotalBaseAndBonuses = 0; 
   let maxEarned = 0, bestShiftDate = ""; 
 
+  const dailyIncome = new Map<string, number>();
   filteredShifts.forEach(shift => {
     let shiftVisualTotal = 0;
     const dailyTotals = getShiftPlatformTotals(shift);
@@ -581,7 +540,7 @@ export default function WorkDashboard() {
       let taxableGross = metrics.income + includedTips.appTips;
       if (includeBonuses) taxableGross += metrics.bonuses;
       shiftVisualTotal += (isNetto && taxableGross > 0 && isTaxPlatformKey(p))
-        ? getPlatNetto(taxableGross, p) + includedTips.cashTips
+        ? (() => { const m = displayedPlatformMetrics(shift, p, taxContext, true, includeTips, includeBonuses); return m.income + m.tips + m.bonuses; })()
         : taxableGross + includedTips.cashTips;
     });
 
@@ -593,18 +552,22 @@ export default function WorkDashboard() {
     totalKm += shift.km;
     totalOrders += dailyTotals.orders;
 
-    if (shiftVisualTotal > maxEarned) { maxEarned = shiftVisualTotal; bestShiftDate = shift.date; }
+    dailyIncome.set(shift.date, (dailyIncome.get(shift.date) ?? 0) + shiftVisualTotal);
   });
 
-  const totalDays = filteredShifts.length;
+  for (const [date, income] of dailyIncome) {
+    if (income > maxEarned) { maxEarned = income; bestShiftDate = date; }
+  }
+  if (isNetto && nettoUnavailable) bestShiftDate = "";
+  const totalDays = new Set(filteredShifts.map(shift => shift.date)).size;
   // Елегантні прочерки, якщо даних немає (замість кривих 0.00)
-  const avgPerHour = totalHours > 0 ? (totalVisualEarned / totalHours).toFixed(2) : "—";
-  const avgPerKm = totalKm > 0 ? (totalVisualEarned / totalKm).toFixed(2) : "—";
-  const avgPerOrder = totalOrders > 0 ? (totalVisualEarned / totalOrders).toFixed(2) : "—";
+  const avgPerHour = !(isNetto && nettoUnavailable) && totalHours > 0 ? (totalVisualEarned / totalHours).toFixed(2) : "—";
+  const avgPerKm = !(isNetto && nettoUnavailable) && totalKm > 0 ? (totalVisualEarned / totalKm).toFixed(2) : "—";
+  const avgPerOrder = !(isNetto && nettoUnavailable) && totalOrders > 0 ? (totalVisualEarned / totalOrders).toFixed(2) : "—";
   
-  const avgHoursPerDay = totalDays > 0 ? (totalHours / totalDays).toFixed(1) : "—";
+  const avgHoursPerDay = allPlatforms && totalDays > 0 ? (totalHours / totalDays).toFixed(1) : "—";
   const avgOrdersPerDay = totalDays > 0 ? (totalOrders / totalDays).toFixed(1) : "—";
-  const avgEarnedPerDay = totalDays > 0 ? (totalVisualEarned / totalDays).toFixed(2) : "0.00";
+  const avgEarnedPerDay = (isNetto && nettoUnavailable) ? "—" : totalDays > 0 ? (totalVisualEarned / totalDays).toFixed(2) : "0.00";
 
   const absoluteTotalIncome = absTotalBaseAndBonuses + absTotalTips;
   const tipsPercent = absoluteTotalIncome > 0 ? ((absTotalTips / absoluteTotalIncome) * 100).toFixed(1) : "0.0";
@@ -622,11 +585,8 @@ export default function WorkDashboard() {
     if (!isNetto || !isTaxPlatformKey(p)) return rawVal;
     if (taxableGross <= 0) return type === "tips" ? includedTips.cashTips : rawVal;
     
-    const netto = getPlatNetto(taxableGross, p);
-    const ratio = netto / taxableGross;
-    return type === "tips"
-      ? includedTips.appTips * ratio + includedTips.cashTips
-      : rawVal * ratio;
+    const displayed = displayedPlatformMetrics(shift, p, taxContext, true, includeTips, includeBonuses);
+    return type === "base" ? displayed.income : type === "tips" ? displayed.tips : displayed.bonuses;
   };
 
   const chartDatasets: ChartDatasetCustomTypesPerDataset<
@@ -666,7 +626,7 @@ export default function WorkDashboard() {
     chartDatasets.push({ type: 'bar', label: t.work.bonusesLabel, data: chronologicalShifts.map(s => PLATFORM_KEYS.reduce((sum, platform) => sum + getChartVal(s, platform, "bonuses"), 0)), backgroundColor: "rgba(168, 85, 247, 0.4)", borderColor: "rgba(168, 85, 247, 1)", borderWidth: 1, stack: 'Stack 0', order: 2 });
   }
 
-  chartDatasets.push(
+  if (allPlatforms) chartDatasets.push(
     {
       type: 'line', label: t.work.tableRate,
       data: chronologicalShifts.map(s => {
@@ -676,7 +636,7 @@ export default function WorkDashboard() {
           const includedTips = getIncludedPlatformTips(metrics, includeTips);
           const taxableGross = metrics.income + includedTips.appTips + (includeBonuses ? metrics.bonuses : 0);
           sVisual += (isNetto && taxableGross > 0 && isTaxPlatformKey(p))
-            ? getPlatNetto(taxableGross, p) + includedTips.cashTips
+            ? (() => { const m = displayedPlatformMetrics(s, p, taxContext, true, includeTips, includeBonuses); return m.income + m.tips + m.bonuses; })()
             : taxableGross + includedTips.cashTips;
         });
         return s.hours > 0 ? Number((sVisual / s.hours).toFixed(2)) : 0;
@@ -836,12 +796,20 @@ export default function WorkDashboard() {
           onIncludeTipsChange={setIncludeTips}
           onNettoSelect={handleNettoToggle}
           onOpenTaxSettings={() => setShowTaxModal(true)}
-          onSelectedMonthChange={setSelectedMonth}
+          onSelectedMonthChange={(month) => { setSelectedMonth(month); setPlatformSelection(null); }}
           selectedMonth={selectedMonth}
           translations={t}
         />
 
         <WorkSummary
+          moneyUnavailable={isNetto && nettoUnavailable}
+          platformFilter={<>
+            <WorkPlatformFilter available={available} selected={effectivePlatforms}
+              onChange={values => setPlatformSelection({ month: selectedMonth, values })}
+              lang={lang} otherLabel={t.work.otherPlatform} />
+            {!allPlatforms && <p className="mb-3 text-xs text-gray-400">{viewCopy.shared}</p>}
+            {isNetto && nettoUnavailable && <p role="status" className="mb-3 text-xs text-amber-300">{taxContext.configured ? viewCopy.fixed : viewCopy.taxes}</p>}
+          </>}
           avgEarnedPerDay={avgEarnedPerDay}
           avgHoursPerDay={avgHoursPerDay}
           avgOrdersPerDay={avgOrdersPerDay}
@@ -861,11 +829,12 @@ export default function WorkDashboard() {
           translations={t}
         />
 
+        {!allPlatforms && <p className="mb-2 text-xs text-gray-400">{viewCopy.expenses}</p>}
         <ExpensesMonthSummary
           copy={expenseCopy}
           expensesReadFailed={expensesPrototype.error !== null}
           grossIncome={expensesFinance.grossIncome}
-          grossKnown={!isLoading && !shiftLoadFailed}
+          grossKnown={allPlatforms && !isLoading && !shiftLoadFailed}
           mode={isNetto ? "netto" : "brutto"}
           netIncome={expensesFinance.netIncome}
           onSetupCategories={() => setShowExpenseSettings(true)}
@@ -873,7 +842,7 @@ export default function WorkDashboard() {
           state={expensesPrototype.state}
         />
 
-        {filteredShifts.length > 0 && (
+        {filteredShifts.length > 0 && !(isNetto && nettoUnavailable) && (
           <WorkChart
             data={monthlyChartData}
             isNetto={isNetto}
@@ -883,13 +852,17 @@ export default function WorkDashboard() {
         )}
 
         <WorkHistory
+          netto={tableNetto}
+          onNettoChange={setTableNetto}
+          moneyUnavailable={tableNetto && nettoUnavailable}
+          unavailableReason={taxContext.configured ? viewCopy.fixed : viewCopy.taxes}
           getMetricTooltip={getMetricTooltip}
           isLoading={isLoading}
           lang={lang}
           onDelete={confirmDelete}
-          onEdit={handleEdit}
+          onEdit={view => { const original = shifts.find(shift => shift.id === view.id); if (original) handleEdit(original); }}
           onShowMobileTableChange={setShowMobileTable}
-          shifts={filteredShifts}
+          shifts={tableShifts}
           showMobileTable={showMobileTable}
           translations={t}
         />
