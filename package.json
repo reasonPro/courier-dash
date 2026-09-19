@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/check-local-dev-target.mjs",
     "dev": "next dev",
     "build": "next build",
     "build:check": "next build",

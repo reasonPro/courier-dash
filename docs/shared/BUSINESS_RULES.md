@@ -1,5 +1,13 @@
 # Shared Business Rules
 
+## WORK-PYSZNE-001 — owner-approved local addition (2026-09-16)
+
+Pyszne is a separate platform alongside Uber, Wolt, Bolt, Glovo, Stuart and Other. It records base income, orders, online tips, cash tips and bonuses through the existing Work form. Other history is never reclassified. Pyszne has its own tax setting and follows the existing common non-Glovo fixed-fee allocation; cash tips are excluded from the taxable base and remain unchanged. Shared fixed deductions are not invented for a selected subset. Annual reporting remains BRUTTO with its existing layout. Work and Expenses consume the same monthly finance helper.
+
+The history BRUTTO/NETTO state is independent of the upper switch, defaults to BRUTTO and is not persisted. The shared monthly platform filter affects summary, best day, full chart and history. All platforms with activity are selected initially and on month change; at least one remains selected. Hours/distance and dependent rates are unavailable for a subset. Whole-month Expenses are not assigned to a selected platform. Editing resolves the full original record, never its display projection.
+
+Implementation is local; Pyszne persistence requires `202609160001`. Remote compatibility and real authenticated browser verification are not yet confirmed. Garage integration remains deferred, with no changes from its paused worktree.
+
 Contract version: `0.3.0-draft`
 
 ## TERM-APP-TIPS-001 — Application tips

@@ -1,5 +1,12 @@
 # Shared Contract Changelog
 
+## Local Work/Pyszne delta — 2026-09-16 (not released)
+
+- Real Work history has its independent, non-persisted BRUTTO/NETTO mode and a shared monthly platform filter. Cash tips are preserved, shared hours/distance and fixed fees are not allocated to subsets.
+- Pyszne extends the existing platform model and tax form; Stuart/Other and old recorded values are retained. Contract-owned fields: `types/work.ts`; local migration: `202609160001_add_pyszne_platform.sql`.
+- Remote schema compatibility and local database execution are unverified: Staging project metadata reported `INACTIVE`, and no local PostgreSQL/Docker runtime was available. Existing generated database types and the last verified schema revision are unchanged. This is not a remote rollout or Mobile handoff.
+- The task-only `/work-demo` was removed in favor of real `/work` and `/expenses`. Garage integration remains paused and absent from this branch.
+
 ## 0.3.0-draft Expenses production reconciliation — 2026-08-14
 
 Status: `owner_approved_web_implemented_production_schema_verified`

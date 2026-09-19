@@ -42,6 +42,7 @@ function createEmptyPlatformTotals(): AnnualPlatformTotals {
     bolt: { income: 0, orders: 0, appTips: 0, cashTips: 0, tips: 0, bonuses: 0 },
     glovo: { income: 0, orders: 0, appTips: 0, cashTips: 0, tips: 0, bonuses: 0 },
     stuart: { income: 0, orders: 0, appTips: 0, cashTips: 0, tips: 0, bonuses: 0 },
+    pyszne: { income: 0, orders: 0, appTips: 0, cashTips: 0, tips: 0, bonuses: 0 },
     other: { income: 0, orders: 0, appTips: 0, cashTips: 0, tips: 0, bonuses: 0 },
   };
 }

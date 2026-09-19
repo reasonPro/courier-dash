@@ -118,6 +118,7 @@ export default function YearReport() {
     { id: "bolt", name: "Bolt", chartBackground: "rgba(34, 197, 94, 0.4)", chartBorder: "rgba(34, 197, 94, 1)", cardColor: "border-green-600 bg-green-900/10" },
     { id: "glovo", name: "Glovo", chartBackground: "rgba(234, 179, 8, 0.4)", chartBorder: "rgba(234, 179, 8, 1)", cardColor: "border-yellow-600 bg-yellow-900/10" },
     { id: "stuart", name: "Stuart", chartBackground: "rgba(249, 115, 22, 0.4)", chartBorder: "rgba(249, 115, 22, 1)", cardColor: "border-orange-600 bg-orange-900/10" },
+    { id: "pyszne", name: "Pyszne", chartBackground: "rgba(234, 88, 12, 0.4)", chartBorder: "rgba(234, 88, 12, 1)", cardColor: "border-orange-600 bg-orange-900/10" },
     { id: "other", name: t.work.otherPlatform, chartBackground: "rgba(99, 102, 241, 0.4)", chartBorder: "rgba(99, 102, 241, 1)", cardColor: "border-indigo-600 bg-indigo-900/10" },
   ];
 

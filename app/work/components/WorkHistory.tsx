@@ -44,7 +44,7 @@ export function WorkHistory({
   const money = (value: number) => moneyUnavailable ? "—" : value.toFixed(2);
   return (
     <>
-      <div className="mb-2 flex justify-between items-end">
+      <div className="mb-2 flex flex-wrap gap-2 justify-between items-end">
         <h2 className="text-lg font-medium text-white">
           {t.work.historyTitle}{" "}
           <span className="ml-2 inline-flex gap-1 rounded-lg bg-gray-800 p-1 text-xs">

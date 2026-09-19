@@ -1,5 +1,9 @@
 # Schema Policy
 
+## Local Pyszne expansion — pending verification (2026-09-16)
+
+`202609160001_add_pyszne_platform.sql` is a local additive draft affecting only `work_shifts` and `tax_settings`: five Pyszne metrics, two tax fields and checks. It does not rewrite recorded values, change ownership/RLS/grants, or reclassify Other. It has NOT been applied remotely or verified on an isolated local database. Current Staging schema could not be inspected because project metadata reported `INACTIVE`; Production was not used as a substitute. The existing generated types and verified schema revision are not relabeled. Contract-owned local extensions are explicit in `types/work.ts` and `lib/work-database.ts` until generation from a verified target is possible. Web owns this migration; Mobile implementation is paused and must later adopt the additive fields, cash-tip treatment and view semantics.
+
 Contract version: `0.3.0-draft`
 Status: `partially_verified`
 

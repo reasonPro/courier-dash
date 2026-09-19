@@ -146,6 +146,8 @@ export default function ExpensesPage() {
               bolt_val: taxRow.bolt_val ?? 0,
               glovo_type: taxRow.glovo_type ?? "none",
               glovo_val: taxRow.glovo_val ?? 0,
+              pyszne_type: taxRow.pyszne_type ?? "none",
+              pyszne_val: taxRow.pyszne_val ?? 0,
               uber_type: taxRow.uber_type ?? "none",
               uber_val: taxRow.uber_val ?? 0,
               wolt_type: taxRow.wolt_type ?? "none",

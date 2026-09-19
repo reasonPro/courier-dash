@@ -21,6 +21,26 @@
   },
   "artifacts": [
     {
+      "path": "docs/shared/types/work.ts",
+      "sha256": "a9e820162754da42efd9f2f2e1781aee25675b3b0ad214f5edd76cf3127e8dd0",
+      "status": "present",
+      "sourceRefs": ["supabase/migrations/202609160001_add_pyszne_platform.sql", "lib/work-database.ts"],
+      "generatedAt": "2026-09-19T00:00:00Z",
+      "stagingStatus": "not_checked",
+      "productionStatus": "not_applied",
+      "verificationStatus": "draft_pending_schema_snapshot"
+    },
+    {
+      "path": "supabase/migrations/202609160001_add_pyszne_platform.sql",
+      "sha256": "a0da8f661edb47024960d5f64a3cfcb75ebc0f94e58974a1fd75d608913b67c8",
+      "status": "present",
+      "sourceRefs": ["docs/shared/API_CONTRACT.md", "docs/shared/types/work.ts"],
+      "generatedAt": "2026-09-19T00:00:00Z",
+      "stagingStatus": "not_checked",
+      "productionStatus": "not_applied",
+      "verificationStatus": "draft_pending_schema_snapshot"
+    },
+    {
       "path": "docs/shared/SHARED_ARCHITECTURE.md",
       "sha256": "9f6282098183bb756aa016ff1475219bd06734c2a4b097cd0c9245491618822f",
       "status": "present",
@@ -34,7 +54,7 @@
     },
     {
       "path": "docs/shared/SCHEMA_POLICY.md",
-      "sha256": "13d03fc220d3b6d0593d0c010638310f4f07b83a09464f45ff57b6953c9e7a7d",
+      "sha256": "9b93ca1b5703d02baa2508f63f553b38dfd5541609d0a1f3f87e8e589c3453bb",
       "status": "present",
       "sourceRefs": [
         "supabase/schema.snapshot.json",
@@ -58,7 +78,7 @@
     },
     {
       "path": "docs/shared/API_CONTRACT.md",
-      "sha256": "93f83ea33044db0504d9e1f1df7f8791082322b2c26a10bad00c4b2b1a565c98",
+      "sha256": "db4785f24ba6d2e3297434b05123539ee04892c467b96352ebdfa8df8e5dec32",
       "status": "present",
       "sourceRefs": [
         "app",
@@ -90,7 +110,7 @@
     },
     {
       "path": "docs/shared/BUSINESS_RULES.md",
-      "sha256": "ebc2a7ee69793593dc69c892e70de1716b3a8cff20140cee9960f3043e0934d2",
+      "sha256": "30e984be875d9755e5addbea99880a6ba5d7506ff43d8c69970a6f3d89d2c926",
       "status": "present",
       "sourceRefs": [
         "lib/work-platforms.ts",
@@ -148,7 +168,7 @@
     },
     {
       "path": "docs/shared/CHANGELOG.md",
-      "sha256": "7d01a8b87b92e1f10e11c05c774e2fbff63002e4a2c5888bb0cdff567fee18fc",
+      "sha256": "801dce0311ee0102215804739c0c1bedeab3c2fccf3190ac449c3b3e411c4956",
       "status": "present",
       "sourceRefs": [
         "docs/shared"
@@ -321,7 +341,7 @@
     },
     {
       "path": "docs/MOBILE_INTEGRATION.md",
-      "sha256": "662e89fa4dd318d4fd32b2231ec19379bf20c4386427b775c623a43b5c3d962f",
+      "sha256": "7b2b1ff72a93911f4c8fc8beaf7708b96ac8e2fe3babe89d654a3caa532329cd",
       "status": "present",
       "sourceRefs": [
         "docs/shared/GARAGE_CONTRACT.md",
@@ -401,15 +421,17 @@
     },
     {
       "id": "work",
-      "implementationStatus": "staging_verified",
-      "implementationCommit": "aec017db173b846bea98210224ff40df99906d05",
+      "implementationStatus": "implemented_unverified",
+      "implementationCommit": null,
       "reviewStatus": "pending",
       "acceptanceStatus": "accepted_by_web",
       "contractVersion": "0.3.0-draft",
       "verificationStatus": "partially_verified",
       "supportedCapabilities": [
         "dated_record_crud",
-        "six_platforms",
+        "seven_platforms_local_pyszne_pending_schema",
+        "independent_history_brutto_netto",
+        "shared_monthly_platform_filter",
         "app_tips",
         "cash_tips",
         "bonuses",
@@ -422,7 +444,8 @@
         "active_shift_semantics"
       ],
       "blockers": [
-        "RISK-007"
+        "RISK-007",
+        "RISK-016"
       ],
       "evidenceRefs": [
         "app/work/page.tsx",
@@ -602,6 +625,16 @@
     }
   ],
   "blockers": [
+    {
+      "id": "RISK-016",
+      "area": "local_pyszne_schema_and_authenticated_verification",
+      "severity": "blocker",
+      "status": "open",
+      "description": "Pyszne is a local additive change only. Staging metadata reported INACTIVE on 2026-09-16; no isolated local Supabase runtime was confirmed. Top-level schema revision and generated types remain the previous verified baseline, not evidence for this draft.",
+      "blocksFlows": ["work", "statistics", "reports"],
+      "evidenceRefs": ["supabase/migrations/202609160001_add_pyszne_platform.sql", "docs/shared/types/work.ts", "docs/WORKFLOW.md"],
+      "requiredResolution": "Verify remote metadata when authorized target is available; validate migration and authenticated CRUD on an isolated test database, regenerate types and verify real Work/Expenses UI before any rollout. Mobile catch-up is deferred."
+    },
     {
       "id": "RISK-001",
       "area": "staging_identity",

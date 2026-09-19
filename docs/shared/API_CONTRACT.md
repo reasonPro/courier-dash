@@ -35,7 +35,13 @@ The public Garage schema, access, and RPC claims above were verified against nam
 
 The current Web operation writes one `work_shifts` row per user and calendar date. Verified Staging requires `user_id`, provides no ownership default, retains the Auth-user foreign key, and enforces unique `(user_id, date)`. Create and update payloads explicitly include `user_id`, distance, hours, and platform-specific income, orders, app tips, cash tips, bonuses, plus an optional trimmed custom name for `other`.
 
-Supported platform identifiers are `uber`, `wolt`, `bolt`, `glovo`, `stuart`, and `other`. For `other`, non-zero metrics require a non-empty trimmed name in local migration evidence. Cash tips are non-negative in both Web validation and local constraint evidence. General non-negativity for every other metric is not verified and must not be invented by Mobile.
+The previously verified platform identifiers are `uber`, `wolt`, `bolt`, `glovo`, `stuart`, and `other`. This local branch additionally implements `pyszne`, pending migration `202609160001` and database verification. For `other`, non-zero metrics require a non-empty trimmed name in local migration evidence. Cash tips are non-negative in both Web validation and local constraint evidence. General non-negativity for every other metric is not verified and must not be invented by Mobile.
+
+### Pyszne local additive contract (2026-09-16)
+
+`work_shifts`: `pyszne`, `tips_pyszne`, `cash_tips_pyszne`, `bonuses_pyszne` are PostgreSQL `numeric NOT NULL DEFAULT 0`; `orders_pyszne` is `integer NOT NULL DEFAULT 0`. `cash_tips_pyszne >= 0` follows existing cash-tip validation. `tax_settings`: `pyszne_type text NOT NULL DEFAULT 'none'` accepts `none`, `percent`, `fixed_week`, `fixed_month`; `pyszne_val numeric NOT NULL DEFAULT 0`. Ownership, table RLS, existing grants and `(user_id,date)` uniqueness remain unchanged. Other records are not reclassified.
+
+Contract-owned fields are in `types/work.ts`. Missing Pyszne fields in older reads mean no recorded activity; new writes require the migration. `lib/work-database.ts` explicitly extends the last generated schema locally: it is NOT regenerated remote evidence. Replace that bridge after verified schema/type generation. No remote migration was applied. Staging was `INACTIVE` during discovery, so remote schema compatibility and authenticated Pyszne CRUD are unverified.
 
 Web reads all owned rows, performs filters and aggregations client-side, and writes directly. Errors from mutations are surfaced to the UI; several read paths do not expose structured errors. No shared error envelope or retry/idempotency contract exists.
 

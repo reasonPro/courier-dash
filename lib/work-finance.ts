@@ -16,6 +16,9 @@ export type WorkTaxSettings = {
   bolt_val: number | string
   glovo_type: string
   glovo_val: number | string
+  // Optional when reading a pre-Pyszne snapshot; absent means not configured.
+  pyszne_type?: string | null
+  pyszne_val?: number | string | null
 }
 
 export type MonthlyFinanceShift = PlatformMetricSource & {

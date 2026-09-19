@@ -1,5 +1,9 @@
 # CourierDash Web ↔ Mobile Integration
 
+## Local Web Pyszne / Work view delta (2026-09-16)
+
+Mobile is paused; no Mobile repository was accessed. Future catch-up must include the Pyszne fields in `docs/shared/types/work.ts`, independent history BRUTTO/NETTO, the shared platform filter, preserved cash tips and unavailable subset/shared-cost semantics. See `docs/shared/API_CONTRACT.md` and `BUSINESS_RULES.md`. Migration `202609160001` is local and unverified, not a deployed schema promise. Garage integration remains separate and deferred.
+
 ## Призначення документа
 
 Цей документ передає команді CourierDash Mobile локально підтверджені Web contracts, business rules і uncertainties. Він допомагає інтегрувати окремий mobile codebase зі спільним backend без копіювання Web UI.
