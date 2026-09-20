@@ -1,4 +1,5 @@
 import type { FormEventHandler } from "react";
+import { TAX_PLATFORM_KEYS, PLATFORM_LABELS } from "../../../lib/work-platforms";
 
 import type {
   FieldSettings,
@@ -121,9 +122,9 @@ export function WorkModals({
             <p className="text-gray-400 text-sm mb-6 leading-relaxed">{t.work.taxModalDesc}</p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              {(["uber", "wolt", "bolt", "glovo"] as const).map(p => (
+              {TAX_PLATFORM_KEYS.map(p => (
                 <div key={p} className="bg-[#2a2a35] p-4 rounded-xl border border-gray-700">
-                  <span className="font-bold text-lg text-white capitalize block mb-3 border-b border-gray-600 pb-2">{p}</span>
+                  <span className="font-bold text-lg text-white capitalize block mb-3 border-b border-gray-600 pb-2">{PLATFORM_LABELS[p]}</span>
                   <div className="space-y-3">
                     <select
                       value={taxForm[`${p}_type` as keyof TaxSettings]}

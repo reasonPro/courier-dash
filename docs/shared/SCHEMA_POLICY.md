@@ -1,5 +1,9 @@
 # Schema Policy
 
+## Pyszne expansion — local verified, remote pending (2026-09-20)
+
+`202609160001_add_pyszne_platform.sql` is an additive migration affecting only `work_shifts` and `tax_settings`: five Pyszne metrics, two tax fields and checks. It does not rewrite recorded values, change ownership/RLS/grants, or reclassify Other. It is applied on the isolated local Docker database, with authenticated synthetic create/read/reload/update verified on real `/work`. It has NOT been applied remotely in this release. Staging fingerprint `52e93ed81919` was restored to `ACTIVE_HEALTHY`; read-only metadata confirms history through `202608150001`, existing ownership/RLS and absence of Pyszne fields. Remote execution and old/new Web compatibility tests remain pending. Preview authorization and Production backup/restore are unresolved release gates; see `../CURRENT_STATE.md`. The existing generated types and verified schema revision are not relabeled. Contract-owned extensions remain explicit in `types/work.ts` and `lib/work-database.ts` until generation from a verified target is possible. Web owns this migration; Mobile implementation is paused and must later adopt the additive fields, cash-tip treatment and view semantics. Mobile parity is not claimed.
+
 Contract version: `0.3.0-draft`
 Status: `partially_verified`
 

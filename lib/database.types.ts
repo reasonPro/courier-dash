@@ -200,6 +200,8 @@ export type Database = {
           glovo_type: string | null
           glovo_val: number | null
           id: string
+          pyszne_type: string
+          pyszne_val: number
           uber_type: string | null
           uber_val: number | null
           updated_at: string | null
@@ -213,6 +215,8 @@ export type Database = {
           glovo_type?: string | null
           glovo_val?: number | null
           id?: string
+          pyszne_type?: string
+          pyszne_val?: number
           uber_type?: string | null
           uber_val?: number | null
           updated_at?: string | null
@@ -226,6 +230,8 @@ export type Database = {
           glovo_type?: string | null
           glovo_val?: number | null
           id?: string
+          pyszne_type?: string
+          pyszne_val?: number
           uber_type?: string | null
           uber_val?: number | null
           updated_at?: string | null
@@ -242,12 +248,14 @@ export type Database = {
           bonuses_bolt: number | null
           bonuses_glovo: number | null
           bonuses_other: number
+          bonuses_pyszne: number
           bonuses_stuart: number
           bonuses_uber: number | null
           bonuses_wolt: number | null
           cash_tips_bolt: number
           cash_tips_glovo: number
           cash_tips_other: number
+          cash_tips_pyszne: number
           cash_tips_stuart: number
           cash_tips_uber: number
           cash_tips_wolt: number
@@ -260,16 +268,19 @@ export type Database = {
           orders_bolt: number | null
           orders_glovo: number | null
           orders_other: number
+          orders_pyszne: number
           orders_stuart: number
           orders_uber: number | null
           orders_wolt: number | null
           other_income: number
           other_platform_name: string | null
+          pyszne: number
           stuart: number
           tips: number | null
           tips_bolt: number | null
           tips_glovo: number | null
           tips_other: number
+          tips_pyszne: number
           tips_stuart: number
           tips_uber: number | null
           tips_wolt: number | null
@@ -283,12 +294,14 @@ export type Database = {
           bonuses_bolt?: number | null
           bonuses_glovo?: number | null
           bonuses_other?: number
+          bonuses_pyszne?: number
           bonuses_stuart?: number
           bonuses_uber?: number | null
           bonuses_wolt?: number | null
           cash_tips_bolt?: number
           cash_tips_glovo?: number
           cash_tips_other?: number
+          cash_tips_pyszne?: number
           cash_tips_stuart?: number
           cash_tips_uber?: number
           cash_tips_wolt?: number
@@ -301,16 +314,19 @@ export type Database = {
           orders_bolt?: number | null
           orders_glovo?: number | null
           orders_other?: number
+          orders_pyszne?: number
           orders_stuart?: number
           orders_uber?: number | null
           orders_wolt?: number | null
           other_income?: number
           other_platform_name?: string | null
+          pyszne?: number
           stuart?: number
           tips?: number | null
           tips_bolt?: number | null
           tips_glovo?: number | null
           tips_other?: number
+          tips_pyszne?: number
           tips_stuart?: number
           tips_uber?: number | null
           tips_wolt?: number | null
@@ -324,12 +340,14 @@ export type Database = {
           bonuses_bolt?: number | null
           bonuses_glovo?: number | null
           bonuses_other?: number
+          bonuses_pyszne?: number
           bonuses_stuart?: number
           bonuses_uber?: number | null
           bonuses_wolt?: number | null
           cash_tips_bolt?: number
           cash_tips_glovo?: number
           cash_tips_other?: number
+          cash_tips_pyszne?: number
           cash_tips_stuart?: number
           cash_tips_uber?: number
           cash_tips_wolt?: number
@@ -342,16 +360,19 @@ export type Database = {
           orders_bolt?: number | null
           orders_glovo?: number | null
           orders_other?: number
+          orders_pyszne?: number
           orders_stuart?: number
           orders_uber?: number | null
           orders_wolt?: number | null
           other_income?: number
           other_platform_name?: string | null
+          pyszne?: number
           stuart?: number
           tips?: number | null
           tips_bolt?: number | null
           tips_glovo?: number | null
           tips_other?: number
+          tips_pyszne?: number
           tips_stuart?: number
           tips_uber?: number | null
           tips_wolt?: number | null
@@ -408,12 +429,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -437,11 +458,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -462,11 +483,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -487,11 +508,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -504,11 +525,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

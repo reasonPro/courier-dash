@@ -6,6 +6,18 @@
 
 ## Перед початком задачі
 
+### Одна робоча папка — домовленість власника (2026-09-16)
+
+Основна папка Cursor — `courier-dash`. Задачі розділяються гілками, а не новими worktrees. Перед перемиканням усі tracked/untracked зміни зберігаються у відповідній гілці через перевірений локальний checkpoint; він не означає приймання відкладеної роботи. Старі worktrees залишаються архівами. Нові worktrees, demo-сторінки та спрощені копії інтерфейсу потребують прямого прохання власника.
+
+Запуск — `npm run dev` з основної папки на `http://localhost:3000`; перевіряються справжні `/work` і `/expenses` зі звичайною авторизацією. Дизайн не змінюється поза погодженим scope. Порядок приймання: локальний застосунок → погоджений Preview → погоджений Production.
+
+**Localhost не означає тестову базу.** До запуску перевірити effective environment, включно з process variables та `.env.local`, і sanitized fingerprint Supabase. Production не використовується для synthetic data. Якщо тестова база недоступна, не обходити Auth, не підміняти справжню сторінку демо й не називати data flows перевіреними. Зайнятий порт 3000 спочатку ідентифікувати; чужий сервер не зупиняти.
+
+`npm run dev` виконує `scripts/check-local-dev-target.mjs`: поточна локальна задача допускає лише loopback Supabase target із заданим public key. Guard не переписує `.env.local`, не змінює credentials і не доводить, що база працює або має потрібні migrations; це окрема перевірка. Remote Staging для тестових записів потребує окремого дозволу. Не обходити guard для Production.
+
+Історична причина відсутності Expenses на порту 3000 (2026-09-16): root checkout працював зі старого Garage commit `435fe7663d18d9f0d7248d6ac66736df13590ed7`. Основа поточної feature-гілки — `c38e23e2ec3199bd5ddf5daf8b2705966304bdb7`, підтверджена fetch і read-only deployment metadata. Оновлення 2026-09-20: ізольована локальна Supabase в Docker доступна, dev guard підтверджує loopback target; локальний override не переноситься у Preview/Production. Справжні `/work` і `/expenses` відкриваються з synthetic акаунтом; Pyszne migration і CRUD перевірені локально. Staging відновлено до `ACTIVE_HEALTHY`, але Pyszne migration там ще не застосована. Preview заблоковано недійсною Vercel авторизацією, Production — також непідтвердженим backup/restore. Деталі та межі перевірок: [CURRENT_STATE.md](./CURRENT_STATE.md).
+
 1. Коротко дослідити лише пов’язані місця.
 2. Узгодити план і дозволений scope.
 3. Переконатися, що working tree clean:

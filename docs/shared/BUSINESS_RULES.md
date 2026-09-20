@@ -1,5 +1,25 @@
 # Shared Business Rules
 
+## WORK-COMPARISON-001 — owner-approved browser-local calendar (2026-09-20)
+
+Income and hourly-rate comparison badges use the user's browser calendar day (not server UTC). Current month compares days 1–N against 1–N of the previous month, where N is the smaller of elapsed completed days and previous-month length; today remains in the main monthly cards but not these badges. First-day and future-month comparisons are unavailable. Historical months compare full months, including their different lengths. Only recorded rows count; no shift/day-off inference or forecast.
+
+Both periods share explicit platform and online/cash/bonus filters and upper BRUTTO/NETTO. All includes platforms unique to either period. Hourly rate is total displayed income / corresponding hours, never an average of daily rates; platform-subset shared hours remain unavailable. Existing full-month tax helpers are reused. Partial-month or platform-subset NETTO with fixed deductions is unavailable, not prorated. Positive prior base uses (current − previous) / previous × 100; zero/negative prior base, missing rows, zero hours, unavailable finance, loading and read errors have explicit states, not false zeros. Authenticated bounded two-month reads are paginated and stale requests aborted/ignored. Tips percentage is now inside the tips card; its calculation is unchanged. No migration is required for these comparisons; Mobile parity remains unverified.
+
+## WORK-DISPLAY-COMPONENTS-001 — owner-approved local UI (2026-09-20)
+
+Work has independent display flags for app/online tips, cash tips and bonuses. Both tips flags initially equal the former non-persisted combined default (`true`); they do not add server preferences or change recorded/editable values. The selected month/platforms and flags apply to monthly cards, best day, chart and history. Upper and history BRUTTO/NETTO remain independent. Annual reporting and the whole-month Expenses income basis are unchanged.
+
+Tips and bonuses cards show included components on the upper switch's basis, using the existing tax helper without a new allocation model. Cash tips remain unchanged. The tips card and percentage disappear only when both tips flags are off; each disabled breakdown row is hidden. The bonuses card disappears only when its flag is off. Enabled zero remains visible. Tips percentage is included displayed tips / displayed income * 100, formatted to two decimals; zero denominator or unavailable NETTO gives `—`. For base 100, app tips 10, cash 20 and bonuses off, cash-only BRUTTO is 120, tips 20, share 16.67%. Unknown tax and shared-fixed-cost subset restrictions remain unavailable; no gross components are labeled as NETTO. No schema migration is needed for these display-only changes.
+
+## WORK-PYSZNE-001 — owner-approved local addition (2026-09-16)
+
+Pyszne is a separate platform alongside Uber, Wolt, Bolt, Glovo, Stuart and Other. It records base income, orders, online tips, cash tips and bonuses through the existing Work form. Other history is never reclassified. Pyszne has its own tax setting and follows the existing common non-Glovo fixed-fee allocation; cash tips are excluded from the taxable base and remain unchanged. Shared fixed deductions are not invented for a selected subset. Annual reporting remains BRUTTO with its existing layout. Work and Expenses consume the same monthly finance helper.
+
+The history BRUTTO/NETTO state is independent of the upper switch, defaults to BRUTTO and is not persisted. The shared monthly platform filter affects summary, best day, full chart and history. All platforms with activity are selected initially and on month change; at least one remains selected. Hours/distance and dependent rates are unavailable for a subset. Whole-month Expenses are not assigned to a selected platform. Editing resolves the full original record, never its display projection.
+
+Implementation is local; Pyszne persistence requires `202609160001`. Remote compatibility and real authenticated browser verification are not yet confirmed. Garage integration remains deferred, with no changes from its paused worktree.
+
 Contract version: `0.3.0-draft`
 
 ## TERM-APP-TIPS-001 — Application tips
@@ -166,3 +186,17 @@ Garage has an independent approved persistence rule: PLN only, cost `>= 0`, at m
 - Current odometer is a local calculation parameter, not Supabase data.
 - Web and Mobile may remember separate values locally; values may increase or decrease.
 - No backend field, synchronization, or automatic browser-storage import exists.
+
+## WORK-NETTO-CASH-001 — owner-confirmed display rule (2026-09-14)
+
+- Cash tips remain income, but are excluded from percentage deductions. This is a CourierDash product rule, not a claim about legal tax exemptions.
+- Percentage base per platform: base income + included online tips + included bonuses. Cash tips are added unchanged once.
+- Example: 100 PLN base + 20 PLN cash tips, 10% and no fixed fees: BRUTTO 120, deductions 10, NETTO 110.
+- The existing full-month fixed-week/fixed-month calculation and its fleet allocation remain unchanged. Do not rebuild that context per row or invent an allocation for a platform subset.
+- Work cards, chart and history use the shared `createWorkTaxContext` / `displayedPlatformMetrics` helpers; Expenses uses `calculateMonthlyWorkFinance`. Historical records are recalculated on read; no stored amounts are rewritten.
+- Work history starts in BRUTTO and has an independent, non-persistent NETTO selector. The monthly platform selection is shared and resets when the month changes.
+- Activity includes orders, base income, online/cash tips and bonuses. Daily averages count distinct active dates. Editing resolves the original unfiltered record.
+- For a platform subset, shared hours/distance and dependent rates are unavailable. If shared fixed deductions apply, subset NETTO is unavailable pending a separate owner allocation decision. Whole-month Expenses are not allocated; subset income after those expenses is unavailable.
+- Annual reporting remains its existing gross-only calculation; no new annual NETTO mode is introduced.
+- Mobile must synchronize this cash-tip rule before exposing corresponding NETTO calculations. No Mobile implementation or compatibility claim is made here.
+- Garage integration remains deferred. Future merge overlap: Work page, shared finance helper, Expenses summary inputs and this document.

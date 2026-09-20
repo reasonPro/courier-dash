@@ -5,6 +5,10 @@ export const PLATFORM_CHART_STYLES: Record<
   PlatformKey,
   { backgroundColor: string; borderColor: string }
 > = {
+  pyszne: {
+    backgroundColor: "rgba(234, 88, 12, 0.4)",
+    borderColor: "rgba(234, 88, 12, 1)",
+  },
   uber: {
     backgroundColor: "rgba(75, 85, 99, 0.4)",
     borderColor: "rgba(75, 85, 99, 1)",
@@ -32,6 +36,7 @@ export const PLATFORM_CHART_STYLES: Record<
 };
 
 export const PLATFORM_CARD_ACCENTS: Record<PlatformKey, string> = {
+  pyszne: "border-orange-600/70",
   uber: "border-gray-600/70",
   wolt: "border-cyan-600/70",
   bolt: "border-green-600/70",

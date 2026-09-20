@@ -21,6 +21,26 @@
   },
   "artifacts": [
     {
+      "path": "docs/shared/types/work.ts",
+      "sha256": "a9e820162754da42efd9f2f2e1781aee25675b3b0ad214f5edd76cf3127e8dd0",
+      "status": "present",
+      "sourceRefs": ["supabase/migrations/202609160001_add_pyszne_platform.sql", "lib/work-database.ts"],
+      "generatedAt": "2026-09-19T00:00:00Z",
+      "stagingStatus": "not_checked",
+      "productionStatus": "not_applied",
+      "verificationStatus": "draft_pending_schema_snapshot"
+    },
+    {
+      "path": "supabase/migrations/202609160001_add_pyszne_platform.sql",
+      "sha256": "a0da8f661edb47024960d5f64a3cfcb75ebc0f94e58974a1fd75d608913b67c8",
+      "status": "present",
+      "sourceRefs": ["docs/shared/API_CONTRACT.md", "docs/shared/types/work.ts"],
+      "generatedAt": "2026-09-19T00:00:00Z",
+      "stagingStatus": "not_checked",
+      "productionStatus": "not_applied",
+      "verificationStatus": "draft_pending_schema_snapshot"
+    },
+    {
       "path": "docs/shared/SHARED_ARCHITECTURE.md",
       "sha256": "9f6282098183bb756aa016ff1475219bd06734c2a4b097cd0c9245491618822f",
       "status": "present",
@@ -34,7 +54,7 @@
     },
     {
       "path": "docs/shared/SCHEMA_POLICY.md",
-      "sha256": "13d03fc220d3b6d0593d0c010638310f4f07b83a09464f45ff57b6953c9e7a7d",
+      "sha256": "c3b1ffbf1846634bdfa8276629a98482e251a73060a63f7b1f37f858a5d106a7",
       "status": "present",
       "sourceRefs": [
         "supabase/schema.snapshot.json",
@@ -58,7 +78,7 @@
     },
     {
       "path": "docs/shared/API_CONTRACT.md",
-      "sha256": "93f83ea33044db0504d9e1f1df7f8791082322b2c26a10bad00c4b2b1a565c98",
+      "sha256": "db4785f24ba6d2e3297434b05123539ee04892c467b96352ebdfa8df8e5dec32",
       "status": "present",
       "sourceRefs": [
         "app",
@@ -90,7 +110,7 @@
     },
     {
       "path": "docs/shared/BUSINESS_RULES.md",
-      "sha256": "91e9a1970b1427a5fd006fa989c9cfb87da9e6d5547b5dc3d30b42c3373031fe",
+      "sha256": "b4de7b626a68cabbb832bfb8cb6d63548cbe7fe3af2ed51ccd7d05bfd2d7fab8",
       "status": "present",
       "sourceRefs": [
         "lib/work-platforms.ts",
@@ -148,7 +168,7 @@
     },
     {
       "path": "docs/shared/CHANGELOG.md",
-      "sha256": "7d01a8b87b92e1f10e11c05c774e2fbff63002e4a2c5888bb0cdff567fee18fc",
+      "sha256": "0ef6affa36b6b7010a0243f50a3672f069673c275268ee64567a83d9f24c964b",
       "status": "present",
       "sourceRefs": [
         "docs/shared"
@@ -321,7 +341,7 @@
     },
     {
       "path": "docs/MOBILE_INTEGRATION.md",
-      "sha256": "662e89fa4dd318d4fd32b2231ec19379bf20c4386427b775c623a43b5c3d962f",
+      "sha256": "19bcab3e94c1c51f62d141fbbc2964abd13ce37c6eab6d29e14dfdd3dae8a06d",
       "status": "present",
       "sourceRefs": [
         "docs/shared/GARAGE_CONTRACT.md",
@@ -401,15 +421,17 @@
     },
     {
       "id": "work",
-      "implementationStatus": "staging_verified",
-      "implementationCommit": "aec017db173b846bea98210224ff40df99906d05",
+      "implementationStatus": "implemented_unverified",
+      "implementationCommit": null,
       "reviewStatus": "pending",
       "acceptanceStatus": "accepted_by_web",
       "contractVersion": "0.3.0-draft",
       "verificationStatus": "partially_verified",
       "supportedCapabilities": [
         "dated_record_crud",
-        "six_platforms",
+        "seven_platforms_local_pyszne_pending_schema",
+        "independent_history_brutto_netto",
+        "shared_monthly_platform_filter",
         "app_tips",
         "cash_tips",
         "bonuses",
@@ -422,7 +444,8 @@
         "active_shift_semantics"
       ],
       "blockers": [
-        "RISK-007"
+        "RISK-007",
+        "RISK-016"
       ],
       "evidenceRefs": [
         "app/work/page.tsx",
@@ -602,6 +625,16 @@
     }
   ],
   "blockers": [
+    {
+      "id": "RISK-016",
+      "area": "pyszne_remote_rollout_and_compatibility_verification",
+      "severity": "blocker",
+      "status": "open",
+      "description": "Pyszne migration and authenticated synthetic create/read/reload/update are locally verified in Docker. On 2026-09-20 Staging was restored to ACTIVE_HEALTHY; read-only history through 202608150001 and absence of Pyszne fields were confirmed. Remote migration and client compatibility remain pending; Preview authorization and Production backup/restore gates are unresolved. Top-level schema revision and generated types remain the previous verified baseline, not evidence for Pyszne rollout.",
+      "blocksFlows": ["work", "statistics", "reports"],
+      "evidenceRefs": ["supabase/migrations/202609160001_add_pyszne_platform.sql", "docs/shared/types/work.ts", "docs/WORKFLOW.md"],
+      "requiredResolution": "Restore Vercel authorization; verify branch-scoped Preview uses Staging, apply only the canonical Pyszne migration, verify old/new client compatibility and authenticated Staging/Preview flows, and regenerate types from the verified target. Before Production, verify an actual backup/restore path. Mobile catch-up is deferred, not parity-verified."
+    },
     {
       "id": "RISK-001",
       "area": "staging_identity",

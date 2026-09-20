@@ -1,7 +1,8 @@
 import type { Tables } from "../../lib/database.types";
+import type { PyszneShiftColumns } from "../../docs/shared/types/work";
 import type { translations, LangType } from "../../lib/translations";
 
-export type Shift = Tables<"work_shifts">;
+export type Shift = Tables<"work_shifts"> & Partial<PyszneShiftColumns>;
 
 export type TaxSettings = {
   uber_type: string;
@@ -12,6 +13,8 @@ export type TaxSettings = {
   bolt_val: number | string;
   glovo_type: string;
   glovo_val: number | string;
+  pyszne_type: string;
+  pyszne_val: number | string;
 };
 
 export type FieldSettings = {

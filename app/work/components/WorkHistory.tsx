@@ -1,3 +1,4 @@
+import { workViewTranslations } from "../../../lib/work-view-translations";
 import {
   getActivePlatformNames,
   getShiftPlatformTotals,
@@ -10,6 +11,10 @@ import type {
 } from "../work-page.types";
 
 type WorkHistoryProps = {
+  netto?: boolean;
+  onNettoChange?: (value: boolean) => void;
+  moneyUnavailable?: boolean;
+  unavailableReason?: string;
   getMetricTooltip: (shift: Shift, metric: keyof PlatformMetrics) => string;
   isLoading: boolean;
   lang: WorkLanguage;
@@ -22,6 +27,10 @@ type WorkHistoryProps = {
 };
 
 export function WorkHistory({
+  netto = false,
+  onNettoChange,
+  moneyUnavailable = false,
+  unavailableReason,
   getMetricTooltip,
   isLoading,
   lang,
@@ -32,18 +41,21 @@ export function WorkHistory({
   showMobileTable,
   translations: t,
 }: WorkHistoryProps) {
+  const money = (value: number) => moneyUnavailable ? "—" : value.toFixed(2);
   return (
     <>
-      <div className="mb-2 flex justify-between items-end">
+      <div className="mb-2 flex flex-wrap gap-2 justify-between items-end">
         <h2 className="text-lg font-medium text-white">
           {t.work.historyTitle}{" "}
-          <span className="text-xs text-gray-500 block sm:inline mt-1 sm:mt-0">
-            ({lang === "pl" ? "Zawsze pokazuje" : lang === "en" ? "Always shows" : lang === "ru" ? "Всегда показывает" : "Завжди показує"} {t.work.brutto})
+          <span className="ml-2 inline-flex gap-1 rounded-lg bg-gray-800 p-1 text-xs">
+            <button type="button" aria-pressed={!netto} onClick={() => onNettoChange?.(false)} className={`rounded px-2 py-1 ${!netto ? "bg-green-700 text-white" : "text-gray-400"}`}>{t.work.brutto}</button>
+            <button type="button" aria-pressed={netto} onClick={() => onNettoChange?.(true)} className={`rounded px-2 py-1 ${netto ? "bg-blue-700 text-white" : "text-gray-400"}`}>{t.work.netto}</button>
           </span>
         </h2>
-        <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">{t.work.workDays} {shifts.length}</span>
+        <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">{t.work.workDays} {new Set(shifts.map(s => s.date)).size}</span>
       </div>
 
+      {moneyUnavailable && <p role="status" className="mb-3 text-xs text-amber-300">{unavailableReason ?? workViewTranslations[lang].taxes}</p>}
       <div className="md:hidden mb-4">
         <button onClick={() => onShowMobileTableChange(!showMobileTable)} className="w-full bg-[#1e1e24] border border-gray-700 hover:bg-[#2a2a35] py-3 rounded-xl text-sm font-bold text-white transition">
           {showMobileTable ? (lang === "pl" ? "Ukryj tabelę" : lang === "en" ? "Hide Table" : lang === "ru" ? "Скрыть таблицу" : "Сховати таблицю") :
@@ -81,13 +93,13 @@ export function WorkHistory({
                 const dailyBase = dailyTotals.income;
                 const dailyTips = dailyTotals.tips;
                 const dailyBonuses = dailyTotals.bonuses;
-                const absoluteTotal = dailyBase + dailyTips + dailyBonuses; // ЗАВЖДИ ПОВНА СУМА
+                const absoluteTotal = dailyBase + dailyTips + dailyBonuses;
                 const dailyOrders = dailyTotals.orders;
                 const platformNames = getActivePlatformNames(shift, t.work.otherPlatform);
 
-                const dailyAvgHour = shift.hours > 0 ? (absoluteTotal / shift.hours).toFixed(2) : "—";
-                const dailyAvgKm = shift.km > 0 ? (absoluteTotal / shift.km).toFixed(2) : "—";
-                const dailyAvgOrder = dailyOrders > 0 ? (absoluteTotal / dailyOrders).toFixed(2) : "—";
+                const dailyAvgHour = !moneyUnavailable && shift.hours > 0 ? (absoluteTotal / shift.hours).toFixed(2) : "—";
+                const dailyAvgKm = !moneyUnavailable && shift.km > 0 ? (absoluteTotal / shift.km).toFixed(2) : "—";
+                const dailyAvgOrder = !moneyUnavailable && dailyOrders > 0 ? (absoluteTotal / dailyOrders).toFixed(2) : "—";
 
                 const baseTooltip = getMetricTooltip(shift, "income");
                 const ordersTooltip = getMetricTooltip(shift, "orders");
@@ -105,10 +117,10 @@ export function WorkHistory({
                       )}
                     </td>
                     <td className="p-4 text-blue-400 font-bold bg-blue-500/5 cursor-help" title={ordersTooltip}>{dailyOrders > 0 ? dailyOrders : "-"}</td>
-                    <td className="p-4 font-bold text-green-400 bg-green-500/5">{absoluteTotal.toFixed(2)}</td>
-                    <td className="p-4 text-gray-400 cursor-help" title={baseTooltip}>{dailyBase.toFixed(2)}</td>
-                    <td className="p-4 text-purple-400 cursor-help" title={bonusesTooltip}>{dailyBonuses > 0 ? dailyBonuses.toFixed(2) : "-"}</td>
-                    <td className="p-4 text-rose-400 cursor-help" title={tipsTooltip}>{dailyTips > 0 ? dailyTips.toFixed(2) : "-"}</td>
+                    <td className="p-4 font-bold text-green-400 bg-green-500/5">{money(absoluteTotal)}</td>
+                    <td className="p-4 text-gray-400 cursor-help" title={baseTooltip}>{money(dailyBase)}</td>
+                    <td className="p-4 text-purple-400 cursor-help" title={bonusesTooltip}>{dailyBonuses !== 0 ? money(dailyBonuses) : "-"}</td>
+                    <td className="p-4 text-rose-400 cursor-help" title={tipsTooltip}>{dailyTips !== 0 ? money(dailyTips) : "-"}</td>
                     <td className="p-4">{shift.hours > 0 ? shift.hours : "—"}</td>
                     <td className="p-4 text-gray-400">{shift.km > 0 ? shift.km : "—"}</td>
                     <td className="p-4 text-cyan-400 font-bold border-l-2 border-gray-700/70 bg-cyan-950/20">{dailyAvgHour}</td>
@@ -138,13 +150,13 @@ export function WorkHistory({
             const dailyBase = dailyTotals.income;
             const dailyTips = dailyTotals.tips;
             const dailyBonuses = dailyTotals.bonuses;
-            const absoluteTotal = dailyBase + dailyTips + dailyBonuses; // ЗАВЖДИ ПОВНА СУМА
+            const absoluteTotal = dailyBase + dailyTips + dailyBonuses;
             const dailyOrders = dailyTotals.orders;
             const platformNames = getActivePlatformNames(shift, t.work.otherPlatform);
 
-            const dailyAvgHour = shift.hours > 0 ? (absoluteTotal / shift.hours).toFixed(2) : "—";
-            const dailyAvgKm = shift.km > 0 ? (absoluteTotal / shift.km).toFixed(2) : "—";
-            const dailyAvgOrder = dailyOrders > 0 ? (absoluteTotal / dailyOrders).toFixed(2) : "—";
+            const dailyAvgHour = !moneyUnavailable && shift.hours > 0 ? (absoluteTotal / shift.hours).toFixed(2) : "—";
+            const dailyAvgKm = !moneyUnavailable && shift.km > 0 ? (absoluteTotal / shift.km).toFixed(2) : "—";
+            const dailyAvgOrder = !moneyUnavailable && dailyOrders > 0 ? (absoluteTotal / dailyOrders).toFixed(2) : "—";
 
             // Динамічна локаль для правильного формату дати
             const dateLocale = lang === "pl" ? "pl-PL" : lang === "en" ? "en-US" : lang === "ru" ? "ru-RU" : "uk-UA";
@@ -155,7 +167,7 @@ export function WorkHistory({
                   <span className="font-bold text-white text-base capitalize">
                     {new Date(shift.date).toLocaleDateString(dateLocale, { weekday: 'short', day: 'numeric', month: 'short' })}
                   </span>
-                   <span className="font-black text-green-400 text-lg">{absoluteTotal.toFixed(2)} <span className="text-[10px] font-normal">{t.common.currency}</span></span>
+                   <span className="font-black text-green-400 text-lg">{money(absoluteTotal)} <span className="text-[10px] font-normal">{t.common.currency}</span></span>
                  </div>
                  {platformNames.length > 0 && (
                    <div className="text-[10px] text-gray-500">
@@ -169,9 +181,9 @@ export function WorkHistory({
                     <span className="text-gray-500 uppercase text-[9px] tracking-wider font-semibold block mb-1">
                       {lang === "pl" ? "Dane zmiany" : lang === "en" ? "Shift Data" : lang === "ru" ? "Данные смены" : "Дані зміни"}
                     </span>
-                    <div className="flex justify-between text-gray-400"><span>{t.work.tableBase}:</span><strong>{dailyBase.toFixed(2)}</strong></div>
-                    {dailyTips > 0 && <div className="flex justify-between text-rose-400"><span>{t.work.tableTips}:</span><strong>{dailyTips.toFixed(2)}</strong></div>}
-                    {dailyBonuses > 0 && <div className="flex justify-between text-purple-400"><span>{t.work.tableBonuses}:</span><strong>{dailyBonuses.toFixed(2)}</strong></div>}
+                    <div className="flex justify-between text-gray-400"><span>{t.work.tableBase}:</span><strong>{money(dailyBase)}</strong></div>
+                    {dailyTips !== 0 && <div className="flex justify-between text-rose-400"><span>{t.work.tableTips}:</span><strong>{money(dailyTips)}</strong></div>}
+                    {dailyBonuses !== 0 && <div className="flex justify-between text-purple-400"><span>{t.work.tableBonuses}:</span><strong>{money(dailyBonuses)}</strong></div>}
                     <div className="flex justify-between text-blue-400 border-t border-gray-800 mt-1 pt-1"><span>{t.work.tableOrders}:</span><strong>{dailyOrders > 0 ? dailyOrders : "—"}</strong></div>
                     <div className="flex justify-between text-white"><span>{t.work.tableHours}:</span><strong>{shift.hours > 0 ? shift.hours : "—"}</strong></div>
                     <div className="flex justify-between text-gray-300"><span>{t.work.tableKm}:</span><strong>{shift.km > 0 ? shift.km : "—"}</strong></div>

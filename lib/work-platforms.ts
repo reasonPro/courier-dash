@@ -4,11 +4,12 @@ export const STANDARD_PLATFORM_KEYS = [
   "bolt",
   "glovo",
   "stuart",
+  "pyszne",
 ] as const
 
 export const PLATFORM_KEYS = [...STANDARD_PLATFORM_KEYS, "other"] as const
 
-export const TAX_PLATFORM_KEYS = ["uber", "wolt", "bolt", "glovo"] as const
+export const TAX_PLATFORM_KEYS = ["uber", "wolt", "bolt", "glovo", "pyszne"] as const
 
 export type StandardPlatformKey = (typeof STANDARD_PLATFORM_KEYS)[number]
 export type PlatformKey = (typeof PLATFORM_KEYS)[number]
@@ -40,30 +41,35 @@ export type PlatformShiftPayload = {
   bolt: number
   glovo: number
   stuart: number
+  pyszne: number
   other_income: number
   orders_uber: number
   orders_wolt: number
   orders_bolt: number
   orders_glovo: number
   orders_stuart: number
+  orders_pyszne: number
   orders_other: number
   tips_uber: number
   tips_wolt: number
   tips_bolt: number
   tips_glovo: number
   tips_stuart: number
+  tips_pyszne: number
   tips_other: number
   cash_tips_uber: number
   cash_tips_wolt: number
   cash_tips_bolt: number
   cash_tips_glovo: number
   cash_tips_stuart: number
+  cash_tips_pyszne: number
   cash_tips_other: number
   bonuses_uber: number
   bonuses_wolt: number
   bonuses_bolt: number
   bonuses_glovo: number
   bonuses_stuart: number
+  bonuses_pyszne: number
   bonuses_other: number
   other_platform_name: string | null
 }
@@ -74,30 +80,35 @@ export type PlatformMetricSource = {
   bolt?: number | null
   glovo?: number | null
   stuart?: number | null
+  pyszne?: number | null
   other_income?: number | null
   orders_uber?: number | null
   orders_wolt?: number | null
   orders_bolt?: number | null
   orders_glovo?: number | null
   orders_stuart?: number | null
+  orders_pyszne?: number | null
   orders_other?: number | null
   tips_uber?: number | null
   tips_wolt?: number | null
   tips_bolt?: number | null
   tips_glovo?: number | null
   tips_stuart?: number | null
+  tips_pyszne?: number | null
   tips_other?: number | null
   cash_tips_uber?: number | null
   cash_tips_wolt?: number | null
   cash_tips_bolt?: number | null
   cash_tips_glovo?: number | null
   cash_tips_stuart?: number | null
+  cash_tips_pyszne?: number | null
   cash_tips_other?: number | null
   bonuses_uber?: number | null
   bonuses_wolt?: number | null
   bonuses_bolt?: number | null
   bonuses_glovo?: number | null
   bonuses_stuart?: number | null
+  bonuses_pyszne?: number | null
   bonuses_other?: number | null
   other_platform_name?: string | null
 }
@@ -123,6 +134,7 @@ export const EMPTY_PLATFORM_VALUES: PlatformValues = {
   bolt: "",
   glovo: "",
   stuart: "",
+  pyszne: "",
   other: "",
 }
 
@@ -132,9 +144,17 @@ export const PLATFORM_LABELS: Record<StandardPlatformKey, string> = {
   bolt: "Bolt",
   glovo: "Glovo",
   stuart: "Stuart",
+  pyszne: "Pyszne",
 }
 
 const PLATFORM_COLUMNS = {
+  pyszne: {
+    income: "pyszne",
+    orders: "orders_pyszne",
+    tips: "tips_pyszne",
+    cashTips: "cash_tips_pyszne",
+    bonuses: "bonuses_pyszne",
+  },
   uber: {
     income: "uber",
     orders: "orders_uber",
@@ -415,30 +435,35 @@ export function buildPlatformShiftPayload(
     bolt: 0,
     glovo: 0,
     stuart: 0,
+    pyszne: 0,
     other_income: 0,
     orders_uber: 0,
     orders_wolt: 0,
     orders_bolt: 0,
     orders_glovo: 0,
     orders_stuart: 0,
+    orders_pyszne: 0,
     orders_other: 0,
     tips_uber: 0,
     tips_wolt: 0,
     tips_bolt: 0,
     tips_glovo: 0,
     tips_stuart: 0,
+    tips_pyszne: 0,
     tips_other: 0,
     cash_tips_uber: 0,
     cash_tips_wolt: 0,
     cash_tips_bolt: 0,
     cash_tips_glovo: 0,
     cash_tips_stuart: 0,
+    cash_tips_pyszne: 0,
     cash_tips_other: 0,
     bonuses_uber: 0,
     bonuses_wolt: 0,
     bonuses_bolt: 0,
     bonuses_glovo: 0,
     bonuses_stuart: 0,
+    bonuses_pyszne: 0,
     bonuses_other: 0,
     other_platform_name: null,
   }

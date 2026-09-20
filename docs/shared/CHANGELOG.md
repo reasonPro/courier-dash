@@ -1,5 +1,26 @@
 # Shared Contract Changelog
 
+## Work comparison and combined tips — 2026-09-20 (release pending)
+
+- Tips percentage moved into the compact tips card without changing its basis.
+- Added income/hourly-rate comparison badges and accessible explanations in UK/PL/EN/RU; browser-local calendar approved by owner. See WORK-COMPARISON-001.
+- Loading/error/missing-record/invalid-base and NETTO fixed-fee restrictions are explicit. Main monthly cards and independent history mode are unchanged.
+- This entry is local implementation evidence, not proof of Staging/Preview/Production rollout or Mobile parity.
+
+## Independent Work income components — 2026-09-20 (local review only)
+
+- Split the non-persisted tips display control into online and cash flags; bonuses remain independent. Shared display projections feed cards, best day, chart and independently selected history mode without changing stored rows or the edit form.
+- Added monthly tips (cash/app breakdown) and bonuses cards, enabled-zero semantics, same-basis BRUTTO/NETTO tips percentage and a responsive wrapping grid. See `WORK-DISPLAY-COMPONENTS-001` in `BUSINESS_RULES.md`.
+- UK/PL/EN/RU help and labels updated; focused regression tests cover every flag/mode combination. No migration, remote write, release or Mobile parity claim. Existing Vercel authorization and backup/restore blockers remain unresolved.
+
+## Local Work/Pyszne delta — updated 2026-09-20 (not released)
+
+- Real Work history has its independent, non-persisted BRUTTO/NETTO mode and a shared monthly platform filter. Cash tips are preserved, shared hours/distance and fixed fees are not allocated to subsets.
+- Pyszne extends the existing platform model and tax form; Stuart/Other and old recorded values are retained. Contract-owned fields: `types/work.ts`; local migration: `202609160001_add_pyszne_platform.sql`.
+- Local Docker migration execution and authenticated synthetic Pyszne create/read/reload/update are verified. Staging was restored from pause to `ACTIVE_HEALTHY`; metadata/history through `202608150001` inspected, Pyszne still absent. Remote migration execution and old/new client compatibility remain unverified. Existing generated database types and the last verified schema revision are unchanged. This is not a remote rollout or Mobile handoff.
+- Approved statistics settings panel groups the existing platform, tips/bonuses and upper BRUTTO/NETTO/tax controls without duplicate controls; the lower history mode stays independent. Native accessible information popover includes UK/PL/EN/RU copy, keyboard/focus handling and mobile layout. Focused tests, typecheck, focused lint and Webpack build pass; remote Preview remains blocked by Vercel authentication and Production additionally by the backup/restore gate.
+- The task-only `/work-demo` was removed in favor of real `/work` and `/expenses`. Garage integration remains paused and absent from this branch.
+
 ## 0.3.0-draft Expenses production reconciliation — 2026-08-14
 
 Status: `owner_approved_web_implemented_production_schema_verified`

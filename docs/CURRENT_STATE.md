@@ -1,5 +1,68 @@
 # CourierDash Web — поточний стан
 
+## Release gates passed — 2026-09-20
+
+PR #23 (`feat/platform-filter-netto` → `main`): Staging-backed Preview `courier-dash-6k32iza34-romans-projects-388d465a.vercel.app`, code/types SHA `ef1311e828f627914e7c11e4d64b632a7b28502e`, READY. Owner-authorized synthetic Staging account verified Pyszne create/read/reload/edit, percentage tax with cash tips excluded from tax base, independent summary/history BRUTTO/NETTO, income options, comparisons and UK/PL/EN/RU. Example: base 100 + online tips 10 + cash tips 20 + bonus 10 = BRUTTO 140; 10% on taxable 120 gives NETTO 128. Previous-month 70 gives BRUTTO comparisons +100% for income, income/day and hourly rate. Preview console: no errors. Desktop has 3×2 monthly cards with all enabled, five in a row without bonuses; mobile/tablet 320/390/768 and desktop 1440 have no page overflow. Prior local multi-platform subset scenarios and 217 tests remain PASS; no runtime code changed after the verified build.
+
+Fresh private full logical Production backup completed 20:21:51 UTC, then restored into a new network-disabled PostgreSQL container without touching existing databases. Immediately before migration, all 47 table counts/content digests and public metadata counts matched Production. Backup, roles without passwords and generated verification evidence remain outside Git/public artifacts. Managed role grantor adaptation was local to the isolated restore. Recovery must preserve incident-time state and reconcile post-backup writes; never overwrite the live database with an old snapshot. Web rollback retains additive schema.
+
+Only `202609160001_add_pyszne_platform` is now applied on both Staging (`52e93ed81919`) and Production (`fea22201d2c2`): seven fields, two constraints, one canonical history entry per environment. Existing Work/Tax values, policies and grants were checked unchanged across the Production migration. No Auth changes or synthetic Production financial records. The schema is ready before the new Web rollout; actual Production Web deployment is still pending at this checkpoint. Branch-scoped Preview remains Staging; Production variables are unchanged. This section supersedes older release blockers below. Garage → Expenses remains deferred.
+
+## Release continuation — 2026-09-20
+
+Staging Preview overrides для `feat/platform-filter-netto` створені й перевірені (тільки URL/anon key, fingerprint `52e93ed81919`). Тимчасовий deployment gate знято після перевірки; Production/shared variables не змінені. Public database types регенеровано зі Staging: додано тільки сім очікуваних Pyszne fields у Row/Insert/Update і generator formatting. Повний повторний набір 217/217 tests, typecheck, focused lint, Webpack build і diff check — PASS. Попередній concurrent run мав один 5s timeout contract-тесту, окремий повтор пройшов без змін тесту. Browser widths 320/390/768/1440 з усіма/прихованими картками: no overflow; незалежний history BRUTTO збережений при summary NETTO.
+
+Поточний code HEAD `6ba260b` повторно пройшов 120 focused/contract tests, typecheck, focused lint та diff check. Desktop 1440 px підтверджує компактні monthly cards 3×2; середні показники збережені в одному рядку. Фінальний build і remote Preview ще перевіряються.
+
+Production password перевірено без reset. Приватний logical backup від 15:03 UTC відновлено в окремий network-isolated PostgreSQL: 47/47 row counts/content digests та public metadata counts збігаються. Backup/credentials не зберігаються в repository. Це point-in-time копія, не PITR; перед Production migration актуальність перевіряється повторно. Local restore потребував адаптації managed role grantor; це не змінює Production roles.
+
+Staging `52e93ed81919` ACTIVE_HEALTHY: застосована тільки `202609160001_add_pyszne_platform` із canonical version, сімома columns і двома constraints. Production migration ще не виконана. Vercel вимагає існуючу remote branch для Preview overrides: перший feature push тимчасово вимикає автоматичний deployment лише `feat/platform-filter-netto`, потім налаштовуються branch-scoped Staging variables та автодеплой відновлюється. Shared Production variables не змінюються.
+
+Цей запис замінює застарілі статуси blocker нижче; Garage → Expenses залишається відкладено.
+
+## Завершення одиниць та income/day — 2026-09-20, release pending
+
+Оновлення після входу власника: Vercel CLI авторизований, project `courier-dash` доступний. Metadata environment показує спільні `NEXT_PUBLIC_SUPABASE_URL` та `NEXT_PUBLIC_SUPABASE_ANON_KEY` для Production/Preview, без branch override; значення не розшифровувалися. Preview → Staging ще не підтверджено, спільні Production variables не змінювалися. Повторний read-only metadata SELECT підтвердив однакову history Staging/Production: 202607220000, 202607230001, 202607240001, 202608020001, 202608020002, 202608090001, 202608130001, 202608140001, 202608150001. Полів Pyszne в обох remote schemas немає. API Production backups знову повернув 0, PITR false; verified backup/restore залишається blocker. Remote writes і deployment не виконані. Це оновлення замінює наведений нижче історичний статус очікування Vercel login.
+
+Уточнено локалізовані одиниці погодинної ставки, ставки за замовлення та ефективності. Додано третій спільний comparison badge: дохід кожного періоду / кількість унікальних робочих дат, без подвійного підрахунку кількох змін одного дня. Основний місячний результат і фінансові правила не змінено.
+
+Після ручного переривання підтверджено: layout patch застосувався лише до WorkSummary; documentation hunks не застосувалися. Desktop viewport 1440 px / container 1152 px: місячні картки 3×2, без бонусів — п'ять у ряд; середні показники — шість у ряд. Mobile 320/390 px і tablet 768 px перевірені з усіма та частково прихованими картками, без page overflow. Причина попереднього короткочасного вертикального вигляду не встановлена і не приписується непідтвердженому фактору.
+
+Повторні 120 focused/contract tests, typecheck, focused lint, production-equivalent Webpack build і diff check — PASS. Вхід Vercel запущено штатною CLI у локальному інтерактивному вікні; завершення входу ще очікується. Production backup/isolated restore не підтверджено (останній read-only результат: API backups 0, PITR false). Push/PR/Preview/Production та remote migrations цього продовження ще не виконані. Pyszne застосована локально; remote history перед її застосуванням потрібно перевірити повторно. Garage → Expenses відкладено.
+
+## Порівняння періодів і підготовка випуску — 2026-09-20
+
+Власник погодив локальний календар браузера. Реалізовано спільну картку чайових/відсотка та індикатори доходу й погодинної ставки з точними періодами, причинами недоступності та незалежними фільтрами. Порівняння читає лише два потрібні місяці через авторизований Supabase client, із pagination та захистом від застарілих відповідей. Нова migration для UI не потрібна.
+
+Read-only перевірка цього проходу: remote main залишається `c38e23e2ec3199bd5ddf5daf8b2705966304bdb7`; Staging `52e93ed81919` — `ACTIVE_HEALTHY`; Production `fea22201d2c2` — API backups: 0, PITR: false. Перевіреного backup/restore немає. Vercel CLI тепер повідомляє `No existing credentials found`; потрібен локальний інтерактивний login. Це уточнює попередній `invalidToken`, але не усуває блокер. Preview/Production rollout не виконано; Production і remote schema/data не змінені. Pyszne migration залишається локально перевіреною; Staging/Preview сценарії ще не пройдені. Garage → Expenses не включено.
+
+Локальні перевірки: 114 targeted/contract tests, Webpack build — PASS. Браузер: контрольні 5000/1000 PLN дають +400%; 5000/21 проти 1000/20 годин дають +376,2%; сьогоднішні 100 PLN входять лише до місячної картки. Перевірені NETTO, platform subset із unavailable ставкою, приховування чайових, popover через Enter/Escape/outside click та адаптивність UK/PL/EN/RU. Контрольний серпневий запис створено лише в локальній synthetic базі; історичні користувацькі записи не переписувалися. Повний склад поточної feature-гілки містить попередні три commits; жодних Garage-integration migrations у diff немає. Push утримано, оскільки branch-scoped Preview → Staging ще неможливо перевірити без Vercel login.
+
+## Доповнення перед випуском — локальне приймання, 2026-09-20
+
+Онлайн-чайові, готівкові чайові та бонуси мають незалежні display-перемикачі. Додано картки чайових/бонусів; відсоток використовує ту саму BRUTTO/NETTO основу, що й дохід, із `—` за нульового знаменника або недоступного NETTO. Вимкнені компоненти приховані, ввімкнений нуль відображається. Записані суми та оригінальна форма редагування не змінюються. Цей прохід завершується локальним результатом для власника, без remote migrations/deployment; наведені нижче блокери випуску залишаються чинними.
+
+Перевірки цього доповнення: 90 focused tests та 16 Garage/Expenses contract tests — PASS; typecheck, focused lint, Webpack build і diff check — PASS. Contract hashes перевірені проти тимчасового Git index без зміни основної staging area. Справжній локальний `/work`: незалежні перемикачі, Pyszne subset, ввімкнені нулі, приховані картки, великі суми, UK/PL/EN/RU та ширини 320/390/768/1440 px перевірені; горизонтального overflow не виявлено. Великі синтетичні суми після перевірки відновлено. Remote rollout не виконувався.
+
+## Поточний реліз Work / Pyszne — 2026-09-20
+
+Статус: **локальна перевірка виконана частково; remote rollout заблокований**. Гілка `feat/platform-filter-netto`, основа `origin/main` — `c38e23e2ec3199bd5ddf5daf8b2705966304bdb7`. Нижче збережено історичний snapshot від 2026-07-29; він не є актуальним статусом цього релізу.
+
+- Scope: незалежний BRUTTO/NETTO історії, спільний фільтр платформ, cash tips поза відсотковою базою, Pyszne та його податки, панель «Налаштування статистики», доступна інформаційна підказка UK/PL/EN/RU. Garage → Expenses не включено.
+- На ізольованій локальній Supabase застосована `202609160001_add_pyszne_platform.sql`. На справжньому `/work` перевірено створення, читання після reload та редагування synthetic Pyszne; перемикачі незалежні. При доході 2200 PLN, cash tips 50 PLN та ставці 12% NETTO становить 1942 PLN, cash tips залишаються 50 PLN. Контрольний новий запис існує лише в локальному тестовому акаунті.
+- Focused Work/Pyszne/platform/Expenses-summary/annual tests: 65 PASS; typecheck, focused release lint і production-equivalent Webpack build: PASS. Підказка перевірена мишею, клавіатурою, Escape, повторним натисканням і натисканням поза нею; mobile 390 px. Це не замінює майбутню Staging/Preview перевірку.
+- `courier-dash-staging`, fingerprint `52e93ed81919`, відновлено з паузи без зміни тарифу; `ACTIVE_HEALTHY`. Remote history містить 9 migrations до `202608150001`; Pyszne відсутній. Remote migration у цьому запуску не застосовувалась; generated types не перегенеровувались.
+- Preview BLOCKED: наявна Vercel CLI авторизація відхилена (`invalidToken`). Scope Preview environment ще не підтверджений; push/PR/deployment не виконано, щоб не запустити Preview з неперевіреною базою.
+- Production BLOCKED: API backups повернув порожній список, PITR вимкнений; актуальна резервна копія та перевірене відновлення ще не забезпечені. Production schema/data не змінювалися. Mobile parity не підтверджено; Mobile catch-up відкладено.
+
+### Обов'язкові умови продовження
+
+Відновити Vercel sign-in локально, не передаючи token у чат; підтвердити branch-scoped Preview → Staging, застосувати лише перевірену Pyszne migration із канонічною версією та виконати Staging/Preview сценарії. Production не починати до завершення цих перевірок і backup/restore gate.
+
+Відкат Web означає повернення попереднього сумісного deployment зі збереженням additive Pyszne schema. Це **не** відновлення даних. При інциденті даних спочатку зберегти поточний стан і нові записи після backup, відновити backup в ізольоване середовище та звірити відновлення; не перезаписувати живу базу старою копією і не видаляти нові Pyszne поля. Ця процедура поки не перевірена практично й не є дозволом обійти backup gate.
+
+## Історичний snapshot — 2026-07-29
+
 ## Остання перевірка
 
 - Дата: 2026-07-29.
