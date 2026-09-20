@@ -12,12 +12,14 @@ type WorkFiltersProps = {
   platformFilter: ReactNode;
   hasTaxesConfigured: boolean;
   includeBonuses: boolean;
-  includeTips: boolean;
+  includeAppTips: boolean;
+  includeCashTips: boolean;
   isNetto: boolean;
   lang: WorkLanguage;
   onBruttoSelect: () => void;
   onIncludeBonusesChange: (value: boolean) => void;
-  onIncludeTipsChange: (value: boolean) => void;
+  onIncludeAppTipsChange: (value: boolean) => void;
+  onIncludeCashTipsChange: (value: boolean) => void;
   onNettoSelect: () => void;
   onOpenTaxSettings: () => void;
   onSelectedMonthChange: (value: string) => void;
@@ -29,12 +31,14 @@ export function WorkFilters({
   platformFilter,
   hasTaxesConfigured,
   includeBonuses,
-  includeTips,
+  includeAppTips,
+  includeCashTips,
   isNetto,
   lang,
   onBruttoSelect,
   onIncludeBonusesChange,
-  onIncludeTipsChange,
+  onIncludeAppTipsChange,
+  onIncludeCashTipsChange,
   onNettoSelect,
   onOpenTaxSettings,
   onSelectedMonthChange,
@@ -66,9 +70,14 @@ export function WorkFilters({
             <fieldset className="min-w-0">
               <legend className="mb-2 text-sm font-medium text-gray-400">{copy.includeInIncome}</legend>
               <div className="flex flex-wrap gap-2">
-                <button type="button" aria-pressed={includeTips} onClick={() => onIncludeTipsChange(!includeTips)} className={`inline-flex min-h-11 md:min-h-10 items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition border ${focus} ${includeTips ? 'bg-rose-500/20 text-rose-400 border-rose-500/50' : 'bg-[#17171d] text-gray-400 border-gray-700 hover:text-white'}`}>
-                  <span aria-hidden="true">{includeTips ? "✓" : "+"}</span>{t.work.toggleTips}
-                </button>
+                {([
+                  [copy.includeAppTips, includeAppTips, onIncludeAppTipsChange],
+                  [copy.includeCashTips, includeCashTips, onIncludeCashTipsChange],
+                ] as const).map(([label, included, onChange]) => (
+                  <button key={label} type="button" aria-pressed={included} onClick={() => onChange(!included)} className={`inline-flex min-h-11 md:min-h-10 items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition border ${focus} ${included ? 'bg-rose-500/20 text-rose-400 border-rose-500/50' : 'bg-[#17171d] text-gray-400 border-gray-700 hover:text-white'}`}>
+                    <span aria-hidden="true">{included ? "✓" : "+"}</span>{label}
+                  </button>
+                ))}
                 <button type="button" aria-pressed={includeBonuses} onClick={() => onIncludeBonusesChange(!includeBonuses)} className={`inline-flex min-h-11 md:min-h-10 items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition border ${focus} ${includeBonuses ? 'bg-purple-500/20 text-purple-400 border-purple-500/50' : 'bg-[#17171d] text-gray-400 border-gray-700 hover:text-white'}`}>
                   <span aria-hidden="true">{includeBonuses ? "✓" : "+"}</span>{t.work.toggleBonuses}
                 </button>

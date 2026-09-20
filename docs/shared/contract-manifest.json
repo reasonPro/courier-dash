@@ -110,7 +110,7 @@
     },
     {
       "path": "docs/shared/BUSINESS_RULES.md",
-      "sha256": "30e984be875d9755e5addbea99880a6ba5d7506ff43d8c69970a6f3d89d2c926",
+      "sha256": "b4de7b626a68cabbb832bfb8cb6d63548cbe7fe3af2ed51ccd7d05bfd2d7fab8",
       "status": "present",
       "sourceRefs": [
         "lib/work-platforms.ts",
@@ -168,7 +168,7 @@
     },
     {
       "path": "docs/shared/CHANGELOG.md",
-      "sha256": "87be0fbcb74a981772cab081a29b319b860dcba4a81966a746e7732bda3e6492",
+      "sha256": "0ef6affa36b6b7010a0243f50a3672f069673c275268ee64567a83d9f24c964b",
       "status": "present",
       "sourceRefs": [
         "docs/shared"

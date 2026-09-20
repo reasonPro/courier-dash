@@ -16,7 +16,6 @@ import { useExpenses } from "../../lib/use-expenses";
 import {
   areTaxesConfigured,
   createWorkTaxContext,
-  displayedPlatformMetrics,
   calculateMonthlyWorkFinance,
 } from "../../lib/work-finance";
 import {
@@ -26,7 +25,6 @@ import {
   buildPlatformShiftPayload,
   createEmptyPlatformValues,
   getEditingPlatformKeys,
-  getIncludedPlatformTips,
   getInvalidCashTipPlatform,
   getOtherPlatformNames,
   getPlatformPreferenceKey,
@@ -34,7 +32,6 @@ import {
   getPlatformMetrics,
   getShiftPlatformTotals,
   isPlatformActive,
-  isTaxPlatformKey,
   normalizeOtherPlatformName,
   parsePlatformPreference,
   serializePlatformPreference,
@@ -43,8 +40,10 @@ import {
   type PlatformMetrics,
   type PlatformValues,
 } from "../../lib/work-platforms";
-import { availablePlatforms, hasPlatformActivity, projectShift } from "../../lib/work-view";
+import { availablePlatforms, hasPlatformActivity, projectShift, summarizeDisplayedIncome } from "../../lib/work-view";
 import { workViewTranslations } from "../../lib/work-view-translations";
+import { compareWorkPeriods, localCalendarDate } from "../../lib/work-comparison";
+import { useWorkComparison } from "../../lib/use-work-comparison";
 import { WorkPlatformFilter } from "./components/WorkPlatformFilter";
 import { WorkChart } from "./components/WorkChart";
 import { WorkHeader } from "./components/WorkHeader";
@@ -103,14 +102,17 @@ export default function WorkDashboard() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   
   const [showBestMonthDay, setShowBestMonthDay] = useState(false);
-  const [includeTips, setIncludeTips] = useState(true);
+  // Both preserve the former, non-persisted tips default (enabled).
+  const [includeAppTips, setIncludeAppTips] = useState(true);
+  const [includeCashTips, setIncludeCashTips] = useState(true);
   const [includeBonuses, setIncludeBonuses] = useState(true);
   const [showMobileTable, setShowMobileTable] = useState(false);
 
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [shiftLoadFailed, setShiftLoadFailed] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [selectedMonth, setSelectedMonth] = useState(() => localCalendarDate().slice(0, 7));
+  const comparisonData = useWorkComparison(userId, selectedMonth, isLoading);
 
   const [userNickname, setUserNickname] = useState<string | null>(null);
   const [showNicknameModal, setShowNicknameModal] = useState(false);
@@ -501,16 +503,23 @@ export default function WorkDashboard() {
     ? platformSelection.values.filter(p => available.includes(p)) : available;
   const effectivePlatforms = selectedPlatforms.length ? selectedPlatforms : available;
   const allPlatforms = effectivePlatforms.length === available.length;
+  const comparison = compareWorkPeriods(comparisonData.rows, selectedMonth, comparisonData.today, {
+    platforms: allPlatforms ? null : effectivePlatforms, app: includeAppTips, cash: includeCashTips,
+    bonus: includeBonuses, netto: isNetto, taxes: taxSettings,
+    state: shiftLoadFailed ? "error" : comparisonData.state,
+  });
   const viewCopy = workViewTranslations[lang];
-  const taxContext = createWorkTaxContext(monthShifts, taxSettings, includeTips, includeBonuses);
+  const includeTips = includeAppTips || includeCashTips;
+  const taxContext = createWorkTaxContext(monthShifts, taxSettings, includeAppTips, includeBonuses);
   const nettoUnavailable = !taxContext.configured || (!allPlatforms && taxContext.fixedTax > 0);
   const filteredShifts = monthShifts
     .filter(shift => allPlatforms || effectivePlatforms.some(p => hasPlatformActivity(shift, p)))
-    .map(shift => projectShift(shift, effectivePlatforms, taxContext, false, allPlatforms));
+    .map(shift => projectShift(shift, effectivePlatforms, taxContext,
+      isNetto && !nettoUnavailable, allPlatforms, includeAppTips, includeBonuses, includeCashTips));
   const tableShifts = monthShifts
     .filter(shift => allPlatforms || effectivePlatforms.some(p => hasPlatformActivity(shift, p)))
     .map(shift => projectShift(shift, effectivePlatforms, taxContext,
-      tableNetto && !nettoUnavailable, allPlatforms, includeTips, includeBonuses));
+      tableNetto && !nettoUnavailable, allPlatforms, includeAppTips, includeBonuses, includeCashTips));
   const expensesFinance = calculateMonthlyWorkFinance(monthShifts, taxSettings);
   const getMetricTooltip = (shift: Shift, metric: keyof PlatformMetrics) =>
     PLATFORM_KEYS
@@ -529,29 +538,15 @@ export default function WorkDashboard() {
       })
       .join("\n");
 
-  let totalVisualEarned = 0, totalHours = 0, totalKm = 0, totalOrders = 0;
-  let absTotalTips = 0, absTotalBaseAndBonuses = 0; 
+  const displayedIncome = summarizeDisplayedIncome(filteredShifts, isNetto && nettoUnavailable);
+  const totalVisualEarned = displayedIncome.income;
+  let totalHours = 0, totalKm = 0, totalOrders = 0;
   let maxEarned = 0, bestShiftDate = ""; 
 
   const dailyIncome = new Map<string, number>();
   filteredShifts.forEach(shift => {
-    let shiftVisualTotal = 0;
     const dailyTotals = getShiftPlatformTotals(shift);
-    
-    PLATFORM_KEYS.forEach(p => {
-      const metrics = getPlatformMetrics(shift, p);
-      const includedTips = getIncludedPlatformTips(metrics, includeTips);
-      let taxableGross = metrics.income + includedTips.appTips;
-      if (includeBonuses) taxableGross += metrics.bonuses;
-      shiftVisualTotal += (isNetto && taxableGross > 0 && isTaxPlatformKey(p))
-        ? (() => { const m = displayedPlatformMetrics(shift, p, taxContext, true, includeTips, includeBonuses); return m.income + m.tips + m.bonuses; })()
-        : taxableGross + includedTips.cashTips;
-    });
-
-    absTotalTips += dailyTotals.tips;
-    absTotalBaseAndBonuses += (dailyTotals.income + dailyTotals.bonuses);
-
-    totalVisualEarned += shiftVisualTotal;
+    const shiftVisualTotal = dailyTotals.income + dailyTotals.tips + dailyTotals.bonuses;
     totalHours += shift.hours;
     totalKm += shift.km;
     totalOrders += dailyTotals.orders;
@@ -573,24 +568,13 @@ export default function WorkDashboard() {
   const avgOrdersPerDay = totalDays > 0 ? (totalOrders / totalDays).toFixed(1) : "—";
   const avgEarnedPerDay = (isNetto && nettoUnavailable) ? "—" : totalDays > 0 ? (totalVisualEarned / totalDays).toFixed(2) : "0.00";
 
-  const absoluteTotalIncome = absTotalBaseAndBonuses + absTotalTips;
-  const tipsPercent = absoluteTotalIncome > 0 ? ((absTotalTips / absoluteTotalIncome) * 100).toFixed(1) : "0.0";
+  const tipsPercent = displayedIncome.tipsPercent?.toFixed(2) ?? "—";
 
   const chronologicalShifts = [...filteredShifts].reverse();
 
   const getChartVal = (shift: Shift, p: PlatformKey, type: "base"|"tips"|"bonuses") => {
     const metrics = getPlatformMetrics(shift, p);
-    const includedTips = getIncludedPlatformTips(metrics, includeTips);
-    const pGross = metrics.income;
-    const pBon = metrics.bonuses;
-    const taxableGross = pGross + includedTips.appTips + (includeBonuses ? pBon : 0);
-    
-    const rawVal = type === "base" ? pGross : (type === "tips" ? includedTips.totalTips : pBon);
-    if (!isNetto || !isTaxPlatformKey(p)) return rawVal;
-    if (taxableGross <= 0) return type === "tips" ? includedTips.cashTips : rawVal;
-    
-    const displayed = displayedPlatformMetrics(shift, p, taxContext, true, includeTips, includeBonuses);
-    return type === "base" ? displayed.income : type === "tips" ? displayed.tips : displayed.bonuses;
+    return type === "base" ? metrics.income : type === "tips" ? metrics.tips : metrics.bonuses;
   };
 
   const chartDatasets: ChartDatasetCustomTypesPerDataset<
@@ -634,15 +618,8 @@ export default function WorkDashboard() {
     {
       type: 'line', label: t.work.tableRate,
       data: chronologicalShifts.map(s => {
-        let sVisual = 0;
-        PLATFORM_KEYS.forEach(p => {
-          const metrics = getPlatformMetrics(s, p);
-          const includedTips = getIncludedPlatformTips(metrics, includeTips);
-          const taxableGross = metrics.income + includedTips.appTips + (includeBonuses ? metrics.bonuses : 0);
-          sVisual += (isNetto && taxableGross > 0 && isTaxPlatformKey(p))
-            ? (() => { const m = displayedPlatformMetrics(s, p, taxContext, true, includeTips, includeBonuses); return m.income + m.tips + m.bonuses; })()
-            : taxableGross + includedTips.cashTips;
-        });
+        const m = getShiftPlatformTotals(s);
+        const sVisual = m.income + m.tips + m.bonuses;
         return s.hours > 0 ? Number((sVisual / s.hours).toFixed(2)) : 0;
       }),
       borderColor: "#00e5ff", backgroundColor: "#00e5ff", borderWidth: 4, pointRadius: 4, tension: 0.3, yAxisID: 'y1', order: 1
@@ -797,12 +774,14 @@ export default function WorkDashboard() {
           }
           hasTaxesConfigured={hasTaxesConfigured()}
           includeBonuses={includeBonuses}
-          includeTips={includeTips}
+          includeAppTips={includeAppTips}
+          includeCashTips={includeCashTips}
           isNetto={isNetto}
           lang={lang}
           onBruttoSelect={() => setIsNetto(false)}
           onIncludeBonusesChange={setIncludeBonuses}
-          onIncludeTipsChange={setIncludeTips}
+          onIncludeAppTipsChange={setIncludeAppTips}
+          onIncludeCashTipsChange={setIncludeCashTips}
           onNettoSelect={handleNettoToggle}
           onOpenTaxSettings={() => setShowTaxModal(true)}
           onSelectedMonthChange={(month) => { setSelectedMonth(month); setPlatformSelection(null); }}
@@ -811,6 +790,14 @@ export default function WorkDashboard() {
         />
 
         <WorkSummary
+          comparison={comparison}
+          lang={lang}
+          includeAppTips={includeAppTips}
+          includeCashTips={includeCashTips}
+          includeBonuses={includeBonuses}
+          appTips={displayedIncome.appTips}
+          cashTips={displayedIncome.cashTips}
+          bonuses={displayedIncome.bonuses}
           moneyUnavailable={isNetto && nettoUnavailable}
           notices={<>
             {!allPlatforms && <p className="mb-3 text-xs text-gray-400">{viewCopy.shared}</p>}

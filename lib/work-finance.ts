@@ -106,10 +106,11 @@ export function displayedPlatformMetrics(
   netto: boolean,
   includeTips = true,
   includeBonuses = true,
+  includeCashTips = includeTips,
 ) {
   const m = getPlatformMetrics(source, platform)
   const appTips = includeTips ? m.appTips : 0
-  const cashTips = includeTips ? m.cashTips : 0
+  const cashTips = includeCashTips ? m.cashTips : 0
   const bonuses = includeBonuses ? m.bonuses : 0
   const taxable = m.income + appTips + bonuses
   const ratio = netto && isTaxPlatformKey(platform) && taxable > 0

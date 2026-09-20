@@ -1,5 +1,18 @@
 # Shared Contract Changelog
 
+## Work comparison and combined tips — 2026-09-20 (release pending)
+
+- Tips percentage moved into the compact tips card without changing its basis.
+- Added income/hourly-rate comparison badges and accessible explanations in UK/PL/EN/RU; browser-local calendar approved by owner. See WORK-COMPARISON-001.
+- Loading/error/missing-record/invalid-base and NETTO fixed-fee restrictions are explicit. Main monthly cards and independent history mode are unchanged.
+- This entry is local implementation evidence, not proof of Staging/Preview/Production rollout or Mobile parity.
+
+## Independent Work income components — 2026-09-20 (local review only)
+
+- Split the non-persisted tips display control into online and cash flags; bonuses remain independent. Shared display projections feed cards, best day, chart and independently selected history mode without changing stored rows or the edit form.
+- Added monthly tips (cash/app breakdown) and bonuses cards, enabled-zero semantics, same-basis BRUTTO/NETTO tips percentage and a responsive wrapping grid. See `WORK-DISPLAY-COMPONENTS-001` in `BUSINESS_RULES.md`.
+- UK/PL/EN/RU help and labels updated; focused regression tests cover every flag/mode combination. No migration, remote write, release or Mobile parity claim. Existing Vercel authorization and backup/restore blockers remain unresolved.
+
 ## Local Work/Pyszne delta — updated 2026-09-20 (not released)
 
 - Real Work history has its independent, non-persisted BRUTTO/NETTO mode and a shared monthly platform filter. Cash tips are preserved, shared hours/distance and fixed fees are not allocated to subsets.
