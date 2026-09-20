@@ -78,6 +78,16 @@ const summaryProps: Props = {
 const render = (props: Partial<Props> = {}) => renderToStaticMarkup(createElement(WorkSummary, { ...summaryProps, ...props }))
 
 describe("Monthly component cards", () => {
+  it.each([
+    ["uk", "зл/год", "зл/зам", "зл/км"],
+    ["pl", "zł/godz.", "zł/zam.", "zł/km"],
+    ["en", "PLN/hr", "PLN/order", "PLN/km"],
+    ["ru", "зл/ч", "зл/зак.", "зл/км"],
+  ] as const)("renders localized rate units in %s", (lang, hour, order, km) => {
+    const html = render({ lang, translations: translations[lang], avgPerHour: "25.00", avgPerOrder: "10.00", avgPerKm: "5.00" })
+    for (const unit of [hour, order, km]) expect(html).toContain(unit)
+    expect(html).not.toContain(`>${translations[lang].work.ratePerOrder}</h3>`)
+  })
   it("shows enabled zero amounts, hides only disabled components and cards", () => {
     expect(render({ tipsPercent: "6.86" })).toContain("6,86%")
     expect(render()).not.toContain('data-testid="work-tips-percent-card"')

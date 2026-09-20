@@ -39,21 +39,22 @@ export function compareWorkPeriods(rows: Row[], month: string, today: string, op
     const selected = options.platforms ?? [...PLATFORM_KEYS]
     const source = fullMonth.filter(r => r.date >= start && r.date <= end &&
       (options.platforms === null || selected.some(p => hasPlatformActivity(r, p))))
-    if (!source.length) return { income: null, rate: null, reason: "noRecords" as ComparisonReason }
+    if (!source.length) return { income: null, rate: null, daily: null, reason: "noRecords" as ComparisonReason }
     const context = createWorkTaxContext(fullMonth, options.taxes, options.app, options.bonus)
-    if (options.netto && !context.configured) return { income: null, rate: null, reason: "taxes" as ComparisonReason }
+    if (options.netto && !context.configured) return { income: null, rate: null, daily: null, reason: "taxes" as ComparisonReason }
     // Never invent partial-month or platform-subset allocation of existing fixed fees.
     if (options.netto && context.fixedTax > 0 && (periods.current || options.platforms !== null))
-      return { income: null, rate: null, reason: "fixed" as ComparisonReason }
+      return { income: null, rate: null, daily: null, reason: "fixed" as ComparisonReason }
     const projected = source.map(r => projectShift(r, selected, context, options.netto, options.platforms === null,
       options.app, options.bonus, options.cash))
     const income = summarizeDisplayedIncome(projected).income
     const hours = projected.reduce((sum, r) => sum + r.hours, 0)
-    return { income, rate: hours > 0 && Number.isFinite(hours) ? income / hours : null, reason: null }
+    const workingDays = new Set(source.map(r => r.date)).size
+    return { income, daily: income / workingDays, rate: hours > 0 && Number.isFinite(hours) ? income / hours : null, reason: null }
   }
-  const a = blocked ? { income: null, rate: null, reason: blocked } : period(periods.start, periods.end)
-  const b = blocked ? { income: null, rate: null, reason: blocked } : period(periods.previousStart, periods.previousEnd)
+  const a = blocked ? { income: null, rate: null, daily: null, reason: blocked } : period(periods.start, periods.end)
+  const b = blocked ? { income: null, rate: null, daily: null, reason: blocked } : period(periods.previousStart, periods.previousEnd)
   const reason = blocked ?? a.reason ?? b.reason
-  return { periods, income: percentChange(a.income, b.income, reason), rate: percentChange(a.rate, b.rate, reason) }
+  return { periods, income: percentChange(a.income, b.income, reason), rate: percentChange(a.rate, b.rate, reason), daily: percentChange(a.daily, b.daily, reason) }
 }
 export type WorkComparison = ReturnType<typeof compareWorkPeriods>

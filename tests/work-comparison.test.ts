@@ -9,6 +9,28 @@ const rows = [
   { date: "2026-09-20", hours: 100, km: 1, uber: 9999 },
 ]
 describe("Work calendar comparisons", () => {
+  it("compares income per distinct working date, not calendar days or row count", () => {
+    const data = [
+      { date: "2026-08-02", hours: 1, km: 1, uber: 100 },
+      { date: "2026-09-02", hours: 1, km: 1, uber: 100 },
+      { date: "2026-09-02", hours: 1, km: 1, uber: 100 },
+      { date: "2026-09-10", hours: 1, km: 1, uber: 100 },
+    ]
+    expect(compareWorkPeriods(data, "2026-09", "2026-09-20", options).daily).toMatchObject({ current: 150, previous: 100, percent: 50 })
+    for (const [amount, percent] of [[0, -100], [50, -50], [100, 0], [200, 100]]) {
+      expect(compareWorkPeriods([data[0], { ...data[1], uber: amount }], "2026-09", "2026-09-20", options).daily.percent).toBe(percent)
+    }
+    expect(compareWorkPeriods([{ ...data[0], uber: 0 }, data[1]], "2026-09", "2026-09-20", options).daily.reason).toBe("base")
+  })
+  it("shares income filters, taxes and unavailable rules with the daily comparison", () => {
+    const added = [...rows, { date: "2026-08-01", hours: 1, km: 1, wolt: 100 }]
+    expect(compareWorkPeriods(added, "2026-09", "2026-09-20", options).daily.previous).toBe(130)
+    expect(compareWorkPeriods(added, "2026-09", "2026-09-20", { ...options, platforms: ["uber"], app: false, cash: false, bonus: false }).daily).toMatchObject({ current: 200, previous: 100, percent: 100 })
+    expect(compareWorkPeriods(rows, "2026-09", "2026-09-20", { ...options, netto: true }).daily).toMatchObject({ current: 292, previous: 146 })
+    for (const state of ["loading", "error"] as const) expect(compareWorkPeriods(rows, "2026-09", "2026-09-20", { ...options, state }).daily.reason).toBe(state)
+    expect(compareWorkPeriods([], "2026-09", "2026-09-20", options).daily.reason).toBe("noRecords")
+    expect(compareWorkPeriods(rows, "2026-09", "2026-09-20", { ...options, netto: true, taxes: null }).daily.reason).toBe("taxes")
+  })
   it("uses local date getters, not UTC date conversion", () => {
     expect(localCalendarDate(new Date(2026, 8, 20, 0, 1))).toBe("2026-09-20")
   })

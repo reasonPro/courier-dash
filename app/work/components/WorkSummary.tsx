@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import type { WorkLanguage, WorkTranslations } from "../work-page.types";
 import { workViewTranslations } from "../../../lib/work-view-translations";
-import { comparisonTranslations } from "../../../lib/work-comparison-translations";
+import { comparisonTranslations, metricTranslations } from "../../../lib/work-comparison-translations";
 import type { WorkComparison } from "../../../lib/work-comparison";
 import { WorkComparisonBadge } from "./WorkComparisonBadge";
 
@@ -59,6 +59,7 @@ export function WorkSummary({
   translations: t,
 }: WorkSummaryProps) {
   const copy = workViewTranslations[lang];
+  const units = metricTranslations[lang];
   const money = (value: number) => moneyUnavailable ? "—" : value.toFixed(2);
   const showTips = includeAppTips || includeCashTips;
   const cardCount = 4 + (showTips ? 1 : 0) + (includeBonuses ? 1 : 0);
@@ -123,23 +124,24 @@ export function WorkSummary({
 
       <div className="mb-8">
         <span className="text-xs font-semibold text-gray-500 tracking-wider uppercase mb-2 block">{t.work.avgStatsTitle} {isNetto && <span className="text-blue-400">({t.work.netto})</span>}</span>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 [&>div]:min-w-0 [&>div]:[overflow-wrap:anywhere]">
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2 [&>div]:min-w-0 [&>div]:[overflow-wrap:anywhere] [&_p>span]:whitespace-nowrap">
           <div className={`bg-[#1e1e24] p-3 rounded-xl border border-gray-800 text-center border-b-2 shadow-sm ${isNetto ? 'border-blue-500/50' : 'border-green-500/50'}`}>
             <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{t.work.incomePerDay}</h3>
             <p className={`text-lg font-bold ${isNetto ? 'text-blue-400' : 'text-green-400'}`}>{avgEarnedPerDay} <span className="text-[10px] font-normal">{t.common.currency}</span></p>
+            {comparison && <WorkComparisonBadge comparison={comparison} metric="daily" lang={lang} />}
           </div>
           <div className="bg-[#1e1e24] p-3 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
             <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{t.work.ratePerHour}</h3>
-            <p className="text-lg font-bold text-white">{avgPerHour} <span className="text-[10px] font-normal text-gray-500">{avgPerHour !== "—" && t.common.currency}</span></p>
+            <p className="text-lg font-bold text-white">{avgPerHour} <span className="text-xs font-normal text-gray-400">{avgPerHour !== "—" && units.hour}</span></p>
             {comparison && <WorkComparisonBadge comparison={comparison} metric="rate" lang={lang} />}
           </div>
           <div className="bg-[#1e1e24] p-3 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
-            <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{t.work.ratePerOrder}</h3>
-            <p className="text-lg font-bold text-blue-400">{avgPerOrder} <span className="text-[10px] font-normal text-gray-500">{avgPerOrder !== "—" && t.common.currency}</span></p>
+            <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{units.rate}</h3>
+            <p className="text-lg font-bold text-blue-400">{avgPerOrder} <span className="text-xs font-normal text-gray-400">{avgPerOrder !== "—" && units.order}</span></p>
           </div>
           <div className="bg-[#1e1e24] p-3 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
             <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{t.work.effPerKm}</h3>
-            <p className="text-lg font-bold text-purple-400">{avgPerKm} <span className="text-[10px] font-normal text-gray-500">{avgPerKm !== "—" && t.common.currency}</span></p>
+            <p className="text-lg font-bold text-purple-400">{avgPerKm} <span className="text-xs font-normal text-gray-400">{avgPerKm !== "—" && units.km}</span></p>
           </div>
           <div className="bg-[#1e1e24] p-3 rounded-xl border border-gray-800 text-center flex flex-col justify-center">
             <h3 className="text-gray-400 text-[10px] uppercase tracking-wider mb-1">{t.work.ordersPerDay}</h3>
