@@ -1,6 +1,18 @@
 # CourierDash Web — поточний стан
 
+## Release continuation — 2026-09-20
+
+Поточний code HEAD `6ba260b` повторно пройшов 120 focused/contract tests, typecheck, focused lint та diff check. Desktop 1440 px підтверджує компактні monthly cards 3×2; середні показники збережені в одному рядку. Фінальний build і remote Preview ще перевіряються.
+
+Production password перевірено без reset. Приватний logical backup від 15:03 UTC відновлено в окремий network-isolated PostgreSQL: 47/47 row counts/content digests та public metadata counts збігаються. Backup/credentials не зберігаються в repository. Це point-in-time копія, не PITR; перед Production migration актуальність перевіряється повторно. Local restore потребував адаптації managed role grantor; це не змінює Production roles.
+
+Staging `52e93ed81919` ACTIVE_HEALTHY: застосована тільки `202609160001_add_pyszne_platform` із canonical version, сімома columns і двома constraints. Production migration ще не виконана. Vercel вимагає існуючу remote branch для Preview overrides: перший feature push тимчасово вимикає автоматичний deployment лише `feat/platform-filter-netto`, потім налаштовуються branch-scoped Staging variables та автодеплой відновлюється. Shared Production variables не змінюються.
+
+Цей запис замінює застарілі статуси blocker нижче; Garage → Expenses залишається відкладено.
+
 ## Завершення одиниць та income/day — 2026-09-20, release pending
+
+Оновлення після входу власника: Vercel CLI авторизований, project `courier-dash` доступний. Metadata environment показує спільні `NEXT_PUBLIC_SUPABASE_URL` та `NEXT_PUBLIC_SUPABASE_ANON_KEY` для Production/Preview, без branch override; значення не розшифровувалися. Preview → Staging ще не підтверджено, спільні Production variables не змінювалися. Повторний read-only metadata SELECT підтвердив однакову history Staging/Production: 202607220000, 202607230001, 202607240001, 202608020001, 202608020002, 202608090001, 202608130001, 202608140001, 202608150001. Полів Pyszne в обох remote schemas немає. API Production backups знову повернув 0, PITR false; verified backup/restore залишається blocker. Remote writes і deployment не виконані. Це оновлення замінює наведений нижче історичний статус очікування Vercel login.
 
 Уточнено локалізовані одиниці погодинної ставки, ставки за замовлення та ефективності. Додано третій спільний comparison badge: дохід кожного періоду / кількість унікальних робочих дат, без подвійного підрахунку кількох змін одного дня. Основний місячний результат і фінансові правила не змінено.
 
