@@ -1,10 +1,11 @@
 # Shared Contract Changelog
 
-## Local Work/Pyszne delta — 2026-09-16 (not released)
+## Local Work/Pyszne delta — updated 2026-09-20 (not released)
 
 - Real Work history has its independent, non-persisted BRUTTO/NETTO mode and a shared monthly platform filter. Cash tips are preserved, shared hours/distance and fixed fees are not allocated to subsets.
 - Pyszne extends the existing platform model and tax form; Stuart/Other and old recorded values are retained. Contract-owned fields: `types/work.ts`; local migration: `202609160001_add_pyszne_platform.sql`.
-- Remote schema compatibility and local database execution are unverified: Staging project metadata reported `INACTIVE`, and no local PostgreSQL/Docker runtime was available. Existing generated database types and the last verified schema revision are unchanged. This is not a remote rollout or Mobile handoff.
+- Local Docker migration execution and authenticated synthetic Pyszne create/read/reload/update are verified. Staging was restored from pause to `ACTIVE_HEALTHY`; metadata/history through `202608150001` inspected, Pyszne still absent. Remote migration execution and old/new client compatibility remain unverified. Existing generated database types and the last verified schema revision are unchanged. This is not a remote rollout or Mobile handoff.
+- Approved statistics settings panel groups the existing platform, tips/bonuses and upper BRUTTO/NETTO/tax controls without duplicate controls; the lower history mode stays independent. Native accessible information popover includes UK/PL/EN/RU copy, keyboard/focus handling and mobile layout. Focused tests, typecheck, focused lint and Webpack build pass; remote Preview remains blocked by Vercel authentication and Production additionally by the backup/restore gate.
 - The task-only `/work-demo` was removed in favor of real `/work` and `/expenses`. Garage integration remains paused and absent from this branch.
 
 ## 0.3.0-draft Expenses production reconciliation — 2026-08-14

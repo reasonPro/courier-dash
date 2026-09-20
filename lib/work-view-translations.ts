@@ -1,5 +1,14 @@
 export const workViewTranslations = {
   uk: {
+    statisticsHelpLabel: "Про налаштування статистики",
+    statisticsHelpTitle: "Налаштуйте статистику під себе",
+    statisticsHelpParagraphs: [
+      "Переглядайте результати всіх платформ разом або виберіть потрібні. У списку показані платформи, для яких є записи за вибраний місяць.",
+      "Вибір платформ застосовується до показників, кращого дня, графіка та історії змін. Також можна враховувати або приховувати чайові й бонуси та перемикати верхні показники між BRUTTO і NETTO.",
+      "Історія змін має власний перемикач BRUTTO/NETTO. Вибір способу відображення не змінює збережені записи.",
+    ],
+    statisticsSettings: "Налаштування статистики", includeInIncome: "Враховувати в доході",
+    metricsAndChart: "Показники та графік", taxSettingsAction: "Податки", month: "Місяць",
     platforms: "Платформи", all: "Усі",
     shared: "Години й пробіг спільні для зміни. Для частини платформ ці показники недоступні.",
     fixed: "NETTO для частини платформ недоступне: спільні фіксовані відрахування не розподілені.",
@@ -7,6 +16,15 @@ export const workViewTranslations = {
     taxes: "Налаштуйте податки, щоб переглянути NETTO.",
   },
   pl: {
+    statisticsHelpLabel: "Informacje o ustawieniach statystyk",
+    statisticsHelpTitle: "Dostosuj statystyki do siebie",
+    statisticsHelpParagraphs: [
+      "Przeglądaj wyniki wszystkich platform razem lub wybierz konkretne. Lista pokazuje platformy, dla których są wpisy w wybranym miesiącu.",
+      "Wybór platform dotyczy wskaźników, najlepszego dnia, wykresu i historii zmian. Możesz też uwzględniać lub ukrywać napiwki i bonusy oraz przełączać górne wskaźniki między BRUTTO i NETTO.",
+      "Historia zmian ma własny przełącznik BRUTTO/NETTO. Zmiana sposobu wyświetlania nie zmienia zapisanych danych.",
+    ],
+    statisticsSettings: "Ustawienia statystyk", includeInIncome: "Uwzględnij w dochodzie",
+    metricsAndChart: "Wskaźniki i wykres", taxSettingsAction: "Podatki", month: "Miesiąc",
     platforms: "Platformy", all: "Wszystkie",
     shared: "Godziny i dystans dotyczą całej zmiany. Dane dla części platform są niedostępne.",
     fixed: "NETTO dla części platform jest niedostępne: wspólne opłaty stałe nie zostały rozdzielone.",
@@ -14,6 +32,15 @@ export const workViewTranslations = {
     taxes: "Skonfiguruj podatki, aby zobaczyć NETTO.",
   },
   en: {
+    statisticsHelpLabel: "About statistics settings",
+    statisticsHelpTitle: "Make statistics work for you",
+    statisticsHelpParagraphs: [
+      "View results for all platforms together or select the ones you need. The list shows platforms with records for the selected month.",
+      "Platform selection applies to metrics, the best day, the chart and shift history. You can also include or hide tips and bonuses and switch the upper metrics between BRUTTO and NETTO.",
+      "Shift history has its own BRUTTO/NETTO switch. Changing the display mode does not change saved records.",
+    ],
+    statisticsSettings: "Statistics settings", includeInIncome: "Include in income",
+    metricsAndChart: "Metrics and chart", taxSettingsAction: "Taxes", month: "Month",
     platforms: "Platforms", all: "All",
     shared: "Hours and distance belong to the whole shift. They are unavailable for a subset of platforms.",
     fixed: "NET income for a subset is unavailable: shared fixed deductions have not been allocated.",
@@ -21,6 +48,15 @@ export const workViewTranslations = {
     taxes: "Set up taxes to view NET income.",
   },
   ru: {
+    statisticsHelpLabel: "О настройках статистики",
+    statisticsHelpTitle: "Настройте статистику под себя",
+    statisticsHelpParagraphs: [
+      "Просматривайте результаты всех платформ вместе или выберите нужные. В списке показаны платформы, для которых есть записи за выбранный месяц.",
+      "Выбор платформ применяется к показателям, лучшему дню, графику и истории смен. Также можно учитывать или скрывать чаевые и бонусы и переключать верхние показатели между BRUTTO и NETTO.",
+      "История смен имеет собственный переключатель BRUTTO/NETTO. Выбор способа отображения не изменяет сохранённые записи.",
+    ],
+    statisticsSettings: "Настройки статистики", includeInIncome: "Учитывать в доходе",
+    metricsAndChart: "Показатели и график", taxSettingsAction: "Налоги", month: "Месяц",
     platforms: "Платформы", all: "Все",
     shared: "Часы и пробег общие для смены. Для части платформ эти показатели недоступны.",
     fixed: "НЕТТО для части платформ недоступно: общие фиксированные удержания не распределены.",

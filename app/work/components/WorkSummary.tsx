@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { WorkTranslations } from "../work-page.types";
 
 type WorkSummaryProps = {
-  platformFilter?: ReactNode;
+  notices?: ReactNode;
   moneyUnavailable?: boolean;
   avgEarnedPerDay: string;
   avgHoursPerDay: string;
@@ -24,7 +24,7 @@ type WorkSummaryProps = {
 };
 
 export function WorkSummary({
-  platformFilter,
+  notices,
   moneyUnavailable = false,
   avgEarnedPerDay,
   avgHoursPerDay,
@@ -66,7 +66,7 @@ export function WorkSummary({
 
       <div className="mb-4">
         <span className="text-xs font-semibold text-gray-500 tracking-wider uppercase mb-2 block">{t.work.totalMonthTitle} {isNetto && <span className="text-blue-400">({t.work.netto})</span>}</span>
-        {platformFilter}
+        {notices}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
           <div className="col-span-2 sm:col-span-1 bg-gradient-to-br from-[#1e1e24] to-[#252530] p-4 rounded-xl border border-gray-800 text-center shadow-md relative overflow-hidden">
             {isNetto && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>}

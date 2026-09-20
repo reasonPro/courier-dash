@@ -1,8 +1,8 @@
 # CourierDash Web ↔ Mobile Integration
 
-## Local Web Pyszne / Work view delta (2026-09-16)
+## Local Web Pyszne / Work view delta (2026-09-20)
 
-Mobile is paused; no Mobile repository was accessed. Future catch-up must include the Pyszne fields in `docs/shared/types/work.ts`, independent history BRUTTO/NETTO, the shared platform filter, preserved cash tips and unavailable subset/shared-cost semantics. See `docs/shared/API_CONTRACT.md` and `BUSINESS_RULES.md`. Migration `202609160001` is local and unverified, not a deployed schema promise. Garage integration remains separate and deferred.
+Mobile is paused; no Mobile repository was accessed. Future catch-up must include the Pyszne fields in `docs/shared/types/work.ts`, independent history BRUTTO/NETTO, the shared platform filter, preserved cash tips and unavailable subset/shared-cost semantics. See `docs/shared/API_CONTRACT.md` and `BUSINESS_RULES.md`. Migration `202609160001` and authenticated synthetic CRUD are verified on the isolated local Docker database, not remotely deployed. Staging was restored to `ACTIVE_HEALTHY`, with migration history through `202608150001`; Pyszne rollout and old/new client compatibility tests remain pending. Mobile parity is not verified. Garage integration remains separate and deferred.
 
 ## Призначення документа
 

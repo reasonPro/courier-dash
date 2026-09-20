@@ -1,5 +1,24 @@
 # CourierDash Web — поточний стан
 
+## Поточний реліз Work / Pyszne — 2026-09-20
+
+Статус: **локальна перевірка виконана частково; remote rollout заблокований**. Гілка `feat/platform-filter-netto`, основа `origin/main` — `c38e23e2ec3199bd5ddf5daf8b2705966304bdb7`. Нижче збережено історичний snapshot від 2026-07-29; він не є актуальним статусом цього релізу.
+
+- Scope: незалежний BRUTTO/NETTO історії, спільний фільтр платформ, cash tips поза відсотковою базою, Pyszne та його податки, панель «Налаштування статистики», доступна інформаційна підказка UK/PL/EN/RU. Garage → Expenses не включено.
+- На ізольованій локальній Supabase застосована `202609160001_add_pyszne_platform.sql`. На справжньому `/work` перевірено створення, читання після reload та редагування synthetic Pyszne; перемикачі незалежні. При доході 2200 PLN, cash tips 50 PLN та ставці 12% NETTO становить 1942 PLN, cash tips залишаються 50 PLN. Контрольний новий запис існує лише в локальному тестовому акаунті.
+- Focused Work/Pyszne/platform/Expenses-summary/annual tests: 65 PASS; typecheck, focused release lint і production-equivalent Webpack build: PASS. Підказка перевірена мишею, клавіатурою, Escape, повторним натисканням і натисканням поза нею; mobile 390 px. Це не замінює майбутню Staging/Preview перевірку.
+- `courier-dash-staging`, fingerprint `52e93ed81919`, відновлено з паузи без зміни тарифу; `ACTIVE_HEALTHY`. Remote history містить 9 migrations до `202608150001`; Pyszne відсутній. Remote migration у цьому запуску не застосовувалась; generated types не перегенеровувались.
+- Preview BLOCKED: наявна Vercel CLI авторизація відхилена (`invalidToken`). Scope Preview environment ще не підтверджений; push/PR/deployment не виконано, щоб не запустити Preview з неперевіреною базою.
+- Production BLOCKED: API backups повернув порожній список, PITR вимкнений; актуальна резервна копія та перевірене відновлення ще не забезпечені. Production schema/data не змінювалися. Mobile parity не підтверджено; Mobile catch-up відкладено.
+
+### Обов'язкові умови продовження
+
+Відновити Vercel sign-in локально, не передаючи token у чат; підтвердити branch-scoped Preview → Staging, застосувати лише перевірену Pyszne migration із канонічною версією та виконати Staging/Preview сценарії. Production не починати до завершення цих перевірок і backup/restore gate.
+
+Відкат Web означає повернення попереднього сумісного deployment зі збереженням additive Pyszne schema. Це **не** відновлення даних. При інциденті даних спочатку зберегти поточний стан і нові записи після backup, відновити backup в ізольоване середовище та звірити відновлення; не перезаписувати живу базу старою копією і не видаляти нові Pyszne поля. Ця процедура поки не перевірена практично й не є дозволом обійти backup gate.
+
+## Історичний snapshot — 2026-07-29
+
 ## Остання перевірка
 
 - Дата: 2026-07-29.

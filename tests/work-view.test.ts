@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs"
 import { calculateMonthlyWorkFinance, createWorkTaxContext, displayedPlatformMetrics, type WorkTaxSettings } from "../lib/work-finance"
 import { availablePlatforms, hasPlatformActivity, projectShift, togglePlatform } from "../lib/work-view"
 import { getShiftPlatformTotals } from "../lib/work-platforms"
+import { workViewTranslations } from "../lib/work-view-translations"
 
 const tax: WorkTaxSettings = {
   uber_type: "percent", uber_val: 10, wolt_type: "percent", wolt_val: 20,
@@ -82,5 +83,74 @@ describe("Shared platform filter", () => {
     expect(page).toContain("grossKnown={allPlatforms &&")
     expect(page).toContain("if (allPlatforms) chartDatasets.push")
     expect(page).toContain("!allPlatforms && taxContext.fixedTax > 0")
+  })
+})
+
+describe("Statistics settings panel", () => {
+  it("places each existing control once before the summary and preserves its state handlers", () => {
+    const page = readFileSync("app/work/page.tsx", "utf8")
+    const filters = readFileSync("app/work/components/WorkFilters.tsx", "utf8")
+    const summary = readFileSync("app/work/components/WorkSummary.tsx", "utf8")
+    const settings = page.slice(page.indexOf("<WorkFilters"), page.indexOf("<WorkSummary"))
+    expect(page.match(/<WorkPlatformFilter\b/g)).toHaveLength(1)
+    expect(settings).toContain("<WorkPlatformFilter")
+    expect(settings).toContain("onChange={values => setPlatformSelection({ month: selectedMonth, values })}")
+    expect(settings).toContain("onIncludeTipsChange={setIncludeTips}")
+    expect(settings).toContain("onIncludeBonusesChange={setIncludeBonuses}")
+    expect(settings).toContain("onNettoSelect={handleNettoToggle}")
+    expect(settings).toContain("onBruttoSelect={() => setIsNetto(false)}")
+    expect(settings).toContain("onOpenTaxSettings={() => setShowTaxModal(true)}")
+    expect(page).toContain("onNettoChange={setTableNetto}")
+    expect(summary).not.toContain("platformFilter")
+    expect(summary).toContain("{notices}")
+    expect(filters.indexOf("{platformFilter}")).toBeLessThan(filters.indexOf("{copy.includeInIncome}"))
+    expect(filters.indexOf("{copy.includeInIncome}")).toBeLessThan(filters.indexOf("{copy.metricsAndChart}"))
+  })
+
+  it("keeps the panel open, uses pressed markers and native keyboard buttons, and allows wrapping", () => {
+    const filters = readFileSync("app/work/components/WorkFilters.tsx", "utf8")
+    const platforms = readFileSync("app/work/components/WorkPlatformFilter.tsx", "utf8")
+    expect(filters).toContain('aria-labelledby="work-statistics-settings"')
+    expect(filters).not.toContain("aria-expanded")
+    expect(filters).not.toMatch(/(?:max-)?h-\[/)
+    expect(filters).toContain("grid-cols-1")
+    expect(filters).toContain("focus-visible:outline")
+    expect(filters).toContain("aria-pressed={includeTips}")
+    expect(filters).toContain("aria-pressed={includeBonuses}")
+    expect(filters).toContain("aria-pressed={!isNetto}")
+    expect(filters).toContain("aria-pressed={isNetto}")
+    expect(filters).toContain('aria-haspopup="dialog" onClick={onOpenTaxSettings}')
+    expect(platforms).toContain("flex flex-wrap gap-2")
+    expect(platforms).toContain("focus-visible:outline")
+    expect(platforms).toContain("aria-pressed={selected.includes(p)}")
+    expect(platforms).toContain('selected.includes(p) && <span aria-hidden="true">✓</span>')
+    expect(platforms).toContain("onChange(togglePlatform(selected, p))")
+  })
+
+  it("has panel labels in all four supported languages", () => {
+    for (const lang of ["uk", "pl", "en", "ru"] as const) {
+      for (const key of ["statisticsSettings", "includeInIncome", "metricsAndChart", "taxSettingsAction", "month"] as const) {
+        expect(workViewTranslations[lang][key].trim()).not.toBe("")
+      }
+    }
+    expect(workViewTranslations.uk.statisticsSettings).toBe("Налаштування статистики")
+  })
+
+  it("provides localized help through a keyboard-accessible native light-dismiss popover", () => {
+    const help = readFileSync("app/work/components/WorkStatisticsHelp.tsx", "utf8")
+    expect(help).toContain('popover="auto"')
+    expect(help).toContain("popoverTarget={id}")
+    expect(help).toContain('role="dialog"')
+    expect(help).toContain("aria-expanded={open}")
+    expect(help).toContain("aria-controls={id}")
+    expect(help).toContain("content.current?.focus()")
+    expect(help).toContain("focus-visible:outline")
+    for (const lang of ["uk", "pl", "en", "ru"] as const) {
+      expect(workViewTranslations[lang].statisticsHelpLabel).not.toBe("")
+      expect(workViewTranslations[lang].statisticsHelpTitle).not.toBe("")
+      expect(workViewTranslations[lang].statisticsHelpParagraphs).toHaveLength(3)
+    }
+    expect(workViewTranslations.uk.statisticsHelpTitle).toBe("Налаштуйте статистику під себе")
+    expect(workViewTranslations.uk.statisticsHelpParagraphs[2]).toContain("не змінює збережені записи")
   })
 })

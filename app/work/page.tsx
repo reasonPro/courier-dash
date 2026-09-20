@@ -790,6 +790,11 @@ export default function WorkDashboard() {
         />
 
         <WorkFilters
+          platformFilter={
+            <WorkPlatformFilter available={available} selected={effectivePlatforms}
+              onChange={values => setPlatformSelection({ month: selectedMonth, values })}
+              lang={lang} otherLabel={t.work.otherPlatform} />
+          }
           hasTaxesConfigured={hasTaxesConfigured()}
           includeBonuses={includeBonuses}
           includeTips={includeTips}
@@ -807,10 +812,7 @@ export default function WorkDashboard() {
 
         <WorkSummary
           moneyUnavailable={isNetto && nettoUnavailable}
-          platformFilter={<>
-            <WorkPlatformFilter available={available} selected={effectivePlatforms}
-              onChange={values => setPlatformSelection({ month: selectedMonth, values })}
-              lang={lang} otherLabel={t.work.otherPlatform} />
+          notices={<>
             {!allPlatforms && <p className="mb-3 text-xs text-gray-400">{viewCopy.shared}</p>}
             {isNetto && nettoUnavailable && <p role="status" className="mb-3 text-xs text-amber-300">{taxContext.configured ? viewCopy.fixed : viewCopy.taxes}</p>}
           </>}

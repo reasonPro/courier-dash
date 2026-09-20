@@ -54,7 +54,7 @@
     },
     {
       "path": "docs/shared/SCHEMA_POLICY.md",
-      "sha256": "9b93ca1b5703d02baa2508f63f553b38dfd5541609d0a1f3f87e8e589c3453bb",
+      "sha256": "c3b1ffbf1846634bdfa8276629a98482e251a73060a63f7b1f37f858a5d106a7",
       "status": "present",
       "sourceRefs": [
         "supabase/schema.snapshot.json",
@@ -168,7 +168,7 @@
     },
     {
       "path": "docs/shared/CHANGELOG.md",
-      "sha256": "801dce0311ee0102215804739c0c1bedeab3c2fccf3190ac449c3b3e411c4956",
+      "sha256": "87be0fbcb74a981772cab081a29b319b860dcba4a81966a746e7732bda3e6492",
       "status": "present",
       "sourceRefs": [
         "docs/shared"
@@ -341,7 +341,7 @@
     },
     {
       "path": "docs/MOBILE_INTEGRATION.md",
-      "sha256": "7b2b1ff72a93911f4c8fc8beaf7708b96ac8e2fe3babe89d654a3caa532329cd",
+      "sha256": "19bcab3e94c1c51f62d141fbbc2964abd13ce37c6eab6d29e14dfdd3dae8a06d",
       "status": "present",
       "sourceRefs": [
         "docs/shared/GARAGE_CONTRACT.md",
@@ -627,13 +627,13 @@
   "blockers": [
     {
       "id": "RISK-016",
-      "area": "local_pyszne_schema_and_authenticated_verification",
+      "area": "pyszne_remote_rollout_and_compatibility_verification",
       "severity": "blocker",
       "status": "open",
-      "description": "Pyszne is a local additive change only. Staging metadata reported INACTIVE on 2026-09-16; no isolated local Supabase runtime was confirmed. Top-level schema revision and generated types remain the previous verified baseline, not evidence for this draft.",
+      "description": "Pyszne migration and authenticated synthetic create/read/reload/update are locally verified in Docker. On 2026-09-20 Staging was restored to ACTIVE_HEALTHY; read-only history through 202608150001 and absence of Pyszne fields were confirmed. Remote migration and client compatibility remain pending; Preview authorization and Production backup/restore gates are unresolved. Top-level schema revision and generated types remain the previous verified baseline, not evidence for Pyszne rollout.",
       "blocksFlows": ["work", "statistics", "reports"],
       "evidenceRefs": ["supabase/migrations/202609160001_add_pyszne_platform.sql", "docs/shared/types/work.ts", "docs/WORKFLOW.md"],
-      "requiredResolution": "Verify remote metadata when authorized target is available; validate migration and authenticated CRUD on an isolated test database, regenerate types and verify real Work/Expenses UI before any rollout. Mobile catch-up is deferred."
+      "requiredResolution": "Restore Vercel authorization; verify branch-scoped Preview uses Staging, apply only the canonical Pyszne migration, verify old/new client compatibility and authenticated Staging/Preview flows, and regenerate types from the verified target. Before Production, verify an actual backup/restore path. Mobile catch-up is deferred, not parity-verified."
     },
     {
       "id": "RISK-001",
