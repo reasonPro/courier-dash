@@ -2,6 +2,8 @@
 
 ## Release continuation — 2026-09-20
 
+Staging Preview overrides для `feat/platform-filter-netto` створені й перевірені (тільки URL/anon key, fingerprint `52e93ed81919`). Тимчасовий deployment gate знято після перевірки; Production/shared variables не змінені. Public database types регенеровано зі Staging: додано тільки сім очікуваних Pyszne fields у Row/Insert/Update і generator formatting. Повний повторний набір 217/217 tests, typecheck, focused lint, Webpack build і diff check — PASS. Попередній concurrent run мав один 5s timeout contract-тесту, окремий повтор пройшов без змін тесту. Browser widths 320/390/768/1440 з усіма/прихованими картками: no overflow; незалежний history BRUTTO збережений при summary NETTO.
+
 Поточний code HEAD `6ba260b` повторно пройшов 120 focused/contract tests, typecheck, focused lint та diff check. Desktop 1440 px підтверджує компактні monthly cards 3×2; середні показники збережені в одному рядку. Фінальний build і remote Preview ще перевіряються.
 
 Production password перевірено без reset. Приватний logical backup від 15:03 UTC відновлено в окремий network-isolated PostgreSQL: 47/47 row counts/content digests та public metadata counts збігаються. Backup/credentials не зберігаються в repository. Це point-in-time копія, не PITR; перед Production migration актуальність перевіряється повторно. Local restore потребував адаптації managed role grantor; це не змінює Production roles.
