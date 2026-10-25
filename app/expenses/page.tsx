@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { LocalizedMonthPicker } from "../components/LocalizedMonthPicker"
 import { useEffect, useMemo, useState } from "react"
 
 import { useLanguage } from "../../context/LanguageContext"
@@ -283,17 +284,16 @@ export default function ExpensesPage() {
         ) : (
           <>
             <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-              <label className="text-xs font-bold uppercase tracking-wide text-gray-400">
+              <div className="text-xs font-bold uppercase tracking-wide text-gray-400">
                 {copy.selectedMonth}
-                <input
-                  className="mt-1 block rounded-xl border border-gray-700 bg-[#1e1e24] px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-500"
-                  onInput={(event) =>
-                    setSelectedMonth(event.currentTarget.value)
-                  }
-                  type="month"
+                <LocalizedMonthPicker
+                  lang={lang}
+                  label={copy.selectedMonth}
+                  className="mt-1 w-[14rem] max-w-full rounded-xl border border-gray-700 bg-[#1e1e24] px-3 py-1.5 text-sm normal-case text-white"
+                  onChange={setSelectedMonth}
                   value={selectedMonth}
                 />
-              </label>
+              </div>
               <button
                 className="relative rounded-xl border border-gray-700 bg-[#1e1e24] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800"
                 onClick={() => setFilterOpen(true)}
