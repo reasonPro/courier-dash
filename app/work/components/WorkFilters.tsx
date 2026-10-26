@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LocalizedMonthPicker } from "../../components/LocalizedMonthPicker";
 import type { ReactNode } from "react";
 import { workViewTranslations } from "../../../lib/work-view-translations";
 import { WorkStatisticsHelp } from "./WorkStatisticsHelp";
@@ -51,11 +52,11 @@ export function WorkFilters({
     <>
       <div className="mb-4 bg-[#1e1e24] border border-gray-800 rounded-xl p-4 md:p-5 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-xl md:text-2xl font-bold text-white">{t.work.statsTitle}</h2>
-        <div className="flex min-w-0 items-center gap-2 w-full sm:w-auto">
-          <Link href="/work/year" className={`min-w-0 flex-1 sm:flex-none text-center bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white px-4 py-2.5 rounded-lg font-medium transition text-sm ${focus}`}>
+        <div className="flex min-w-0 flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
+          <Link href="/work/year" className={`min-w-[7rem] flex-1 sm:flex-none text-center bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white px-4 py-2.5 rounded-lg font-medium transition text-sm ${focus}`}>
             {t.work.yearReportBtn}
           </Link>
-          <input type="month" aria-label={copy.month} value={selectedMonth} onChange={(e) => onSelectedMonthChange(e.target.value)} className={`w-[12.5rem] max-w-full min-w-0 shrink sm:w-auto bg-[#2a2a35] border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-green-500 font-medium text-center appearance-none ${focus}`} />
+          <LocalizedMonthPicker lang={lang} label={copy.month} value={selectedMonth} onChange={onSelectedMonthChange} className="w-[13.5rem] max-w-full min-w-0 shrink-0 bg-[#2a2a35] border border-gray-700 rounded-lg px-3 py-1 text-white font-medium" />
         </div>
       </div>
 
