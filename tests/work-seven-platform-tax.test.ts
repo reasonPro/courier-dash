@@ -121,6 +121,7 @@ describe("seven-platform compatibility", () => {
     const modal = readFileSync("app/work/components/WorkModals.tsx", "utf8")
     expect(modal).toContain('p === "other" ? t.work.otherPlatform : PLATFORM_LABELS[p]')
     expect(modal).toContain('max-h-[calc(100dvh-2rem)] overflow-y-auto')
+    expect(modal).toContain('fixed inset-0 z-[100]') // Above Work mobile actions (z-90).
     expect(modal).toContain('htmlFor={`tax-mode-${p}`}')
     for (const lang of ["uk", "pl", "en", "ru"] as const) {
       expect(translations[lang].work.otherPlatform).toBeTruthy()

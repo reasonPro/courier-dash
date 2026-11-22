@@ -122,7 +122,7 @@ export function WorkModals({
 
       {/* МОДАЛЬНЕ ВІКНО: ПОДАТКИ */}
       {showTaxModal && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl overflow-y-auto">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl overflow-y-auto">
           <div ref={taxDialogRef} role="dialog" aria-modal="true" aria-labelledby="tax-settings-title" onKeyDown={(event) => {
             if (event.key === "Escape") onCloseTaxSettings();
             if (event.key !== "Tab") return;
