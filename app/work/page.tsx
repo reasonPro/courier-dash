@@ -129,7 +129,9 @@ export default function WorkDashboard() {
   const [taxForm, setTaxForm] = useState<TaxSettings>({
     uber_type: 'none', uber_val: "", wolt_type: 'none', wolt_val: "",
     bolt_type: 'none', bolt_val: "", glovo_type: 'none', glovo_val: "",
-    pyszne_type: 'none', pyszne_val: ""
+    pyszne_type: 'none', pyszne_val: "",
+    stuart_type: 'none', stuart_val: "",
+    other_type: 'none', other_val: ""
   });
 
   const [toast, setToast] = useState<ToastMessage | null>(null);
@@ -209,7 +211,9 @@ export default function WorkDashboard() {
         wolt_type: data.wolt_type || 'none', wolt_val: data.wolt_val || "",
         bolt_type: data.bolt_type || 'none', bolt_val: data.bolt_val || "",
         glovo_type: data.glovo_type || 'none', glovo_val: data.glovo_val || "",
-        pyszne_type: data.pyszne_type || 'none', pyszne_val: data.pyszne_val || ""
+        pyszne_type: data.pyszne_type || 'none', pyszne_val: data.pyszne_val || "",
+        stuart_type: data.stuart_type || 'none', stuart_val: data.stuart_val || "",
+        other_type: data.other_type || 'none', other_val: data.other_val || ""
       });
     }
   };
@@ -264,6 +268,8 @@ export default function WorkDashboard() {
       bolt_type: taxForm.bolt_type, bolt_val: parseFloat(String(taxForm.bolt_val).replace(',', '.')) || 0,
       glovo_type: taxForm.glovo_type, glovo_val: parseFloat(String(taxForm.glovo_val).replace(',', '.')) || 0,
       pyszne_type: taxForm.pyszne_type, pyszne_val: parseFloat(String(taxForm.pyszne_val).replace(',', '.')) || 0,
+      stuart_type: taxForm.stuart_type, stuart_val: parseFloat(String(taxForm.stuart_val).replace(',', '.')) || 0,
+      other_type: taxForm.other_type, other_val: parseFloat(String(taxForm.other_val).replace(',', '.')) || 0,
     };
 
     const { error } = await supabase.from("tax_settings").update(cleanData).eq("user_id", userId);
@@ -274,7 +280,9 @@ export default function WorkDashboard() {
         wolt_type: cleanData.wolt_type, wolt_val: cleanData.wolt_val || "",
         bolt_type: cleanData.bolt_type, bolt_val: cleanData.bolt_val || "",
         glovo_type: cleanData.glovo_type, glovo_val: cleanData.glovo_val || "",
-        pyszne_type: cleanData.pyszne_type, pyszne_val: cleanData.pyszne_val || ""
+        pyszne_type: cleanData.pyszne_type, pyszne_val: cleanData.pyszne_val || "",
+        stuart_type: cleanData.stuart_type, stuart_val: cleanData.stuart_val || "",
+        other_type: cleanData.other_type, other_val: cleanData.other_val || ""
       });
       showToast(lang === "pl" ? "Zapisano pomyślnie!" : lang === "en" ? "Saved successfully!" : lang === "ru" ? "Успешно сохранено!" : "Успішно збережено!", "success");
     } else {

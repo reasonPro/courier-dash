@@ -10,7 +10,7 @@
   "generatedFromEnvironment": "production",
   "sourceWebCommit": "bf1f595f679316cf09aa5c8bf558320257df3a59",
   "schemaRevision": "202608140001",
-  "latestMigration": "202608140001",
+  "latestMigration": "202611210001",
   "generatedAt": "2026-08-14T11:37:40Z",
   "compatibility": {
     "semverRangeFormat": "npm-semver",
@@ -21,10 +21,20 @@
   },
   "artifacts": [
     {
-      "path": "docs/shared/types/work.ts",
-      "sha256": "a9e820162754da42efd9f2f2e1781aee25675b3b0ad214f5edd76cf3127e8dd0",
+      "path": "supabase/migrations/202611210001_add_stuart_other_tax_settings.sql",
+      "sha256": "901c98499fafff9cb1c17f33d5588ba6834d638f17cc1db827878bbe1e1807db",
       "status": "present",
-      "sourceRefs": ["supabase/migrations/202609160001_add_pyszne_platform.sql", "lib/work-database.ts"],
+      "sourceRefs": ["docs/shared/API_CONTRACT.md", "docs/shared/types/work.ts", "docs/STUART_OTHER_TAX_RELEASE.md"],
+      "generatedAt": "2026-11-22T00:00:00Z",
+      "stagingStatus": "verified",
+      "productionStatus": "not_applied",
+      "verificationStatus": "partially_verified"
+    },
+    {
+      "path": "docs/shared/types/work.ts",
+      "sha256": "d8445128e6db3673ab1d9f0d102bb1ef89568802c80162dcc397e8d1d61b3aee",
+      "status": "present",
+      "sourceRefs": ["supabase/migrations/202609160001_add_pyszne_platform.sql", "supabase/migrations/202611210001_add_stuart_other_tax_settings.sql", "lib/work-database.ts"],
       "generatedAt": "2026-09-19T00:00:00Z",
       "stagingStatus": "not_checked",
       "productionStatus": "not_applied",
@@ -78,7 +88,7 @@
     },
     {
       "path": "docs/shared/API_CONTRACT.md",
-      "sha256": "db4785f24ba6d2e3297434b05123539ee04892c467b96352ebdfa8df8e5dec32",
+      "sha256": "445d8bb93781e73af18a6a68c9b08076543907999a674010192c522b632e44dd",
       "status": "present",
       "sourceRefs": [
         "app",
@@ -110,7 +120,7 @@
     },
     {
       "path": "docs/shared/BUSINESS_RULES.md",
-      "sha256": "b4de7b626a68cabbb832bfb8cb6d63548cbe7fe3af2ed51ccd7d05bfd2d7fab8",
+      "sha256": "0de612e8c3525de7e04c386f64654fd6f94eaf1feffcabac2d3b71c5601900d3",
       "status": "present",
       "sourceRefs": [
         "lib/work-platforms.ts",
@@ -168,7 +178,7 @@
     },
     {
       "path": "docs/shared/CHANGELOG.md",
-      "sha256": "0ef6affa36b6b7010a0243f50a3672f069673c275268ee64567a83d9f24c964b",
+      "sha256": "3e74e96715b756b8b873822da08dc403c08421bd6334c7edef988cb7f6d98524",
       "status": "present",
       "sourceRefs": [
         "docs/shared"

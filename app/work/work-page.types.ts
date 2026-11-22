@@ -15,6 +15,10 @@ export type TaxSettings = {
   glovo_val: number | string;
   pyszne_type: string;
   pyszne_val: number | string;
+  stuart_type: string;
+  stuart_val: number | string;
+  other_type: string;
+  other_val: number | string;
 };
 
 export type FieldSettings = {

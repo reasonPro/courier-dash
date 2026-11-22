@@ -1,4 +1,4 @@
-import type { FormEventHandler } from "react";
+import { useEffect, useRef, type FormEventHandler } from "react";
 import { TAX_PLATFORM_KEYS, PLATFORM_LABELS } from "../../../lib/work-platforms";
 
 import type {
@@ -66,6 +66,13 @@ export function WorkModals({
   taxForm,
   translations: t,
 }: WorkModalsProps) {
+  const taxDialogRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!showTaxModal) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    taxDialogRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+    return () => previousFocus?.focus();
+  }, [showTaxModal]);
   return (
     <>
       {/* КАСТОМНЕ ВІКНО ПІДТВЕРДЖЕННЯ ВИДАЛЕННЯ */}
@@ -115,18 +122,26 @@ export function WorkModals({
 
       {/* МОДАЛЬНЕ ВІКНО: ПОДАТКИ */}
       {showTaxModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl overflow-y-auto">
-          <div className="bg-[#1e1e24] border border-gray-800 rounded-2xl w-full max-w-2xl p-6 md:p-8 relative shadow-2xl my-8">
-            <button onClick={onCloseTaxSettings} className="absolute top-4 right-4 text-gray-500 hover:text-white transition text-xl">✕</button>
-            <h2 className="text-2xl font-black text-white mb-2">{t.work.taxModalTitle}</h2>
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl overflow-y-auto">
+          <div ref={taxDialogRef} role="dialog" aria-modal="true" aria-labelledby="tax-settings-title" onKeyDown={(event) => {
+            if (event.key === "Escape") onCloseTaxSettings();
+            if (event.key !== "Tab") return;
+            const controls = event.currentTarget.querySelectorAll<HTMLElement>("button:not(:disabled), select:not(:disabled), input:not(:disabled)");
+            const first = controls[0], last = controls[controls.length - 1];
+            if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+          }} className="bg-[#1e1e24] border border-gray-800 rounded-2xl w-full max-w-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto p-4 sm:p-6 md:p-8 relative shadow-2xl">
+            <button type="button" aria-label={t.common.cancel} onClick={onCloseTaxSettings} className="absolute top-4 right-4 w-10 h-10 text-gray-500 hover:text-white focus-visible:outline-2 focus-visible:outline-blue-500 transition text-xl">✕</button>
+            <h2 id="tax-settings-title" className="text-2xl font-black text-white mb-2 pr-10">{t.work.taxModalTitle}</h2>
             <p className="text-gray-400 text-sm mb-6 leading-relaxed">{t.work.taxModalDesc}</p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               {TAX_PLATFORM_KEYS.map(p => (
                 <div key={p} className="bg-[#2a2a35] p-4 rounded-xl border border-gray-700">
-                  <span className="font-bold text-lg text-white capitalize block mb-3 border-b border-gray-600 pb-2">{PLATFORM_LABELS[p]}</span>
+                  <label htmlFor={`tax-mode-${p}`} className="font-bold text-lg text-white capitalize block mb-3 border-b border-gray-600 pb-2">{p === "other" ? t.work.otherPlatform : PLATFORM_LABELS[p]}</label>
                   <div className="space-y-3">
                     <select
+                      id={`tax-mode-${p}`}
                       value={taxForm[`${p}_type` as keyof TaxSettings]}
                       onChange={(e) => onTaxFormChange({...taxForm, [`${p}_type`]: e.target.value})}
                       className="w-full bg-[#1e1e24] border border-gray-600 rounded-lg p-3 text-white text-sm focus:border-blue-500 focus:outline-none appearance-none"
@@ -139,13 +154,14 @@ export function WorkModals({
                     {taxForm[`${p}_type` as keyof TaxSettings] !== 'none' && (
                       <div className="relative">
                         <input
+                          aria-label={`${p === "other" ? t.work.otherPlatform : PLATFORM_LABELS[p]} — ${taxForm[`${p}_type` as keyof TaxSettings] === 'percent' ? '%' : t.common.currency}`}
                           type="text" inputMode="decimal" placeholder="0"
                           value={taxForm[`${p}_val` as keyof TaxSettings]}
                           onChange={(e) => onTaxFormChange({...taxForm, [`${p}_val`]: e.target.value.replace(/[^0-9.,]/g, '')})}
                           className="w-full bg-[#1e1e24] border border-gray-600 rounded-lg p-3 text-white text-base font-bold focus:border-blue-500 focus:outline-none pl-4 pr-10 appearance-none"
                         />
                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm pointer-events-none">
-                          {taxForm[`${p}_type` as keyof TaxSettings] === 'percent' ? '%' : 'зл'}
+                          {taxForm[`${p}_type` as keyof TaxSettings] === 'percent' ? '%' : t.common.currency}
                         </span>
                       </div>
                     )}

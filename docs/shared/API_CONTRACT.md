@@ -1,5 +1,18 @@
 # API Contract
 
+## Additive Stuart / Other tax settings (2026-11-22)
+
+Migration `202611210001_add_stuart_other_tax_settings.sql` adds `stuart_type` and
+`other_type` (`text NOT NULL DEFAULT 'none'`, checked against `none`, `percent`,
+`fixed_week`, `fixed_month`) and `stuart_val` / `other_val` (`numeric NOT NULL
+DEFAULT 0`) to `public.tax_settings`. Ownership, unique `user_id`, RLS and grants
+are unchanged. Reads of older/partial settings interpret missing new fields as
+none/zero. New writers require the migration; old writers remain compatible and
+do not overwrite new fields. Display names are never persistence keys.
+
+Local and Staging migration/rollback-only ownership tests passed. Production
+application and generated-type verification are tracked in `../STUART_OTHER_TAX_RELEASE.md`.
+
 Contract version: `0.3.0-draft`
 Status: `partially_verified`
 

@@ -9,7 +9,7 @@ export const STANDARD_PLATFORM_KEYS = [
 
 export const PLATFORM_KEYS = [...STANDARD_PLATFORM_KEYS, "other"] as const
 
-export const TAX_PLATFORM_KEYS = ["uber", "wolt", "bolt", "glovo", "pyszne"] as const
+export const TAX_PLATFORM_KEYS = PLATFORM_KEYS
 
 export type StandardPlatformKey = (typeof STANDARD_PLATFORM_KEYS)[number]
 export type PlatformKey = (typeof PLATFORM_KEYS)[number]

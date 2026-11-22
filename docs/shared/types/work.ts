@@ -17,3 +17,12 @@ export type PyszneTaxColumns = {
 }
 
 export type WorkTaxMode = "none" | "percent" | "fixed_week" | "fixed_month"
+
+/** Additive tax_settings columns; requires the Stuart/Other tax migration before writes. */
+export type StuartOtherTaxColumns = {
+  /** PostgreSQL text; CHECK accepts WorkTaxMode. */
+  stuart_type: string
+  stuart_val: number
+  other_type: string
+  other_val: number
+}
