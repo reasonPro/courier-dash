@@ -1,5 +1,14 @@
 # Shared Contract Changelog
 
+## 2026-11-22 — Stuart / Other tax settings
+
+Added optional backward-compatible Stuart/Other settings to the Web contract and
+four additive database fields with none/zero defaults. Existing shared fixed-fee
+allocation, Glovo exception and weekly cap are retained by explicit owner decision.
+No annual report, leaderboard, PDF or Garage integration is included. Remote rollout
+evidence is maintained in `../STUART_OTHER_TAX_RELEASE.md`; this entry does not
+claim Production deployment before verification.
+
 ## Work comparison and combined tips — 2026-09-20 (release pending)
 
 - Tips percentage moved into the compact tips card without changing its basis.

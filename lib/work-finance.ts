@@ -19,6 +19,11 @@ export type WorkTaxSettings = {
   // Optional when reading a pre-Pyszne snapshot; absent means not configured.
   pyszne_type?: string | null
   pyszne_val?: number | string | null
+  // Missing settings keep the no-percentage/default mode; fixed fees use the shared model.
+  stuart_type?: string | null
+  stuart_val?: number | string | null
+  other_type?: string | null
+  other_val?: number | string | null
 }
 
 export type MonthlyFinanceShift = PlatformMetricSource & {

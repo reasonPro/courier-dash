@@ -1,5 +1,19 @@
 # Shared Business Rules
 
+## Stuart / Other tax settings — owner-approved extension (2026-11-22)
+
+All seven stable platform IDs use the existing tax model: `none`, `percent`,
+`fixed_week`, `fixed_month`. Stuart and Other default to `none` / `0`, never an
+inherited rate. Percentages apply independently to base income, included online
+tips and bonuses; cash tips remain unchanged. Other's editable name does not
+identify its tax settings, even when it is named Pyszne.
+
+The existing common fixed-fee allocation is retained, now including Stuart/Other
+income in the non-Glovo denominator. `none` means no own percentage/fixed fee, not
+exemption from other platforms' common fixed fees. Glovo's contribution/exemption
+and the four-active-ISO-weeks cap are unchanged; redesign is deferred. Work views
+and Expenses reuse the same monthly helper. No annual-report changes are included.
+
 ## WORK-COMPARISON-001 — owner-approved browser-local calendar (2026-09-20)
 
 Income and hourly-rate comparison badges use the user's browser calendar day (not server UTC). Current month compares days 1–N against 1–N of the previous month, where N is the smaller of elapsed completed days and previous-month length; today remains in the main monthly cards but not these badges. First-day and future-month comparisons are unavailable. Historical months compare full months, including their different lengths. Only recorded rows count; no shift/day-off inference or forecast.

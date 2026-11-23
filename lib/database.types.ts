@@ -200,8 +200,12 @@ export type Database = {
           glovo_type: string | null
           glovo_val: number | null
           id: string
+          other_type: string
+          other_val: number
           pyszne_type: string
           pyszne_val: number
+          stuart_type: string
+          stuart_val: number
           uber_type: string | null
           uber_val: number | null
           updated_at: string | null
@@ -215,8 +219,12 @@ export type Database = {
           glovo_type?: string | null
           glovo_val?: number | null
           id?: string
+          other_type?: string
+          other_val?: number
           pyszne_type?: string
           pyszne_val?: number
+          stuart_type?: string
+          stuart_val?: number
           uber_type?: string | null
           uber_val?: number | null
           updated_at?: string | null
@@ -230,8 +238,12 @@ export type Database = {
           glovo_type?: string | null
           glovo_val?: number | null
           id?: string
+          other_type?: string
+          other_val?: number
           pyszne_type?: string
           pyszne_val?: number
+          stuart_type?: string
+          stuart_val?: number
           uber_type?: string | null
           uber_val?: number | null
           updated_at?: string | null
