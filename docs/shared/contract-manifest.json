@@ -27,8 +27,8 @@
       "sourceRefs": ["docs/shared/API_CONTRACT.md", "docs/shared/types/work.ts", "docs/STUART_OTHER_TAX_RELEASE.md"],
       "generatedAt": "2026-11-22T00:00:00Z",
       "stagingStatus": "verified",
-      "productionStatus": "not_applied",
-      "verificationStatus": "partially_verified"
+      "productionStatus": "verified",
+      "verificationStatus": "verified"
     },
     {
       "path": "docs/shared/types/work.ts",
